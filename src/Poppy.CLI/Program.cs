@@ -171,6 +171,21 @@ internal static class Program {
 			}
 		}
 
+		// Write symbol file if requested
+		if (options.SymbolFile is not null) {
+			try {
+				var symbolExporter = new SymbolExporter(analyzer.SymbolTable, analyzer.Target);
+				symbolExporter.Export(options.SymbolFile);
+				if (options.Verbose) {
+					Console.WriteLine($"  Symbols: {options.SymbolFile}");
+				}
+			}
+			catch (Exception ex) {
+				Console.Error.WriteLine($"Error writing symbol file: {ex.Message}");
+				return 1;
+			}
+		}
+
 		Console.WriteLine($"Assembled {inputFile} -> {outputFile} ({code.Length} bytes)");
 		return 0;
 	}
@@ -236,6 +251,13 @@ internal static class Program {
 					}
 					break;
 
+				case "-s":
+				case "--symbols":
+					if (i + 1 < args.Length) {
+						options.SymbolFile = args[++i];
+					}
+					break;
+
 				case "-t":
 				case "--target":
 					if (i + 1 < args.Length) {
@@ -280,6 +302,7 @@ internal static class Program {
 		Console.WriteLine("  -V, --verbose        Enable verbose output");
 		Console.WriteLine("  -o, --output <file>  Output file (default: input.bin)");
 		Console.WriteLine("  -l, --listing <file> Generate listing file");
+		Console.WriteLine("  -s, --symbols <file> Generate symbol file (.nl, .mlb, .sym)");
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
@@ -314,6 +337,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Listing file path.</summary>
 	public string? ListingFile { get; set; }
+
+	/// <summary>Symbol file path.</summary>
+	public string? SymbolFile { get; set; }
 
 	/// <summary>Include search paths.</summary>
 	public List<string> IncludePaths { get; } = [];
