@@ -284,15 +284,33 @@ public sealed class Parser {
 	}
 
 	private MacroDefinitionNode ParseMacroDefinition(SourceLocation location) {
-		// Parse macro name
-		var nameToken = Expect(TokenType.Identifier, "Expected macro name after .macro");
+		// Parse macro name (allow identifiers or mnemonics - validation happens in semantic analysis)
+		Token nameToken;
+		if (Check(TokenType.Identifier)) {
+			nameToken = Advance();
+		} else if (Check(TokenType.Mnemonic)) {
+			// Allow mnemonics as macro names (will be validated as reserved words later)
+			nameToken = Advance();
+		} else {
+			throw new ParseException("Expected macro name after .macro", CurrentToken.Location);
+		}
 		var name = nameToken.Text;
 
 		// Parse parameters
+		// Support flexible syntax:
+		//   .macro name param1 param2 param3      (space-separated)
+		//   .macro name, param1, param2, param3   (comma-separated)
+		//   .macro name param1, param2, param3    (mixed)
 		var parameters = new List<string>();
+		
+		// Skip optional comma after macro name
+		Match(TokenType.Comma);
+		
+		// Parse parameters separated by spaces and/or commas
 		while (Check(TokenType.Identifier)) {
 			parameters.Add(Advance().Text);
-			if (!Match(TokenType.Comma)) break;
+			// Optional comma between parameters
+			Match(TokenType.Comma);
 		}
 
 		ExpectEndOfStatement();

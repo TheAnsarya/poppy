@@ -18,6 +18,7 @@ namespace Poppy.Core.Semantics;
 /// </remarks>
 public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private readonly SymbolTable _symbolTable;
+	private readonly MacroTable _macroTable;
 	private readonly List<SemanticError> _errors;
 	private TargetArchitecture _target;
 	private bool _targetSetFromSource;
@@ -73,7 +74,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		}
 
 		var builder = new CodeGen.INesHeaderBuilder();
-		
+
 		if (_inesPrgSize != null) builder.SetPrgRomSize(_inesPrgSize.Value);
 		if (_inesChrSize != null) builder.SetChrRomSize(_inesChrSize.Value);
 		if (_inesMapper != null) builder.SetMapper(_inesMapper.Value);
@@ -81,7 +82,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		if (_inesMirroring != null) builder.SetMirroring(_inesMirroring.Value);
 		if (_inesPrgRamSize != null) builder.SetPrgRamSize(_inesPrgRamSize.Value);
 		if (_inesChrRamSize != null) builder.SetChrRamSize(_inesChrRamSize.Value);
-		
+
 		builder.SetBatteryBacked(_inesBattery);
 		builder.SetTrainer(_inesTrainer);
 		builder.SetFourScreen(_inesFourScreen);
@@ -102,6 +103,11 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	public bool HasErrors => _errors.Count > 0;
 
 	/// <summary>
+	/// Gets the macro table.
+	/// </summary>
+	public MacroTable MacroTable => _macroTable;
+
+	/// <summary>
 	/// Gets the current address counter.
 	/// </summary>
 	public long CurrentAddress => _currentAddress;
@@ -112,6 +118,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <param name="target">The target architecture.</param>
 	public SemanticAnalyzer(TargetArchitecture target = TargetArchitecture.MOS6502) {
 		_symbolTable = new SymbolTable();
+		_macroTable = new MacroTable();
 		_errors = [];
 		_target = target;
 		_currentAddress = 0;
@@ -131,6 +138,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		// Validate all symbols are defined
 		_symbolTable.ValidateAllDefined();
 		_errors.AddRange(_symbolTable.Errors);
+		_errors.AddRange(_macroTable.Errors);
 
 		// Second pass: resolve references
 		_pass = 2;
@@ -363,6 +371,18 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitMacroDefinition(MacroDefinitionNode node) {
 		if (_pass == 1) {
+			// Convert parameter names to MacroParameter objects
+			var parameters = node.Parameters
+				.Select(p => new MacroParameter(p))
+				.ToList();
+
+			// For now, store empty token list (macro expansion will be implemented later)
+			var bodyTokens = new List<Token>();
+
+			// Define the macro in the macro table
+			_macroTable.Define(node.Name, parameters, bodyTokens, node.Location);
+
+			// Also add to symbol table for reference tracking
 			_symbolTable.Define(
 				node.Name,
 				SymbolType.Macro,
