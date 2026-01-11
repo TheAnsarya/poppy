@@ -1,0 +1,15 @@
+; Poppy Compiler v0.1.0 Listing
+; Generated: 2026-01-11 14:07:30
+
+; Symbol Table
+; ------------------------------------------------------------
+; clear_loop           = $800e      (Label)
+; forever              = $8019      (Label)
+; irq                  = $801d      (Label)
+; nmi                  = $801c      (Label)
+; PPU_CTRL             = $2000      (Constant)
+; PPU_MASK             = $2001      (Constant)
+; PPU_STATUS           = $2002      (Constant)
+; reset                = $8000      (Label)
+
+; Total code size: 32768 bytes ($8000)

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Poppy.Core", "Poppy.Core\Po
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Poppy.Tests", "Poppy.Tests\Poppy.Tests.csproj", "{0C3C67A0-4C4E-41B4-8130-E492FB2C57C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Poppy.CLI", "Poppy.CLI\Poppy.CLI.csproj", "{CAE705E0-844D-4568-9AA3-83D7DD32552D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{0C3C67A0-4C4E-41B4-8130-E492FB2C57C6}.Release|x64.Build.0 = Release|Any CPU
 		{0C3C67A0-4C4E-41B4-8130-E492FB2C57C6}.Release|x86.ActiveCfg = Release|Any CPU
 		{0C3C67A0-4C4E-41B4-8130-E492FB2C57C6}.Release|x86.Build.0 = Release|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Debug|x64.Build.0 = Debug|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Debug|x86.Build.0 = Debug|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Release|x64.ActiveCfg = Release|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Release|x64.Build.0 = Release|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CAE705E0-844D-4568-9AA3-83D7DD32552D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

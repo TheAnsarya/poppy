@@ -713,10 +713,18 @@ public sealed class ParseError
 /// <summary>
 /// Exception thrown during parsing for error recovery.
 /// </summary>
-internal class ParseException : Exception
+public class ParseException : Exception
 {
+	/// <summary>
+	/// The source location where the error occurred.
+	/// </summary>
 	public SourceLocation Location { get; }
 
+	/// <summary>
+	/// Creates a new parse exception.
+	/// </summary>
+	/// <param name="message">The error message.</param>
+	/// <param name="location">The source location.</param>
 	public ParseException(string message, SourceLocation location)
 		: base(message)
 	{
