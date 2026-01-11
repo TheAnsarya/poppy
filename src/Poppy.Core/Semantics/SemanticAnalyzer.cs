@@ -113,6 +113,18 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 		return null;
 	}
 
+	/// <summary>
+	/// Checks if an instruction is a branch instruction (uses relative addressing).
+	/// </summary>
+	private static bool IsBranchInstruction(string mnemonic)
+	{
+		return mnemonic.ToLowerInvariant() switch {
+			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
+			"bra" => true, // 65816/65C02
+			_ => false
+		};
+	}
+
 	/// <inheritdoc />
 	public object? VisitDirective(DirectiveNode node)
 	{
@@ -450,6 +462,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// </summary>
 	private int GetInstructionSize(InstructionNode node)
 	{
+		// Branch instructions are always 2 bytes (opcode + relative offset)
+		var mnemonic = node.Mnemonic;
+		if (mnemonic.Length > 2 && mnemonic[^2] == '.') {
+			mnemonic = mnemonic[..^2];
+		}
+
+		if (IsBranchInstruction(mnemonic)) {
+			return 2; // opcode + 1 byte relative offset
+		}
+
 		// Base opcode is 1 byte
 		int size = 1;
 
