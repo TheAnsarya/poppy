@@ -19,7 +19,10 @@ namespace Poppy.Core.Semantics;
 public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private readonly SymbolTable _symbolTable;
 	private readonly List<SemanticError> _errors;
-	private readonly TargetArchitecture _target;
+	private TargetArchitecture _target;
+	private bool _targetSetFromSource;
+	private string? _memoryMapping;
+	private int? _nesMapper;
 	private long _currentAddress;
 	private int _pass;
 
@@ -27,6 +30,21 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// Gets the symbol table.
 	/// </summary>
 	public SymbolTable SymbolTable => _symbolTable;
+
+	/// <summary>
+	/// Gets the current target architecture.
+	/// </summary>
+	public TargetArchitecture Target => _target;
+
+	/// <summary>
+	/// Gets the SNES memory mapping (lorom, hirom, exhirom).
+	/// </summary>
+	public string? MemoryMapping => _memoryMapping;
+
+	/// <summary>
+	/// Gets the NES mapper number.
+	/// </summary>
+	public int? NesMapper => _nesMapper;
 
 	/// <summary>
 	/// Gets all semantic errors.
@@ -73,6 +91,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		_pass = 2;
 		_currentAddress = 0;
 		program.Accept(this);
+
+		// Collect any errors from pass 2 (e.g., anonymous label resolution)
+		_errors.AddRange(_symbolTable.Errors.Skip(_errors.Count));
 	}
 
 	/// <inheritdoc />
@@ -86,13 +107,29 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitLabel(LabelNode node) {
 		if (_pass == 1) {
-			_symbolTable.Define(
-				node.Name,
-				SymbolType.Label,
-				_currentAddress,
-				node.Location);
+			// Handle anonymous labels (+ or -)
+			if (IsAnonymousLabelName(node.Name)) {
+				bool isForward = node.Name[0] == '+';
+				_symbolTable.DefineAnonymousLabel(isForward, _currentAddress, node.Location);
+			} else {
+				_symbolTable.Define(
+					node.Name,
+					SymbolType.Label,
+					_currentAddress,
+					node.Location);
+			}
 		}
 		return null;
+	}
+
+	/// <summary>
+	/// Checks if a name represents an anonymous label (all + or all -).
+	/// </summary>
+	private static bool IsAnonymousLabelName(string name) {
+		if (string.IsNullOrEmpty(name)) return false;
+		char first = name[0];
+		if (first != '+' && first != '-') return false;
+		return name.All(c => c == first);
 	}
 
 	/// <inheritdoc />
@@ -156,6 +193,36 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				HandleDefineDirective(node);
 				break;
 
+			// Target directives
+			case "target":
+				HandleTargetDirective(node);
+				break;
+
+			case "nes":
+				SetTarget(TargetArchitecture.MOS6502, node);
+				break;
+
+			case "snes":
+				SetTarget(TargetArchitecture.WDC65816, node);
+				break;
+
+			case "gb":
+			case "gameboy":
+				SetTarget(TargetArchitecture.SM83, node);
+				break;
+
+			// SNES memory mapping
+			case "lorom":
+			case "hirom":
+			case "exhirom":
+				HandleMemoryMapping(node);
+				break;
+
+			// NES mapper
+			case "mapper":
+				HandleMapperDirective(node);
+				break;
+
 			default:
 				// Visit arguments for symbol resolution
 				foreach (var arg in node.Arguments) {
@@ -201,6 +268,17 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		// Handle special identifiers
 		if (node.Name == "*" || node.Name == "$") {
 			return _currentAddress;
+		}
+
+		// Handle anonymous label references (+ or -) only in pass 2
+		if (IsAnonymousLabelName(node.Name)) {
+			if (_pass == 2) {
+				bool isForward = node.Name[0] == '+';
+				int count = node.Name.Length;
+				var address = _symbolTable.ResolveAnonymousLabel(isForward, count, _currentAddress, node.Location);
+				return address;
+			}
+			return null;
 		}
 
 		// Reference the symbol

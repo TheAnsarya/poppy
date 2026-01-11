@@ -92,6 +92,8 @@ public enum SymbolType {
 public sealed class SymbolTable {
 	private readonly Dictionary<string, Symbol> _symbols = new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<SemanticError> _errors = [];
+	private readonly List<(long Address, SourceLocation Location)> _anonymousForward = [];
+	private readonly List<(long Address, SourceLocation Location)> _anonymousBackward = [];
 	private string? _currentScope;
 
 	/// <summary>
@@ -203,6 +205,53 @@ public sealed class SymbolTable {
 					firstRef));
 			}
 		}
+	}
+
+	/// <summary>
+	/// Defines an anonymous label at the current address.
+	/// </summary>
+	/// <param name="isForward">True for + labels, false for - labels.</param>
+	/// <param name="address">The address of the label.</param>
+	/// <param name="location">The source location.</param>
+	public void DefineAnonymousLabel(bool isForward, long address, SourceLocation location) {
+		var list = isForward ? _anonymousForward : _anonymousBackward;
+		list.Add((address, location));
+	}
+
+	/// <summary>
+	/// Resolves an anonymous label reference.
+	/// </summary>
+	/// <param name="isForward">True for + references (look ahead), false for - (look back).</param>
+	/// <param name="count">Number of +/- symbols (e.g., ++ = 2).</param>
+	/// <param name="currentAddress">The current address for resolving relative references.</param>
+	/// <param name="location">The source location of the reference.</param>
+	/// <returns>The address of the anonymous label, or null if not found.</returns>
+	public long? ResolveAnonymousLabel(bool isForward, int count, long currentAddress, SourceLocation location) {
+		if (isForward) {
+			// Find the Nth + label after the current address
+			var candidates = _anonymousForward.Where(l => l.Address > currentAddress).ToList();
+			if (count <= candidates.Count) {
+				return candidates[count - 1].Address;
+			}
+			_errors.Add(new SemanticError($"Cannot find anonymous forward label (+ x{count})", location));
+			return null;
+		} else {
+			// Find the Nth - label at or before the current address
+			var candidates = _anonymousBackward.Where(l => l.Address <= currentAddress).Reverse().ToList();
+			if (count <= candidates.Count) {
+				return candidates[count - 1].Address;
+			}
+			_errors.Add(new SemanticError($"Cannot find anonymous backward label (- x{count})", location));
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Clears anonymous labels (for multi-pass compilation).
+	/// </summary>
+	public void ClearAnonymousLabels() {
+		_anonymousForward.Clear();
+		_anonymousBackward.Clear();
 	}
 
 	/// <summary>
