@@ -732,5 +732,114 @@ public class SemanticAnalyzerTests {
 		Assert.True(analyzer.HasErrors);
 		Assert.Contains(analyzer.Errors, e => e.Message.Contains("backward label"));
 	}
-}
 
+	// ========================================================================
+	// Target Directive Tests
+	// ========================================================================
+
+	[Fact]
+	public void Analyze_TargetDirective_SetsArchitecture() {
+		var source = """
+			.target snes
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.WDC65816, analyzer.Target);
+	}
+
+	[Fact]
+	public void Analyze_NesShortcut_SetsNesTarget() {
+		var source = """
+			.nes
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.MOS6502, analyzer.Target);
+	}
+
+	[Fact]
+	public void Analyze_SnesShortcut_SetsSnesTarget() {
+		var source = """
+			.snes
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.WDC65816, analyzer.Target);
+	}
+
+	[Fact]
+	public void Analyze_LoromDirective_SetsSnesMapping() {
+		var source = """
+			.snes
+			.lorom
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal("lorom", analyzer.MemoryMapping);
+	}
+
+	[Fact]
+	public void Analyze_MapperDirective_SetsNesMapper() {
+		var source = """
+			.nes
+			.mapper 1
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(1, analyzer.NesMapper);
+	}
+
+	[Fact]
+	public void Analyze_MultipleTargets_ReportsError() {
+		var source = """
+			.nes
+			.snes
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("already set"));
+	}
+
+	[Fact]
+	public void Analyze_LoromOnNes_ReportsError() {
+		var source = """
+			.nes
+			.lorom
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("SNES"));
+	}
+
+	[Fact]
+	public void Analyze_MapperOnSnes_ReportsError() {
+		var source = """
+			.snes
+			.mapper 0
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("NES"));
+	}
+}

@@ -416,6 +416,121 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		_symbolTable.Define(nameNode.Name, SymbolType.Constant, value ?? 1, node.Location);
 	}
 
+	/// <summary>
+	/// Handles .target directive with architecture argument.
+	/// </summary>
+	private void HandleTargetDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new SemanticError(
+				".target directive requires an architecture (nes, snes, gb)",
+				node.Location));
+			return;
+		}
+
+		if (node.Arguments[0] is not IdentifierNode targetNode) {
+			_errors.Add(new SemanticError(
+				".target directive requires an identifier",
+				node.Location));
+			return;
+		}
+
+		var targetName = targetNode.Name.ToLowerInvariant();
+		var target = targetName switch {
+			"nes" or "6502" => TargetArchitecture.MOS6502,
+			"snes" or "65816" => TargetArchitecture.WDC65816,
+			"gb" or "gameboy" or "sm83" => TargetArchitecture.SM83,
+			_ => (TargetArchitecture?)null
+		};
+
+		if (target is null) {
+			_errors.Add(new SemanticError(
+				$"Unknown target architecture: {targetNode.Name}",
+				node.Location));
+			return;
+		}
+
+		SetTarget(target.Value, node);
+	}
+
+	/// <summary>
+	/// Sets the target architecture.
+	/// </summary>
+	private void SetTarget(TargetArchitecture target, DirectiveNode node) {
+		// Allow setting to the same value (idempotent)
+		if (_targetSetFromSource && _target != target) {
+			_errors.Add(new SemanticError(
+				"Target architecture already set - cannot change",
+				node.Location));
+			return;
+		}
+
+		_target = target;
+		_targetSetFromSource = true;
+	}
+
+	/// <summary>
+	/// Handles SNES memory mapping directives (.lorom, .hirom, .exhirom).
+	/// </summary>
+	private void HandleMemoryMapping(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		if (_memoryMapping is not null) {
+			_errors.Add(new SemanticError(
+				"Memory mapping already set - cannot change",
+				node.Location));
+			return;
+		}
+
+		_memoryMapping = node.Name.ToLowerInvariant();
+
+		// Ensure target is SNES
+		if (_target != TargetArchitecture.WDC65816) {
+			_errors.Add(new SemanticError(
+				$".{node.Name} directive is only valid for SNES/65816 target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles .mapper directive for NES mapper selection.
+	/// </summary>
+	private void HandleMapperDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new SemanticError(
+				".mapper directive requires a mapper number",
+				node.Location));
+			return;
+		}
+
+		var mapperValue = EvaluateExpression(node.Arguments[0]);
+		if (mapperValue is null) {
+			_errors.Add(new SemanticError(
+				".mapper directive requires a constant mapper number",
+				node.Location));
+			return;
+		}
+
+		if (_nesMapper is not null) {
+			_errors.Add(new SemanticError(
+				"Mapper already set - cannot change",
+				node.Location));
+			return;
+		}
+
+		_nesMapper = (int)mapperValue;
+
+		// Ensure target is NES
+		if (_target != TargetArchitecture.MOS6502) {
+			_errors.Add(new SemanticError(
+				".mapper directive is only valid for NES/6502 target",
+				node.Location));
+		}
+	}
+
 	// ========================================================================
 	// Expression Evaluation
 	// ========================================================================
