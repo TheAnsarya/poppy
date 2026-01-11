@@ -18,43 +18,99 @@ The compiler aims to support compilation of retro game projects including Dragon
 
 ---
 
-## ✨ Features (Planned)
+## ✨ Features
 
+### Implemented ✅
 - 📝 Clean, lowercase assembly syntax
 - 🔢 `$` prefix for hexadecimal values (e.g., `$40df`)
-- 📦 Multi-file project support
-- 🔗 Include directives for code and assets
-- 🎨 Asset conversion pipeline
+- 🏷️ Labels and constants
+- 📍 `.org` directive for address setting
+- 📊 Data directives (`.byte`, `.word`, `.long`, `.fill`, `.ds`)
+- 🔀 All 6502 addressing modes
+- 📈 Automatic zero-page optimization
+- 📋 Symbol table listing output
+- 🖥️ Command-line interface
+
+### Coming Soon 🚧
+- 📦 Multi-file project support with `.include`
 - 🛠️ Macro and conditional assembly
-- 📊 Comprehensive error reporting
+- 🎯 65816 instruction set (SNES)
+- 🎮 SM83 instruction set (Game Boy)
+- 🎨 Asset conversion pipeline
+- 📊 Enhanced error reporting with context
 
 ---
 
 ## 🚀 Quick Start
 
-*Coming soon - compiler is under development*
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/poppy.git
+cd poppy
+
+# Build the compiler
+dotnet build src/
+
+# Run the compiler
+dotnet run --project src/Poppy.CLI -- --help
+```
+
+### Usage
+
+```bash
+# Basic assembly
+poppy game.asm                     # Output: game.bin
+
+# Specify output file
+poppy -o rom.nes game.asm          # Output: rom.nes
+
+# Generate listing file
+poppy -l game.lst game.asm         # Creates symbol table listing
+
+# Verbose output
+poppy -V game.asm                  # Shows compilation progress
+
+# Target different architectures
+poppy -t 6502 game.asm             # NES (default)
+poppy -t 65816 game.asm            # SNES
+poppy -t sm83 game.asm             # Game Boy
+```
+
+### Example Assembly (NES/6502)
 
 ```asm
 ; Example Poppy assembly (NES/6502)
 .org $8000
 
-reset:
-sei
-cld
-ldx #$ff
-txs
+; Constants
+PPU_CTRL = $2000
+PPU_MASK = $2001
 
-lda #$00
-sta $2000
-sta $2001
+reset:
+    sei
+    cld
+    ldx #$ff
+    txs
+
+    lda #$00
+    sta PPU_CTRL
+    sta PPU_MASK
 
 loop:
-jmp loop
+    jmp loop
 
+; Interrupt handlers
+nmi:
+irq:
+    rti
+
+; Vectors
 .org $fffa
-.dw $0000       ; nmi vector
-.dw reset       ; reset vector
-.dw $0000       ; irq vector
+.word nmi        ; NMI vector
+.word reset      ; Reset vector  
+.word irq        ; IRQ vector
 ```
 
 ---
