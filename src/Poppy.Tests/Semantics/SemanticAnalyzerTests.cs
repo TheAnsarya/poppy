@@ -842,4 +842,97 @@ public class SemanticAnalyzerTests {
 		Assert.True(analyzer.HasErrors);
 		Assert.Contains(analyzer.Errors, e => e.Message.Contains("NES"));
 	}
+
+	// ========================================================================
+	// Assertion Directive Tests
+	// ========================================================================
+
+	[Fact]
+	public void Analyze_AssertTrue_NoError() {
+		var source = """
+			.org $8000
+			.assert * == $8000, "Address should be $8000"
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
+
+	[Fact]
+	public void Analyze_AssertFalse_ReportsError() {
+		var source = """
+			.org $8000
+			.assert * < $8000, "Address should be less than $8000"
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("Address should be less than $8000"));
+	}
+
+	[Fact]
+	public void Analyze_AssertWithoutMessage_UsesDefaultMessage() {
+		var source = """
+			.org $8000
+			.assert 0
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("Assertion failed"));
+	}
+
+	[Fact]
+	public void Analyze_ErrorDirective_ReportsError() {
+		var source = """
+			.error "Custom error message"
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("Custom error message"));
+	}
+
+	[Fact]
+	public void Analyze_WarningDirective_ReportsWarning() {
+		var source = """
+			.warning "This is a warning"
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.True(analyzer.HasErrors); // Warnings currently treated as errors
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("Warning: This is a warning"));
+	}
+
+	[Fact]
+	public void Analyze_AssertWithSymbol_EvaluatesCorrectly() {
+		var source = """
+			BUFFER_SIZE = 256
+			.assert BUFFER_SIZE >= 256, "Buffer too small"
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
+
+	[Fact]
+	public void Analyze_AssertWithExpression_EvaluatesCorrectly() {
+		var source = """
+			.org $8000
+			nop
+			nop
+			nop
+			.assert * == $8003, "Should be 3 bytes after start"
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
 }

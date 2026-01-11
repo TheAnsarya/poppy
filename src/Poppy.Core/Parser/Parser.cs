@@ -412,7 +412,17 @@ public sealed class Parser {
 		var left = ParseShift();
 
 		while (true) {
-			if (Match(TokenType.LessEquals)) {
+			if (Match(TokenType.LessThan)) {
+				var location = Previous.Location;
+				var right = ParseShift();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.LessThan, right);
+			}
+			else if (Match(TokenType.GreaterThan)) {
+				var location = Previous.Location;
+				var right = ParseShift();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.GreaterThan, right);
+			}
+			else if (Match(TokenType.LessEquals)) {
 				var location = Previous.Location;
 				var right = ParseShift();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.LessOrEqual, right);

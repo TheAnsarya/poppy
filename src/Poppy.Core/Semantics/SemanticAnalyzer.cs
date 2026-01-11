@@ -223,6 +223,19 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				HandleMapperDirective(node);
 				break;
 
+			// Assertions and diagnostics
+			case "assert":
+				HandleAssertDirective(node);
+				break;
+
+			case "error":
+				HandleErrorDirective(node);
+				break;
+
+			case "warning":
+				HandleWarningDirective(node);
+				break;
+
 			default:
 				// Visit arguments for symbol resolution
 				foreach (var arg in node.Arguments) {
@@ -529,6 +542,70 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				".mapper directive is only valid for NES/6502 target",
 				node.Location));
 		}
+	}
+
+	/// <summary>
+	/// Handles .assert directive for compile-time assertions.
+	/// </summary>
+	private void HandleAssertDirective(DirectiveNode node) {
+		// Assertions are checked in pass 2 after all symbols are defined
+		if (_pass != 2) return;
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new SemanticError(
+				".assert directive requires a condition expression",
+				node.Location));
+			return;
+		}
+
+		// Evaluate the assertion condition
+		var condition = EvaluateExpression(node.Arguments[0]);
+		if (condition is null) {
+			_errors.Add(new SemanticError(
+				".assert condition could not be evaluated",
+				node.Location));
+			return;
+		}
+
+		// Check if assertion passes
+		if (condition == 0) {
+			// Get optional message
+			string message = "Assertion failed";
+			if (node.Arguments.Count >= 2 && node.Arguments[1] is StringLiteralNode strNode) {
+				message = strNode.Value;
+			}
+
+			_errors.Add(new SemanticError(message, node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles .error directive for unconditional errors.
+	/// </summary>
+	private void HandleErrorDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		string message = "Error directive";
+		if (node.Arguments.Count >= 1 && node.Arguments[0] is StringLiteralNode strNode) {
+			message = strNode.Value;
+		}
+
+		_errors.Add(new SemanticError(message, node.Location));
+	}
+
+	/// <summary>
+	/// Handles .warning directive for unconditional warnings.
+	/// </summary>
+	private void HandleWarningDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		string message = "Warning";
+		if (node.Arguments.Count >= 1 && node.Arguments[0] is StringLiteralNode strNode) {
+			message = strNode.Value;
+		}
+
+		// For now, treat warnings as errors (could add separate warning list later)
+		_errors.Add(new SemanticError($"Warning: {message}", node.Location));
 	}
 
 	// ========================================================================
