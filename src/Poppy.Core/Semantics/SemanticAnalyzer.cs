@@ -26,6 +26,20 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private long _currentAddress;
 	private int _pass;
 
+	// iNES header configuration
+	private int? _inesPrgSize;
+	private int? _inesChrSize;
+	private int? _inesMapper;
+	private int? _inesSubmapper;
+	private bool? _inesMirroring;		// true = vertical, false = horizontal
+	private bool _inesBattery;
+	private bool _inesTrainer;
+	private bool _inesFourScreen;
+	private int? _inesPrgRamSize;
+	private int? _inesChrRamSize;
+	private bool _inesPal;
+	private bool _useINes2 = true;		// default to iNES 2.0
+
 	/// <summary>
 	/// Gets the symbol table.
 	/// </summary>
@@ -45,6 +59,37 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// Gets the NES mapper number.
 	/// </summary>
 	public int? NesMapper => _nesMapper;
+
+	/// <summary>
+	/// Gets the iNES header builder with all configured settings, or null if not configured.
+	/// </summary>
+	public CodeGen.INesHeaderBuilder? GetINesHeaderBuilder() {
+		// Only create if at least one iNES directive was used
+		if (_inesPrgSize == null && _inesChrSize == null && _inesMapper == null &&
+			_inesSubmapper == null && _inesMirroring == null && !_inesBattery &&
+			!_inesTrainer && !_inesFourScreen && !_inesPal && _inesPrgRamSize == null &&
+			_inesChrRamSize == null) {
+			return null;
+		}
+
+		var builder = new CodeGen.INesHeaderBuilder();
+		
+		if (_inesPrgSize != null) builder.SetPrgRomSize(_inesPrgSize.Value);
+		if (_inesChrSize != null) builder.SetChrRomSize(_inesChrSize.Value);
+		if (_inesMapper != null) builder.SetMapper(_inesMapper.Value);
+		if (_inesSubmapper != null) builder.SetSubmapper(_inesSubmapper.Value);
+		if (_inesMirroring != null) builder.SetMirroring(_inesMirroring.Value);
+		if (_inesPrgRamSize != null) builder.SetPrgRamSize(_inesPrgRamSize.Value);
+		if (_inesChrRamSize != null) builder.SetChrRamSize(_inesChrRamSize.Value);
+		
+		builder.SetBatteryBacked(_inesBattery);
+		builder.SetTrainer(_inesTrainer);
+		builder.SetFourScreen(_inesFourScreen);
+		builder.SetPal(_inesPal);
+		builder.SetINes2(_useINes2);
+
+		return builder;
+	}
 
 	/// <summary>
 	/// Gets all semantic errors.
@@ -221,6 +266,22 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			// NES mapper
 			case "mapper":
 				HandleMapperDirective(node);
+				break;
+
+			// iNES header directives
+			case "ines_prg":
+			case "ines_chr":
+			case "ines_mapper":
+			case "ines_submapper":
+			case "ines_mirroring":
+			case "ines_battery":
+			case "ines_trainer":
+			case "ines_fourscreen":
+			case "ines_prgram":
+			case "ines_chrram":
+			case "ines_pal":
+			case "ines2":
+				HandleINesDirective(node);
 				break;
 
 			// Assertions and diagnostics
@@ -540,6 +601,126 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		if (_target != TargetArchitecture.MOS6502) {
 			_errors.Add(new SemanticError(
 				".mapper directive is only valid for NES/6502 target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles iNES header directives (.ines_prg, .ines_chr, etc.).
+	/// </summary>
+	private void HandleINesDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		var directiveName = node.Name.ToLowerInvariant();
+
+		// Get the value from first argument (if required)
+		long? value = null;
+		if (node.Arguments.Count > 0) {
+			value = EvaluateExpression(node.Arguments[0]);
+			if (value is null) {
+				_errors.Add(new SemanticError(
+					$".{directiveName} directive requires a constant value",
+					node.Location));
+				return;
+			}
+		}
+
+		switch (directiveName) {
+			case "ines_prg":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_prg directive requires a PRG ROM size (in 16KB units)",
+						node.Location));
+					return;
+				}
+				_inesPrgSize = (int)value;
+				break;
+
+			case "ines_chr":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_chr directive requires a CHR ROM size (in 8KB units)",
+						node.Location));
+					return;
+				}
+				_inesChrSize = (int)value;
+				break;
+
+			case "ines_mapper":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_mapper directive requires a mapper number",
+						node.Location));
+					return;
+				}
+				_inesMapper = (int)value;
+				break;
+
+			case "ines_submapper":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_submapper directive requires a submapper number",
+						node.Location));
+					return;
+				}
+				_inesSubmapper = (int)value;
+				break;
+
+			case "ines_mirroring":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_mirroring directive requires a mirroring mode (0=horizontal, 1=vertical)",
+						node.Location));
+					return;
+				}
+				_inesMirroring = value != 0;	// 0 = horizontal, 1 = vertical
+				break;
+
+			case "ines_battery":
+				_inesBattery = value is null || value != 0;
+				break;
+
+			case "ines_trainer":
+				_inesTrainer = value is null || value != 0;
+				break;
+
+			case "ines_fourscreen":
+				_inesFourScreen = value is null || value != 0;
+				break;
+
+			case "ines_prgram":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_prgram directive requires a PRG RAM size (in 8KB units)",
+						node.Location));
+					return;
+				}
+				_inesPrgRamSize = (int)value;
+				break;
+
+			case "ines_chrram":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".ines_chrram directive requires a CHR RAM size (in 8KB units)",
+						node.Location));
+					return;
+				}
+				_inesChrRamSize = (int)value;
+				break;
+
+			case "ines_pal":
+				_inesPal = value is null || value != 0;
+				break;
+
+			case "ines2":
+				_useINes2 = value is null || value != 0;
+				break;
+		}
+
+		// Ensure target is NES
+		if (_target != TargetArchitecture.MOS6502) {
+			_errors.Add(new SemanticError(
+				$".{directiveName} directive is only valid for NES/6502 target",
 				node.Location));
 		}
 	}
