@@ -206,6 +206,18 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				HandleSpaceDirective(node);
 				break;
 
+			case "incbin":
+				HandleIncbinDirective(node);
+				break;
+
+			case "align":
+				HandleAlignDirective(node);
+				break;
+
+			case "pad":
+				HandlePadDirective(node);
+				break;
+
 			// Other directives don't generate code
 		}
 
@@ -353,6 +365,154 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		}
 
 		for (int i = 0; i < count.Value; i++) {
+			EmitByte(fillValue);
+		}
+	}
+
+	/// <summary>
+	/// Handles .incbin directive for binary file inclusion.
+	/// </summary>
+	private void HandleIncbinDirective(DirectiveNode node) {
+		EnsureSegment(node.Location);
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError("Missing filename for .incbin directive", node.Location));
+			return;
+		}
+
+		// Get filename
+		if (node.Arguments[0] is not StringLiteralNode filenameNode) {
+			_errors.Add(new CodeError("Expected filename string for .incbin directive", node.Location));
+			return;
+		}
+
+		var filename = filenameNode.Value;
+
+		// Resolve path relative to source file
+		var basePath = Path.GetDirectoryName(node.Location.FilePath) ?? ".";
+		var fullPath = Path.Combine(basePath, filename);
+
+		if (!File.Exists(fullPath)) {
+			_errors.Add(new CodeError($"Binary file not found: {filename}", node.Location));
+			return;
+		}
+
+		byte[] data;
+		try {
+			data = File.ReadAllBytes(fullPath);
+		}
+		catch (Exception ex) {
+			_errors.Add(new CodeError($"Error reading binary file: {ex.Message}", node.Location));
+			return;
+		}
+
+		// Parse optional offset and length
+		long offset = 0;
+		long length = data.Length;
+
+		if (node.Arguments.Count >= 2) {
+			var offsetValue = _analyzer.EvaluateExpression(node.Arguments[1]);
+			if (offsetValue.HasValue) {
+				offset = offsetValue.Value;
+			}
+		}
+
+		if (node.Arguments.Count >= 3) {
+			var lengthValue = _analyzer.EvaluateExpression(node.Arguments[2]);
+			if (lengthValue.HasValue) {
+				length = lengthValue.Value;
+			}
+		}
+
+		// Validate offset and length
+		if (offset < 0 || offset >= data.Length) {
+			_errors.Add(new CodeError($"Invalid offset {offset} for file of size {data.Length}", node.Location));
+			return;
+		}
+
+		if (length < 0 || offset + length > data.Length) {
+			_errors.Add(new CodeError($"Invalid length {length} at offset {offset} for file of size {data.Length}", node.Location));
+			return;
+		}
+
+		// Emit the binary data
+		for (long i = 0; i < length; i++) {
+			EmitByte(data[offset + i]);
+		}
+	}
+
+	/// <summary>
+	/// Handles .align directive for memory alignment.
+	/// </summary>
+	private void HandleAlignDirective(DirectiveNode node) {
+		EnsureSegment(node.Location);
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError("Missing alignment value for .align directive", node.Location));
+			return;
+		}
+
+		var alignValue = _analyzer.EvaluateExpression(node.Arguments[0]);
+		if (!alignValue.HasValue || alignValue.Value <= 0) {
+			_errors.Add(new CodeError("Invalid alignment value", node.Location));
+			return;
+		}
+
+		byte fillValue = 0;
+		if (node.Arguments.Count >= 2) {
+			var fill = _analyzer.EvaluateExpression(node.Arguments[1]);
+			if (fill.HasValue) {
+				fillValue = (byte)(fill.Value & 0xff);
+			}
+		}
+
+		// Calculate padding needed
+		var alignment = alignValue.Value;
+		var remainder = _currentAddress % alignment;
+		if (remainder != 0) {
+			var padding = alignment - remainder;
+			for (long i = 0; i < padding; i++) {
+				EmitByte(fillValue);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Handles .pad directive for padding to specific address.
+	/// </summary>
+	private void HandlePadDirective(DirectiveNode node) {
+		EnsureSegment(node.Location);
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError("Missing target address for .pad directive", node.Location));
+			return;
+		}
+
+		var targetAddress = _analyzer.EvaluateExpression(node.Arguments[0]);
+		if (!targetAddress.HasValue) {
+			_errors.Add(new CodeError("Cannot evaluate target address", node.Location));
+			return;
+		}
+
+		byte fillValue = 0;
+		if (node.Arguments.Count >= 2) {
+			var fill = _analyzer.EvaluateExpression(node.Arguments[1]);
+			if (fill.HasValue) {
+				fillValue = (byte)(fill.Value & 0xff);
+			}
+		}
+
+		// Check if we're already past the target
+		if (_currentAddress > targetAddress.Value) {
+			_errors.Add(new CodeError(
+				$"Cannot pad backwards: current address ${_currentAddress:x} > target ${targetAddress.Value:x}",
+				node.Location));
+			return;
+		}
+
+		// Emit padding bytes
+		var count = targetAddress.Value - _currentAddress;
+		for (long i = 0; i < count; i++) {
 			EmitByte(fillValue);
 		}
 	}
