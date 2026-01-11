@@ -1,12 +1,10 @@
 
-
-
 &&&&&&&&&&&&&&&&
 Creating a new project using AI (Claude Opus 4.5):
 ------------------------------------------------------------------
 
-Project name: `<project long name>`
-Project url: `https://github.com/TheAnsarya/<projectname>`
+Project name: `Poppy Compiler`
+Project url: `https://github.com/TheAnsarya/poppy`
 
 Get an `.editorconfig` file together, use your last one probably, resolve tabs/spaces, braces, etc. A good one is at `https://raw.githubusercontent.com/TheAnsarya/GameInfo/refs/heads/main/.editorconfig`;
 copy the `.gitignore` from the `GameInfo` repos;
@@ -25,35 +23,17 @@ hexadecimal values are lowercase and assembly files should use lowercase operand
 Create a new branch for each issue/feature and then merge it back into `main`/`master` before moving on to the next one;
 
 Main purpose of the project:
-Create comprehensive plans and todolists and documentation and github issues and a roadmap and epics, etc, for this effort;
-<description of project>
+Create comprehensive plans and todolists and documentation and github issues and a roadmap and epics, etc, for this effort:
 
-I forgot a lot so figure out what else we need for a generic project base, don't add nonsense, only neccessity;
+***
 
-Add this prompt to `/~docs/<projectshortname>-manual-prompts-log.txt` and then never edit that file again, it is manually updated; you can and should git-commit changes I make to this file but you should never edit or update it or `git restore` it or touch it it in any other way than storing it in git;
+Create a multi-system compiler system, NES, SNES, GB, but focus on NES and SNES and make a compiler, referencing ASAR and XKAS and Ophis and ca65, etc; use the project files from GameInfo as one of the project files that works, so that code and assets and convertors are included, but start with a simple compiler for nes and snes and then add extra features; code operands should be lowercase, hexadecimal values should be lowercase and use `$` as the hex value indicator, like `$40df` including files should be like other compilers but also a second kind of include that points to assets and a convertor; always use TABS NOT SPACES in the source code for the application and also TABS not spaces in the assembly code files; your goal is to be able to compile DW1 and FFMQ and then DW4 and DQ3r before we tackle more complex scenarios; we need our own code compiler; document everything and file formats, code styles, source code formatting and make full comprehensive docs for using the compiler and for writing code for the compiler. Don't do anything weird unless it's useful; Make a full utility and document the whole thing;
+
+***
+
+I forgot a lot so figure out what else we need for a generic project base, don't add nonsense, only necessity;
+
+Add this prompt to `/~docs/poppy-manual-prompts-log.txt` and then never edit that file again, it is manually updated; you can and should git-commit changes I make to this file but you should never edit or update it or `git restore` it or touch it it in any other way than storing it in git;
 
 create a copilot instructions file at `.github/copilot-instructions.md`
 &&&&&&&&&&&&&&&&
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
