@@ -16,8 +16,7 @@ namespace Poppy.Core.Semantics;
 /// 1. First pass: Collect all symbol definitions and calculate addresses
 /// 2. Second pass: Resolve all symbol references and validate
 /// </remarks>
-public sealed class SemanticAnalyzer : IAstVisitor<object?>
-{
+public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private readonly SymbolTable _symbolTable;
 	private readonly List<SemanticError> _errors;
 	private readonly TargetArchitecture _target;
@@ -48,8 +47,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// Creates a new semantic analyzer.
 	/// </summary>
 	/// <param name="target">The target architecture.</param>
-	public SemanticAnalyzer(TargetArchitecture target = TargetArchitecture.MOS6502)
-	{
+	public SemanticAnalyzer(TargetArchitecture target = TargetArchitecture.MOS6502) {
 		_symbolTable = new SymbolTable();
 		_errors = [];
 		_target = target;
@@ -61,8 +59,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// Analyzes a program AST.
 	/// </summary>
 	/// <param name="program">The program to analyze.</param>
-	public void Analyze(ProgramNode program)
-	{
+	public void Analyze(ProgramNode program) {
 		// First pass: collect definitions
 		_pass = 1;
 		_currentAddress = 0;
@@ -79,8 +76,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitProgram(ProgramNode node)
-	{
+	public object? VisitProgram(ProgramNode node) {
 		foreach (var statement in node.Statements) {
 			statement.Accept(this);
 		}
@@ -88,8 +84,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitLabel(LabelNode node)
-	{
+	public object? VisitLabel(LabelNode node) {
 		if (_pass == 1) {
 			_symbolTable.Define(
 				node.Name,
@@ -101,8 +96,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitInstruction(InstructionNode node)
-	{
+	public object? VisitInstruction(InstructionNode node) {
 		// Visit operand to resolve symbols
 		node.Operand?.Accept(this);
 
@@ -116,8 +110,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Checks if an instruction is a branch instruction (uses relative addressing).
 	/// </summary>
-	private static bool IsBranchInstruction(string mnemonic)
-	{
+	private static bool IsBranchInstruction(string mnemonic) {
 		return mnemonic.ToLowerInvariant() switch {
 			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
 			"bra" => true, // 65816/65C02
@@ -126,8 +119,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitDirective(DirectiveNode node)
-	{
+	public object? VisitDirective(DirectiveNode node) {
 		switch (node.Name.ToLowerInvariant()) {
 			case "org":
 				HandleOrgDirective(node);
@@ -176,42 +168,36 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitExpression(ExpressionNode node)
-	{
+	public object? VisitExpression(ExpressionNode node) {
 		// Base expression - should not be called directly
 		return null;
 	}
 
 	/// <inheritdoc />
-	public object? VisitBinaryExpression(BinaryExpressionNode node)
-	{
+	public object? VisitBinaryExpression(BinaryExpressionNode node) {
 		node.Left.Accept(this);
 		node.Right.Accept(this);
 		return null;
 	}
 
 	/// <inheritdoc />
-	public object? VisitUnaryExpression(UnaryExpressionNode node)
-	{
+	public object? VisitUnaryExpression(UnaryExpressionNode node) {
 		node.Operand.Accept(this);
 		return null;
 	}
 
 	/// <inheritdoc />
-	public object? VisitNumberLiteral(NumberLiteralNode node)
-	{
+	public object? VisitNumberLiteral(NumberLiteralNode node) {
 		return node.Value;
 	}
 
 	/// <inheritdoc />
-	public object? VisitStringLiteral(StringLiteralNode node)
-	{
+	public object? VisitStringLiteral(StringLiteralNode node) {
 		return node.Value;
 	}
 
 	/// <inheritdoc />
-	public object? VisitIdentifier(IdentifierNode node)
-	{
+	public object? VisitIdentifier(IdentifierNode node) {
 		// Handle special identifiers
 		if (node.Name == "*" || node.Name == "$") {
 			return _currentAddress;
@@ -223,8 +209,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitMacroDefinition(MacroDefinitionNode node)
-	{
+	public object? VisitMacroDefinition(MacroDefinitionNode node) {
 		if (_pass == 1) {
 			_symbolTable.Define(
 				node.Name,
@@ -236,8 +221,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitMacroInvocation(MacroInvocationNode node)
-	{
+	public object? VisitMacroInvocation(MacroInvocationNode node) {
 		// Reference the macro
 		_symbolTable.Reference(node.Name, node.Location);
 
@@ -255,8 +239,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .org directive to set the current address.
 	/// </summary>
-	private void HandleOrgDirective(DirectiveNode node)
-	{
+	private void HandleOrgDirective(DirectiveNode node) {
 		if (node.Arguments.Count < 1) {
 			_errors.Add(new SemanticError(
 				".org directive requires an address argument",
@@ -273,8 +256,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .equ or = directive to define a constant.
 	/// </summary>
-	private void HandleEquDirective(DirectiveNode node)
-	{
+	private void HandleEquDirective(DirectiveNode node) {
 		if (_pass != 1) return;
 
 		if (node.Arguments.Count < 2) {
@@ -298,8 +280,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Handles data directives (.byte, .word, etc.).
 	/// </summary>
-	private void HandleDataDirective(DirectiveNode node, int bytesPerElement)
-	{
+	private void HandleDataDirective(DirectiveNode node, int bytesPerElement) {
 		foreach (var arg in node.Arguments) {
 			if (arg is StringLiteralNode strNode) {
 				// Each character is one byte
@@ -315,8 +296,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Handles space/reserve directives (.ds, .fill, .res).
 	/// </summary>
-	private void HandleSpaceDirective(DirectiveNode node)
-	{
+	private void HandleSpaceDirective(DirectiveNode node) {
 		if (node.Arguments.Count < 1) {
 			_errors.Add(new SemanticError(
 				$".{node.Name} directive requires a count argument",
@@ -333,8 +313,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .define directive.
 	/// </summary>
-	private void HandleDefineDirective(DirectiveNode node)
-	{
+	private void HandleDefineDirective(DirectiveNode node) {
 		if (_pass != 1) return;
 
 		if (node.Arguments.Count < 1) {
@@ -368,8 +347,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// </summary>
 	/// <param name="expr">The expression to evaluate.</param>
 	/// <returns>The value, or null if not evaluable.</returns>
-	public long? EvaluateExpression(ExpressionNode expr)
-	{
+	public long? EvaluateExpression(ExpressionNode expr) {
 		return expr switch {
 			NumberLiteralNode num => num.Value,
 			IdentifierNode id => EvaluateIdentifier(id),
@@ -382,8 +360,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Evaluates an identifier reference.
 	/// </summary>
-	private long? EvaluateIdentifier(IdentifierNode node)
-	{
+	private long? EvaluateIdentifier(IdentifierNode node) {
 		// Special identifiers
 		if (node.Name == "*" || node.Name == "$") {
 			return _currentAddress;
@@ -399,8 +376,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Evaluates a binary expression.
 	/// </summary>
-	private long? EvaluateBinary(BinaryExpressionNode node)
-	{
+	private long? EvaluateBinary(BinaryExpressionNode node) {
 		var left = EvaluateExpression(node.Left);
 		var right = EvaluateExpression(node.Right);
 
@@ -434,8 +410,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Evaluates a unary expression.
 	/// </summary>
-	private long? EvaluateUnary(UnaryExpressionNode node)
-	{
+	private long? EvaluateUnary(UnaryExpressionNode node) {
 		var operand = EvaluateExpression(node.Operand);
 
 		if (!operand.HasValue) {
@@ -460,8 +435,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Calculates the size of an instruction in bytes.
 	/// </summary>
-	private int GetInstructionSize(InstructionNode node)
-	{
+	private int GetInstructionSize(InstructionNode node) {
 		// Branch instructions are always 2 bytes (opcode + relative offset)
 		var mnemonic = node.Mnemonic;
 		if (mnemonic.Length > 2 && mnemonic[^2] == '.') {
@@ -484,8 +458,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 	/// <summary>
 	/// Gets the operand size for an addressing mode.
 	/// </summary>
-	private int GetOperandSize(AddressingMode mode, char? sizeSuffix)
-	{
+	private int GetOperandSize(AddressingMode mode, char? sizeSuffix) {
 		// Size suffix overrides
 		if (sizeSuffix.HasValue) {
 			return sizeSuffix.Value switch {
@@ -528,8 +501,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?>
 /// <summary>
 /// Target CPU architecture for the assembler.
 /// </summary>
-public enum TargetArchitecture
-{
+public enum TargetArchitecture {
 	/// <summary>MOS 6502 (NES, Commodore 64, etc.)</summary>
 	MOS6502,
 

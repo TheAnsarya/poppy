@@ -10,8 +10,7 @@ namespace Poppy.Core.Parser;
 /// <summary>
 /// Parses a stream of tokens into an Abstract Syntax Tree (AST).
 /// </summary>
-public sealed class Parser
-{
+public sealed class Parser {
 	private readonly List<Token> _tokens;
 	private readonly List<ParseError> _errors;
 	private int _current;
@@ -29,8 +28,7 @@ public sealed class Parser
 	/// <summary>
 	/// Creates a new parser for the given tokens.
 	/// </summary>
-	public Parser(List<Token> tokens)
-	{
+	public Parser(List<Token> tokens) {
 		_tokens = tokens;
 		_errors = [];
 		_current = 0;
@@ -39,8 +37,7 @@ public sealed class Parser
 	/// <summary>
 	/// Parses the tokens into a program AST.
 	/// </summary>
-	public ProgramNode Parse()
-	{
+	public ProgramNode Parse() {
 		var statements = new List<StatementNode>();
 
 		while (!IsAtEnd()) {
@@ -67,8 +64,7 @@ public sealed class Parser
 	// Statement Parsing
 	// ========================================================================
 
-	private StatementNode? ParseStatement()
-	{
+	private StatementNode? ParseStatement() {
 		// Skip comments
 		if (Check(TokenType.Comment)) {
 			Advance();
@@ -106,8 +102,7 @@ public sealed class Parser
 		return null;
 	}
 
-	private StatementNode ParseDirective()
-	{
+	private StatementNode ParseDirective() {
 		var token = Advance();
 		var directiveName = token.Text[1..]; // Remove leading .
 
@@ -133,8 +128,7 @@ public sealed class Parser
 		return new DirectiveNode(token.Location, directiveName, arguments);
 	}
 
-	private StatementNode ParseLabelOrIdentifier()
-	{
+	private StatementNode ParseLabelOrIdentifier() {
 		var token = Advance();
 
 		// If followed by colon, it's a label definition
@@ -157,8 +151,7 @@ public sealed class Parser
 		return new LabelNode(token.Location, token.Text); // Return as label for error recovery
 	}
 
-	private StatementNode ParseInstruction()
-	{
+	private StatementNode ParseInstruction() {
 		var token = Advance();
 		var mnemonic = token.Text;
 		char? sizeSuffix = null;
@@ -181,8 +174,7 @@ public sealed class Parser
 		return new InstructionNode(token.Location, mnemonic, sizeSuffix, operand, addressingMode);
 	}
 
-	private (ExpressionNode? Operand, AddressingMode Mode) ParseOperand()
-	{
+	private (ExpressionNode? Operand, AddressingMode Mode) ParseOperand() {
 		// Accumulator addressing (A or a)
 		if (Check(TokenType.Identifier) && CurrentToken.Text.Equals("a", StringComparison.OrdinalIgnoreCase)) {
 			Advance();
@@ -224,8 +216,7 @@ public sealed class Parser
 		return (operand, AddressingMode.Absolute);
 	}
 
-	private (ExpressionNode Operand, AddressingMode Mode) ParseIndirectOperand()
-	{
+	private (ExpressionNode Operand, AddressingMode Mode) ParseIndirectOperand() {
 		Advance(); // consume (
 
 		var expr = ParseExpression();
@@ -257,8 +248,7 @@ public sealed class Parser
 		return (expr, AddressingMode.Indirect);
 	}
 
-	private (ExpressionNode Operand, AddressingMode Mode) ParseBracketOperand()
-	{
+	private (ExpressionNode Operand, AddressingMode Mode) ParseBracketOperand() {
 		Advance(); // consume [
 
 		var expr = ParseExpression();
@@ -278,8 +268,7 @@ public sealed class Parser
 		return (expr, AddressingMode.DirectPageIndirectLong);
 	}
 
-	private StatementNode ParseAnonymousLabel(bool isForward)
-	{
+	private StatementNode ParseAnonymousLabel(bool isForward) {
 		var token = Advance();
 
 		// Check if it's a label definition (followed by colon)
@@ -293,8 +282,7 @@ public sealed class Parser
 		return new LabelNode(token.Location, isForward ? "+" : "-");
 	}
 
-	private MacroDefinitionNode ParseMacroDefinition(SourceLocation location)
-	{
+	private MacroDefinitionNode ParseMacroDefinition(SourceLocation location) {
 		// Parse macro name
 		var nameToken = Expect(TokenType.Identifier, "Expected macro name after .macro");
 		var name = nameToken.Text;
@@ -333,13 +321,11 @@ public sealed class Parser
 	// Expression Parsing (Precedence Climbing)
 	// ========================================================================
 
-	private ExpressionNode ParseExpression()
-	{
+	private ExpressionNode ParseExpression() {
 		return ParseLogicalOr();
 	}
 
-	private ExpressionNode ParseLogicalOr()
-	{
+	private ExpressionNode ParseLogicalOr() {
 		var left = ParseLogicalAnd();
 
 		while (Match(TokenType.PipePipe)) {
@@ -351,8 +337,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseLogicalAnd()
-	{
+	private ExpressionNode ParseLogicalAnd() {
 		var left = ParseBitwiseOr();
 
 		while (Match(TokenType.AmpersandAmpersand)) {
@@ -364,8 +349,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseBitwiseOr()
-	{
+	private ExpressionNode ParseBitwiseOr() {
 		var left = ParseBitwiseXor();
 
 		while (Match(TokenType.Pipe)) {
@@ -377,8 +361,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseBitwiseXor()
-	{
+	private ExpressionNode ParseBitwiseXor() {
 		var left = ParseBitwiseAnd();
 
 		while (Match(TokenType.Caret)) {
@@ -390,8 +373,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseBitwiseAnd()
-	{
+	private ExpressionNode ParseBitwiseAnd() {
 		var left = ParseEquality();
 
 		while (Match(TokenType.Ampersand)) {
@@ -403,8 +385,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseEquality()
-	{
+	private ExpressionNode ParseEquality() {
 		var left = ParseComparison();
 
 		while (true) {
@@ -426,8 +407,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseComparison()
-	{
+	private ExpressionNode ParseComparison() {
 		var left = ParseShift();
 
 		while (true) {
@@ -449,8 +429,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseShift()
-	{
+	private ExpressionNode ParseShift() {
 		var left = ParseAdditive();
 
 		while (true) {
@@ -472,8 +451,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseAdditive()
-	{
+	private ExpressionNode ParseAdditive() {
 		var left = ParseMultiplicative();
 
 		while (true) {
@@ -495,8 +473,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseMultiplicative()
-	{
+	private ExpressionNode ParseMultiplicative() {
 		var left = ParseUnary();
 
 		while (true) {
@@ -523,8 +500,7 @@ public sealed class Parser
 		return left;
 	}
 
-	private ExpressionNode ParseUnary()
-	{
+	private ExpressionNode ParseUnary() {
 		// Negation (-)
 		if (Match(TokenType.Minus)) {
 			var location = Previous.Location;
@@ -570,8 +546,7 @@ public sealed class Parser
 		return ParsePrimary();
 	}
 
-	private ExpressionNode ParsePrimary()
-	{
+	private ExpressionNode ParsePrimary() {
 		// Number literal
 		if (Check(TokenType.Number)) {
 			var token = Advance();
@@ -622,16 +597,14 @@ public sealed class Parser
 	private bool Check(TokenType type) =>
 		!IsAtEnd() && _tokens[_current].Type == type;
 
-	private Token Advance()
-	{
+	private Token Advance() {
 		if (!IsAtEnd()) {
 			_current++;
 		}
 		return Previous;
 	}
 
-	private bool Match(TokenType type)
-	{
+	private bool Match(TokenType type) {
 		if (Check(type)) {
 			Advance();
 			return true;
@@ -639,31 +612,27 @@ public sealed class Parser
 		return false;
 	}
 
-	private Token Expect(TokenType type, string message)
-	{
+	private Token Expect(TokenType type, string message) {
 		if (Check(type)) {
 			return Advance();
 		}
 		throw new ParseException($"{message}. Got: {CurrentToken.Type}", CurrentToken.Location);
 	}
 
-	private void ExpectEndOfStatement()
-	{
+	private void ExpectEndOfStatement() {
 		if (!IsAtEndOfStatement()) {
 			ReportError($"Expected end of statement, got: {CurrentToken.Type}", CurrentToken.Location);
 		}
 		SkipNewlines();
 	}
 
-	private void SkipNewlines()
-	{
+	private void SkipNewlines() {
 		while (Check(TokenType.Newline) || Check(TokenType.Comment)) {
 			Advance();
 		}
 	}
 
-	private void Synchronize()
-	{
+	private void Synchronize() {
 		while (!IsAtEnd()) {
 			if (Check(TokenType.Newline)) {
 				Advance();
@@ -673,8 +642,7 @@ public sealed class Parser
 		}
 	}
 
-	private void ReportError(string message, SourceLocation location)
-	{
+	private void ReportError(string message, SourceLocation location) {
 		_errors.Add(new ParseError(message, location));
 	}
 }
@@ -682,8 +650,7 @@ public sealed class Parser
 /// <summary>
 /// Represents a parse error.
 /// </summary>
-public sealed class ParseError
-{
+public sealed class ParseError {
 	/// <summary>
 	/// The error message.
 	/// </summary>
@@ -699,8 +666,7 @@ public sealed class ParseError
 	/// </summary>
 	/// <param name="message">The error message.</param>
 	/// <param name="location">The source location where the error occurred.</param>
-	public ParseError(string message, SourceLocation location)
-	{
+	public ParseError(string message, SourceLocation location) {
 		Message = message;
 		Location = location;
 	}
@@ -713,8 +679,7 @@ public sealed class ParseError
 /// <summary>
 /// Exception thrown during parsing for error recovery.
 /// </summary>
-public class ParseException : Exception
-{
+public class ParseException : Exception {
 	/// <summary>
 	/// The source location where the error occurred.
 	/// </summary>
@@ -726,8 +691,7 @@ public class ParseException : Exception
 	/// <param name="message">The error message.</param>
 	/// <param name="location">The source location.</param>
 	public ParseException(string message, SourceLocation location)
-		: base(message)
-	{
+		: base(message) {
 		Location = location;
 	}
 }

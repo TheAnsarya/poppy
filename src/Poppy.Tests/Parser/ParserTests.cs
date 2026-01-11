@@ -12,8 +12,7 @@ namespace Poppy.Tests.Parser;
 /// <summary>
 /// Unit tests for the Parser class.
 /// </summary>
-public class ParserTests
-{
+public class ParserTests {
 	// ========================================================================
 	// Helper Methods
 	// ========================================================================
@@ -21,8 +20,7 @@ public class ParserTests
 	/// <summary>
 	/// Helper to parse source code and return the program node.
 	/// </summary>
-	private static ProgramNode Parse(string source)
-	{
+	private static ProgramNode Parse(string source) {
 		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
@@ -32,8 +30,7 @@ public class ParserTests
 	/// <summary>
 	/// Helper to parse and get errors.
 	/// </summary>
-	private static (ProgramNode Program, IReadOnlyList<ParseError> Errors) ParseWithErrors(string source)
-	{
+	private static (ProgramNode Program, IReadOnlyList<ParseError> Errors) ParseWithErrors(string source) {
 		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
@@ -46,22 +43,19 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_EmptySource_ReturnsEmptyProgram()
-	{
+	public void Parse_EmptySource_ReturnsEmptyProgram() {
 		var program = Parse("");
 		Assert.Empty(program.Statements);
 	}
 
 	[Fact]
-	public void Parse_OnlyComments_ReturnsEmptyProgram()
-	{
+	public void Parse_OnlyComments_ReturnsEmptyProgram() {
 		var program = Parse("; This is a comment\n// Another comment");
 		Assert.Empty(program.Statements);
 	}
 
 	[Fact]
-	public void Parse_OnlyNewlines_ReturnsEmptyProgram()
-	{
+	public void Parse_OnlyNewlines_ReturnsEmptyProgram() {
 		var program = Parse("\n\n\n");
 		Assert.Empty(program.Statements);
 	}
@@ -71,8 +65,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_SimpleLabel_ReturnsLabelNode()
-	{
+	public void Parse_SimpleLabel_ReturnsLabelNode() {
 		var program = Parse("main:");
 		Assert.Single(program.Statements);
 
@@ -82,8 +75,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_LabelWithUnderscore_ReturnsLabelNode()
-	{
+	public void Parse_LabelWithUnderscore_ReturnsLabelNode() {
 		var program = Parse("main_loop:");
 		Assert.Single(program.Statements);
 
@@ -92,8 +84,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_MultipleLabels_ReturnsMultipleLabelNodes()
-	{
+	public void Parse_MultipleLabels_ReturnsMultipleLabelNodes() {
 		var program = Parse("start:\nloop:\nend:");
 		Assert.Equal(3, program.Statements.Count);
 
@@ -107,8 +98,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_ImpliedInstruction_NOP()
-	{
+	public void Parse_ImpliedInstruction_NOP() {
 		var program = Parse("nop");
 		Assert.Single(program.Statements);
 
@@ -120,8 +110,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ImpliedInstruction_RTS()
-	{
+	public void Parse_ImpliedInstruction_RTS() {
 		var program = Parse("rts");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("rts", instr.Mnemonic);
@@ -129,8 +118,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ImpliedInstruction_CLC()
-	{
+	public void Parse_ImpliedInstruction_CLC() {
 		var program = Parse("clc");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("clc", instr.Mnemonic);
@@ -142,8 +130,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_ImmediateHex_LDA()
-	{
+	public void Parse_ImmediateHex_LDA() {
 		var program = Parse("lda #$ff");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -154,8 +141,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ImmediateDecimal_LDX()
-	{
+	public void Parse_ImmediateDecimal_LDX() {
 		var program = Parse("ldx #10");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("ldx", instr.Mnemonic);
@@ -166,8 +152,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ImmediateBinary_LDY()
-	{
+	public void Parse_ImmediateBinary_LDY() {
 		var program = Parse("ldy #%10101010");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("ldy", instr.Mnemonic);
@@ -178,8 +163,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ImmediateExpression_LDA()
-	{
+	public void Parse_ImmediateExpression_LDA() {
 		var program = Parse("lda #label");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -194,8 +178,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_AbsoluteHex_LDA()
-	{
+	public void Parse_AbsoluteHex_LDA() {
 		var program = Parse("lda $2000");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -206,8 +189,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_AbsoluteLabel_JMP()
-	{
+	public void Parse_AbsoluteLabel_JMP() {
 		var program = Parse("jmp main_loop");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("jmp", instr.Mnemonic);
@@ -222,8 +204,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_AbsoluteX_LDA()
-	{
+	public void Parse_AbsoluteX_LDA() {
 		var program = Parse("lda $2000,x");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -234,8 +215,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_AbsoluteY_LDA()
-	{
+	public void Parse_AbsoluteY_LDA() {
 		var program = Parse("lda $2000,y");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -243,8 +223,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_StackRelative_LDA()
-	{
+	public void Parse_StackRelative_LDA() {
 		var program = Parse("lda $01,s");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -259,8 +238,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Indirect_JMP()
-	{
+	public void Parse_Indirect_JMP() {
 		var program = Parse("jmp ($fffc)");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("jmp", instr.Mnemonic);
@@ -271,8 +249,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_IndexedIndirect_LDA()
-	{
+	public void Parse_IndexedIndirect_LDA() {
 		var program = Parse("lda ($00,x)");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -283,8 +260,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_IndirectIndexed_LDA()
-	{
+	public void Parse_IndirectIndexed_LDA() {
 		var program = Parse("lda ($00),y");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -299,8 +275,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_DirectPageIndirectLong_LDA()
-	{
+	public void Parse_DirectPageIndirectLong_LDA() {
 		var program = Parse("lda [$00]");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -308,8 +283,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_DirectPageIndirectLongY_LDA()
-	{
+	public void Parse_DirectPageIndirectLongY_LDA() {
 		var program = Parse("lda [$00],y");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -321,8 +295,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Accumulator_ASL()
-	{
+	public void Parse_Accumulator_ASL() {
 		var program = Parse("asl a");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("asl", instr.Mnemonic);
@@ -331,8 +304,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Accumulator_ROR()
-	{
+	public void Parse_Accumulator_ROR() {
 		var program = Parse("ror a");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("ror", instr.Mnemonic);
@@ -344,8 +316,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_SizeSuffix_Byte()
-	{
+	public void Parse_SizeSuffix_Byte() {
 		var program = Parse("lda.b #$00");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -353,8 +324,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_SizeSuffix_Word()
-	{
+	public void Parse_SizeSuffix_Word() {
 		var program = Parse("lda.w #$0000");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -362,8 +332,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_SizeSuffix_Long()
-	{
+	public void Parse_SizeSuffix_Long() {
 		var program = Parse("lda.l $7e0000");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal("lda", instr.Mnemonic);
@@ -375,8 +344,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_OrgDirective()
-	{
+	public void Parse_OrgDirective() {
 		var program = Parse(".org $8000");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("org", directive.Name);
@@ -387,8 +355,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ByteDirective_SingleValue()
-	{
+	public void Parse_ByteDirective_SingleValue() {
 		var program = Parse(".byte $ff");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("byte", directive.Name);
@@ -396,8 +363,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_ByteDirective_MultipleValues()
-	{
+	public void Parse_ByteDirective_MultipleValues() {
 		var program = Parse(".byte $01, $02, $03, $04");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("byte", directive.Name);
@@ -405,8 +371,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_WordDirective()
-	{
+	public void Parse_WordDirective() {
 		var program = Parse(".word $1234, $5678");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("word", directive.Name);
@@ -414,8 +379,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_DbDirective_String()
-	{
+	public void Parse_DbDirective_String() {
 		var program = Parse(".db \"Hello\"");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("db", directive.Name);
@@ -426,8 +390,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_IncludeDirective()
-	{
+	public void Parse_IncludeDirective() {
 		var program = Parse(".include \"other.asm\"");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("include", directive.Name);
@@ -438,8 +401,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_DefineDirective()
-	{
+	public void Parse_DefineDirective() {
 		// .define CONSTANT, $ff  - comma-separated arguments
 		var program = Parse(".define CONSTANT, $ff");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
@@ -452,8 +414,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Expression_HexNumber()
-	{
+	public void Parse_Expression_HexNumber() {
 		var program = Parse("lda #$abcd");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		var operand = Assert.IsType<NumberLiteralNode>(instr.Operand);
@@ -461,8 +422,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_DecimalNumber()
-	{
+	public void Parse_Expression_DecimalNumber() {
 		var program = Parse("lda #1234");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		var operand = Assert.IsType<NumberLiteralNode>(instr.Operand);
@@ -470,8 +430,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_BinaryNumber()
-	{
+	public void Parse_Expression_BinaryNumber() {
 		var program = Parse("lda #%11110000");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		var operand = Assert.IsType<NumberLiteralNode>(instr.Operand);
@@ -479,8 +438,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_Identifier()
-	{
+	public void Parse_Expression_Identifier() {
 		var program = Parse("lda #my_constant");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		var operand = Assert.IsType<IdentifierNode>(instr.Operand);
@@ -492,8 +450,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Expression_Addition()
-	{
+	public void Parse_Expression_Addition() {
 		var program = Parse("lda #base + 5");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -508,8 +465,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_Subtraction()
-	{
+	public void Parse_Expression_Subtraction() {
 		var program = Parse("lda #end - start");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -518,8 +474,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_Multiplication()
-	{
+	public void Parse_Expression_Multiplication() {
 		var program = Parse("lda #count * 2");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -528,8 +483,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_Division()
-	{
+	public void Parse_Expression_Division() {
 		var program = Parse("lda #total / 4");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -538,8 +492,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_BitwiseAnd()
-	{
+	public void Parse_Expression_BitwiseAnd() {
 		var program = Parse("lda #value & $0f");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -548,8 +501,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_BitwiseOr()
-	{
+	public void Parse_Expression_BitwiseOr() {
 		var program = Parse("lda #flags | $80");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -558,8 +510,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_BitwiseXor()
-	{
+	public void Parse_Expression_BitwiseXor() {
 		var program = Parse("lda #mask ^ $ff");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -568,8 +519,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_LeftShift()
-	{
+	public void Parse_Expression_LeftShift() {
 		var program = Parse("lda #value << 4");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -578,8 +528,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_RightShift()
-	{
+	public void Parse_Expression_RightShift() {
 		var program = Parse("lda #value >> 4");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -592,8 +541,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Expression_Negation()
-	{
+	public void Parse_Expression_Negation() {
 		var program = Parse("lda #-5");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -605,8 +553,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_BitwiseNot()
-	{
+	public void Parse_Expression_BitwiseNot() {
 		var program = Parse("lda #~mask");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -615,8 +562,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_LowByte()
-	{
+	public void Parse_Expression_LowByte() {
 		var program = Parse("lda #<address");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -625,8 +571,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_HighByte()
-	{
+	public void Parse_Expression_HighByte() {
 		var program = Parse("lda #>address");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -635,8 +580,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_BankByte()
-	{
+	public void Parse_Expression_BankByte() {
 		var program = Parse("lda #^address");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 
@@ -649,8 +593,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Expression_MultiplicationBeforeAddition()
-	{
+	public void Parse_Expression_MultiplicationBeforeAddition() {
 		// a + b * c should parse as a + (b * c)
 		var program = Parse("lda #a + b * c");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
@@ -665,8 +608,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_Expression_ParenthesesOverride()
-	{
+	public void Parse_Expression_ParenthesesOverride() {
 		// (a + b) * c should parse as (a + b) * c
 		var program = Parse("lda #(a + b) * c");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
@@ -685,8 +627,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_MacroDefinition_NoParameters()
-	{
+	public void Parse_MacroDefinition_NoParameters() {
 		var program = Parse(".macro save_regs\n  pha\n  phx\n  phy\n.endmacro");
 		var macro = Assert.IsType<MacroDefinitionNode>(program.Statements[0]);
 
@@ -696,8 +637,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_MacroDefinition_WithParameters()
-	{
+	public void Parse_MacroDefinition_WithParameters() {
 		var program = Parse(".macro load_value value\n  lda #value\n.endmacro");
 		var macro = Assert.IsType<MacroDefinitionNode>(program.Statements[0]);
 
@@ -707,8 +647,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_MacroDefinition_MultipleParameters()
-	{
+	public void Parse_MacroDefinition_MultipleParameters() {
 		var program = Parse(".macro copy src, dest\n  lda src\n  sta dest\n.endmacro");
 		var macro = Assert.IsType<MacroDefinitionNode>(program.Statements[0]);
 
@@ -723,8 +662,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_CompleteProgram()
-	{
+	public void Parse_CompleteProgram() {
 		var source = """
 			; Simple NES program
 			.org $8000
@@ -754,8 +692,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_LabelFollowedByInstruction()
-	{
+	public void Parse_LabelFollowedByInstruction() {
 		var program = Parse("loop:\n  nop");
 		Assert.Equal(2, program.Statements.Count);
 
@@ -768,29 +705,25 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_InvalidIndexRegister_ReportsError()
-	{
+	public void Parse_InvalidIndexRegister_ReportsError() {
 		var (_, errors) = ParseWithErrors("lda $2000,z");
 		Assert.NotEmpty(errors);
 	}
 
 	[Fact]
-	public void Parse_MissingOperand_ReportsError()
-	{
+	public void Parse_MissingOperand_ReportsError() {
 		var (_, errors) = ParseWithErrors("lda #");
 		Assert.NotEmpty(errors);
 	}
 
 	[Fact]
-	public void Parse_UnclosedParenthesis_ReportsError()
-	{
+	public void Parse_UnclosedParenthesis_ReportsError() {
 		var (_, errors) = ParseWithErrors("jmp ($fffc");
 		Assert.NotEmpty(errors);
 	}
 
 	[Fact]
-	public void Parse_UnclosedBracket_ReportsError()
-	{
+	public void Parse_UnclosedBracket_ReportsError() {
 		var (_, errors) = ParseWithErrors("lda [$00");
 		Assert.NotEmpty(errors);
 	}
@@ -800,8 +733,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_Assignment_Constant()
-	{
+	public void Parse_Assignment_Constant() {
 		var program = Parse("PPUCTRL = $2000");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 
@@ -820,8 +752,7 @@ public class ParserTests
 	// ========================================================================
 
 	[Fact]
-	public void Parse_TracksLineNumbers()
-	{
+	public void Parse_TracksLineNumbers() {
 		var program = Parse("nop\n\nlda #$00");
 		Assert.Equal(2, program.Statements.Count);
 
@@ -830,8 +761,7 @@ public class ParserTests
 	}
 
 	[Fact]
-	public void Parse_TracksColumnNumbers()
-	{
+	public void Parse_TracksColumnNumbers() {
 		var program = Parse("  nop");
 		var instr = Assert.IsType<InstructionNode>(program.Statements[0]);
 		Assert.Equal(3, instr.Location.Column);

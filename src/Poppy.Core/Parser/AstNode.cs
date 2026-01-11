@@ -10,8 +10,7 @@ namespace Poppy.Core.Parser;
 /// <summary>
 /// Base class for all AST nodes.
 /// </summary>
-public abstract class AstNode
-{
+public abstract class AstNode {
 	/// <summary>
 	/// The source location where this node begins.
 	/// </summary>
@@ -20,8 +19,7 @@ public abstract class AstNode
 	/// <summary>
 	/// Creates a new AST node.
 	/// </summary>
-	protected AstNode(SourceLocation location)
-	{
+	protected AstNode(SourceLocation location) {
 		Location = location;
 	}
 
@@ -35,8 +33,7 @@ public abstract class AstNode
 /// Visitor interface for traversing the AST.
 /// </summary>
 /// <typeparam name="T">The return type of the visitor methods.</typeparam>
-public interface IAstVisitor<T>
-{
+public interface IAstVisitor<T> {
 	/// <summary>Visits a program node.</summary>
 	/// <param name="node">The program node to visit.</param>
 	/// <returns>The result of visiting the node.</returns>
@@ -105,8 +102,7 @@ public interface IAstVisitor<T>
 /// <summary>
 /// Represents an entire assembly program (the root node).
 /// </summary>
-public sealed class ProgramNode : AstNode
-{
+public sealed class ProgramNode : AstNode {
 	/// <summary>
 	/// The list of statements in the program.
 	/// </summary>
@@ -118,8 +114,7 @@ public sealed class ProgramNode : AstNode
 	/// <param name="location">The source location where this node begins.</param>
 	/// <param name="statements">The list of statements in the program.</param>
 	public ProgramNode(SourceLocation location, IReadOnlyList<StatementNode> statements)
-		: base(location)
-	{
+		: base(location) {
 		Statements = statements;
 	}
 
@@ -130,8 +125,7 @@ public sealed class ProgramNode : AstNode
 /// <summary>
 /// Base class for statement-level nodes (labels, instructions, directives).
 /// </summary>
-public abstract class StatementNode : AstNode
-{
+public abstract class StatementNode : AstNode {
 	/// <summary>
 	/// Creates a new statement node.
 	/// </summary>
@@ -142,8 +136,7 @@ public abstract class StatementNode : AstNode
 /// <summary>
 /// Represents a label definition (e.g., "main_loop:").
 /// </summary>
-public sealed class LabelNode : StatementNode
-{
+public sealed class LabelNode : StatementNode {
 	/// <summary>
 	/// The name of the label.
 	/// </summary>
@@ -161,8 +154,7 @@ public sealed class LabelNode : StatementNode
 	/// <param name="name">The name of the label.</param>
 	/// <param name="isLocal">Whether this is a local label.</param>
 	public LabelNode(SourceLocation location, string name, bool isLocal = false)
-		: base(location)
-	{
+		: base(location) {
 		Name = name;
 		IsLocal = isLocal;
 	}
@@ -174,8 +166,7 @@ public sealed class LabelNode : StatementNode
 /// <summary>
 /// Represents a CPU instruction (e.g., "lda #$00").
 /// </summary>
-public sealed class InstructionNode : StatementNode
-{
+public sealed class InstructionNode : StatementNode {
 	/// <summary>
 	/// The instruction mnemonic (e.g., "lda", "sta", "jmp").
 	/// </summary>
@@ -210,8 +201,7 @@ public sealed class InstructionNode : StatementNode
 		char? sizeSuffix = null,
 		ExpressionNode? operand = null,
 		AddressingMode addressingMode = AddressingMode.Implied)
-		: base(location)
-	{
+		: base(location) {
 		Mnemonic = mnemonic;
 		SizeSuffix = sizeSuffix;
 		Operand = operand;
@@ -225,8 +215,7 @@ public sealed class InstructionNode : StatementNode
 /// <summary>
 /// Addressing modes for CPU instructions.
 /// </summary>
-public enum AddressingMode
-{
+public enum AddressingMode {
 	/// <summary>No operand (e.g., nop, rts)</summary>
 	Implied,
 
@@ -304,8 +293,7 @@ public enum AddressingMode
 /// <summary>
 /// Represents an assembler directive (e.g., ".org $8000").
 /// </summary>
-public sealed class DirectiveNode : StatementNode
-{
+public sealed class DirectiveNode : StatementNode {
 	/// <summary>
 	/// The directive name without the leading dot (e.g., "org", "byte").
 	/// </summary>
@@ -323,8 +311,7 @@ public sealed class DirectiveNode : StatementNode
 	/// <param name="name">The directive name without the leading dot.</param>
 	/// <param name="arguments">The arguments to the directive.</param>
 	public DirectiveNode(SourceLocation location, string name, IReadOnlyList<ExpressionNode> arguments)
-		: base(location)
-	{
+		: base(location) {
 		Name = name;
 		Arguments = arguments;
 	}
@@ -340,8 +327,7 @@ public sealed class DirectiveNode : StatementNode
 /// <summary>
 /// Base class for expression nodes.
 /// </summary>
-public abstract class ExpressionNode : AstNode
-{
+public abstract class ExpressionNode : AstNode {
 	/// <summary>
 	/// Creates a new expression node.
 	/// </summary>
@@ -352,8 +338,7 @@ public abstract class ExpressionNode : AstNode
 /// <summary>
 /// Represents a binary expression (e.g., "a + b", "label &amp; $ff").
 /// </summary>
-public sealed class BinaryExpressionNode : ExpressionNode
-{
+public sealed class BinaryExpressionNode : ExpressionNode {
 	/// <summary>
 	/// The left operand.
 	/// </summary>
@@ -381,8 +366,7 @@ public sealed class BinaryExpressionNode : ExpressionNode
 		ExpressionNode left,
 		BinaryOperator op,
 		ExpressionNode right)
-		: base(location)
-	{
+		: base(location) {
 		Left = left;
 		Operator = op;
 		Right = right;
@@ -395,8 +379,7 @@ public sealed class BinaryExpressionNode : ExpressionNode
 /// <summary>
 /// Binary operators.
 /// </summary>
-public enum BinaryOperator
-{
+public enum BinaryOperator {
 	/// <summary>Addition operator (+).</summary>
 	Add,
 	/// <summary>Subtraction operator (-).</summary>
@@ -438,8 +421,7 @@ public enum BinaryOperator
 /// <summary>
 /// Represents a unary expression (e.g., "-x", "~mask", "&lt;label").
 /// </summary>
-public sealed class UnaryExpressionNode : ExpressionNode
-{
+public sealed class UnaryExpressionNode : ExpressionNode {
 	/// <summary>
 	/// The operator.
 	/// </summary>
@@ -460,8 +442,7 @@ public sealed class UnaryExpressionNode : ExpressionNode
 		SourceLocation location,
 		UnaryOperator op,
 		ExpressionNode operand)
-		: base(location)
-	{
+		: base(location) {
 		Operator = op;
 		Operand = operand;
 	}
@@ -473,8 +454,7 @@ public sealed class UnaryExpressionNode : ExpressionNode
 /// <summary>
 /// Unary operators.
 /// </summary>
-public enum UnaryOperator
-{
+public enum UnaryOperator {
 	/// <summary>Negation operator (-).</summary>
 	Negate,
 	/// <summary>Bitwise NOT operator (~).</summary>
@@ -492,8 +472,7 @@ public enum UnaryOperator
 /// <summary>
 /// Represents a numeric literal (e.g., "$ff", "255", "%10101010").
 /// </summary>
-public sealed class NumberLiteralNode : ExpressionNode
-{
+public sealed class NumberLiteralNode : ExpressionNode {
 	/// <summary>
 	/// The numeric value.
 	/// </summary>
@@ -505,8 +484,7 @@ public sealed class NumberLiteralNode : ExpressionNode
 	/// <param name="location">The source location where this node begins.</param>
 	/// <param name="value">The numeric value.</param>
 	public NumberLiteralNode(SourceLocation location, long value)
-		: base(location)
-	{
+		: base(location) {
 		Value = value;
 	}
 
@@ -517,8 +495,7 @@ public sealed class NumberLiteralNode : ExpressionNode
 /// <summary>
 /// Represents a string literal (e.g., "Hello, World!").
 /// </summary>
-public sealed class StringLiteralNode : ExpressionNode
-{
+public sealed class StringLiteralNode : ExpressionNode {
 	/// <summary>
 	/// The string value.
 	/// </summary>
@@ -530,8 +507,7 @@ public sealed class StringLiteralNode : ExpressionNode
 	/// <param name="location">The source location where this node begins.</param>
 	/// <param name="value">The string value.</param>
 	public StringLiteralNode(SourceLocation location, string value)
-		: base(location)
-	{
+		: base(location) {
 		Value = value;
 	}
 
@@ -542,8 +518,7 @@ public sealed class StringLiteralNode : ExpressionNode
 /// <summary>
 /// Represents an identifier reference (e.g., "label", "CONSTANT").
 /// </summary>
-public sealed class IdentifierNode : ExpressionNode
-{
+public sealed class IdentifierNode : ExpressionNode {
 	/// <summary>
 	/// The identifier name.
 	/// </summary>
@@ -555,8 +530,7 @@ public sealed class IdentifierNode : ExpressionNode
 	/// <param name="location">The source location where this node begins.</param>
 	/// <param name="name">The identifier name.</param>
 	public IdentifierNode(SourceLocation location, string name)
-		: base(location)
-	{
+		: base(location) {
 		Name = name;
 	}
 
@@ -571,8 +545,7 @@ public sealed class IdentifierNode : ExpressionNode
 /// <summary>
 /// Represents a macro definition.
 /// </summary>
-public sealed class MacroDefinitionNode : StatementNode
-{
+public sealed class MacroDefinitionNode : StatementNode {
 	/// <summary>
 	/// The name of the macro.
 	/// </summary>
@@ -600,8 +573,7 @@ public sealed class MacroDefinitionNode : StatementNode
 		string name,
 		IReadOnlyList<string> parameters,
 		IReadOnlyList<StatementNode> body)
-		: base(location)
-	{
+		: base(location) {
 		Name = name;
 		Parameters = parameters;
 		Body = body;
@@ -614,8 +586,7 @@ public sealed class MacroDefinitionNode : StatementNode
 /// <summary>
 /// Represents a macro invocation.
 /// </summary>
-public sealed class MacroInvocationNode : StatementNode
-{
+public sealed class MacroInvocationNode : StatementNode {
 	/// <summary>
 	/// The name of the macro being invoked.
 	/// </summary>
@@ -636,8 +607,7 @@ public sealed class MacroInvocationNode : StatementNode
 		SourceLocation location,
 		string name,
 		IReadOnlyList<ExpressionNode> arguments)
-		: base(location)
-	{
+		: base(location) {
 		Name = name;
 		Arguments = arguments;
 	}

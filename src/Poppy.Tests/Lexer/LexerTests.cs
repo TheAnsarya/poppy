@@ -9,13 +9,11 @@ namespace Poppy.Tests.Lexer;
 /// Comprehensive unit tests for the Poppy Lexer.
 /// Tests verify the lexer correctly tokenizes assembly source code.
 /// </summary>
-public class LexerTests
-{
+public class LexerTests {
 	#region Basic Token Tests
 
 	[Fact]
-	public void Tokenize_EmptySource_ReturnsOnlyEndOfFile()
-	{
+	public void Tokenize_EmptySource_ReturnsOnlyEndOfFile() {
 		var lexer = new Core.Lexer.Lexer("");
 		var tokens = lexer.Tokenize();
 
@@ -24,8 +22,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_WhitespaceOnly_ReturnsOnlyEndOfFile()
-	{
+	public void Tokenize_WhitespaceOnly_ReturnsOnlyEndOfFile() {
 		var lexer = new Core.Lexer.Lexer("   \t\t   ");
 		var tokens = lexer.Tokenize();
 
@@ -34,8 +31,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_NewlineOnly_ReturnsNewlineAndEndOfFile()
-	{
+	public void Tokenize_NewlineOnly_ReturnsNewlineAndEndOfFile() {
 		var lexer = new Core.Lexer.Lexer("\n");
 		var tokens = lexer.Tokenize();
 
@@ -49,8 +45,7 @@ public class LexerTests
 	#region Comment Tests
 
 	[Fact]
-	public void Tokenize_SemicolonComment_ReturnsCommentToken()
-	{
+	public void Tokenize_SemicolonComment_ReturnsCommentToken() {
 		var lexer = new Core.Lexer.Lexer("; This is a comment");
 		var tokens = lexer.Tokenize();
 
@@ -60,8 +55,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_DoubleSlashComment_ReturnsCommentToken()
-	{
+	public void Tokenize_DoubleSlashComment_ReturnsCommentToken() {
 		var lexer = new Core.Lexer.Lexer("// This is a comment");
 		var tokens = lexer.Tokenize();
 
@@ -71,8 +65,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_CommentAfterInstruction_ReturnsBothTokens()
-	{
+	public void Tokenize_CommentAfterInstruction_ReturnsBothTokens() {
 		var lexer = new Core.Lexer.Lexer("lda #$00 ; load zero");
 		var tokens = lexer.Tokenize();
 
@@ -95,8 +88,7 @@ public class LexerTests
 	[InlineData("$1234", 0x1234)]
 	[InlineData("$abcd", 0xabcd)]
 	[InlineData("$DEADBEEF", 0xDEADBEEF)]
-	public void Tokenize_HexNumber_ReturnsCorrectValue(string input, long expected)
-	{
+	public void Tokenize_HexNumber_ReturnsCorrectValue(string input, long expected) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -111,8 +103,7 @@ public class LexerTests
 	[InlineData("255", 255)]
 	[InlineData("65535", 65535)]
 	[InlineData("12345678", 12345678)]
-	public void Tokenize_DecimalNumber_ReturnsCorrectValue(string input, long expected)
-	{
+	public void Tokenize_DecimalNumber_ReturnsCorrectValue(string input, long expected) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -127,8 +118,7 @@ public class LexerTests
 	[InlineData("%10101010", 0b10101010)]
 	[InlineData("%00001111", 0b00001111)]
 	[InlineData("%1111111100000000", 0b1111111100000000)]
-	public void Tokenize_BinaryNumber_ReturnsCorrectValue(string input, long expected)
-	{
+	public void Tokenize_BinaryNumber_ReturnsCorrectValue(string input, long expected) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -142,8 +132,7 @@ public class LexerTests
 	#region String Tests
 
 	[Fact]
-	public void Tokenize_DoubleQuotedString_ReturnsStringToken()
-	{
+	public void Tokenize_DoubleQuotedString_ReturnsStringToken() {
 		var lexer = new Core.Lexer.Lexer("\"Hello, World!\"");
 		var tokens = lexer.Tokenize();
 
@@ -153,8 +142,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_SingleQuotedCharacter_ReturnsCharacterToken()
-	{
+	public void Tokenize_SingleQuotedCharacter_ReturnsCharacterToken() {
 		// Single quotes are for character literals, not strings
 		var lexer = new Core.Lexer.Lexer("'A'");
 		var tokens = lexer.Tokenize();
@@ -174,8 +162,7 @@ public class LexerTests
 	[InlineData("Label123")]
 	[InlineData("some_long_name")]
 	[InlineData("CamelCase")]
-	public void Tokenize_Identifier_ReturnsIdentifierToken(string input)
-	{
+	public void Tokenize_Identifier_ReturnsIdentifierToken(string input) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -192,8 +179,7 @@ public class LexerTests
 	[InlineData("rts")]
 	[InlineData("rti")]
 	[InlineData("nop")]
-	public void Tokenize_Mnemonic_ReturnsMnemonicToken(string input)
-	{
+	public void Tokenize_Mnemonic_ReturnsMnemonicToken(string input) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -219,8 +205,7 @@ public class LexerTests
 	[InlineData(">", TokenType.GreaterThan)]
 	[InlineData("=", TokenType.Equals)]
 	[InlineData("!", TokenType.Bang)]
-	public void Tokenize_SingleOperator_ReturnsCorrectToken(string input, TokenType expected)
-	{
+	public void Tokenize_SingleOperator_ReturnsCorrectToken(string input, TokenType expected) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -237,8 +222,7 @@ public class LexerTests
 	[InlineData(">=", TokenType.GreaterEquals)]
 	[InlineData("&&", TokenType.AmpersandAmpersand)]
 	[InlineData("||", TokenType.PipePipe)]
-	public void Tokenize_DoubleOperator_ReturnsCorrectToken(string input, TokenType expected)
-	{
+	public void Tokenize_DoubleOperator_ReturnsCorrectToken(string input, TokenType expected) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -258,8 +242,7 @@ public class LexerTests
 	[InlineData(",", TokenType.Comma)]
 	[InlineData(":", TokenType.Colon)]
 	[InlineData("#", TokenType.Hash)]
-	public void Tokenize_Punctuation_ReturnsCorrectToken(string input, TokenType expected)
-	{
+	public void Tokenize_Punctuation_ReturnsCorrectToken(string input, TokenType expected) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -268,8 +251,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_AtSign_ReturnsIdentifier()
-	{
+	public void Tokenize_AtSign_ReturnsIdentifier() {
 		// @ by itself is a local label identifier prefix
 		var lexer = new Core.Lexer.Lexer("@");
 		var tokens = lexer.Tokenize();
@@ -280,8 +262,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_AtLabel_ReturnsIdentifier()
-	{
+	public void Tokenize_AtLabel_ReturnsIdentifier() {
 		// @loop is a local label
 		var lexer = new Core.Lexer.Lexer("@loop");
 		var tokens = lexer.Tokenize();
@@ -332,8 +313,7 @@ public class LexerTests
 	[InlineData(".error")]
 	[InlineData(".warning")]
 	[InlineData(".assert")]
-	public void Tokenize_Directive_ReturnsDirectiveToken(string input)
-	{
+	public void Tokenize_Directive_ReturnsDirectiveToken(string input) {
 		var lexer = new Core.Lexer.Lexer(input);
 		var tokens = lexer.Tokenize();
 
@@ -343,8 +323,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_LocalLabel_ReturnsDirectiveToken()
-	{
+	public void Tokenize_LocalLabel_ReturnsDirectiveToken() {
 		// Local labels like .localLabel are tokenized as Directive
 		// The parser will distinguish local labels from directives
 		var lexer = new Core.Lexer.Lexer(".localLabel");
@@ -360,8 +339,7 @@ public class LexerTests
 	#region Instruction Tests
 
 	[Fact]
-	public void Tokenize_ImmediateAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_ImmediateAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda #$40");
 		var tokens = lexer.Tokenize();
 
@@ -375,8 +353,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_AbsoluteAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_AbsoluteAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("sta $2000");
 		var tokens = lexer.Tokenize();
 
@@ -388,8 +365,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_IndexedAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_IndexedAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda $2000,x");
 		var tokens = lexer.Tokenize();
 
@@ -403,8 +379,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_IndirectAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_IndirectAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("jmp ($fffc)");
 		var tokens = lexer.Tokenize();
 
@@ -418,8 +393,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_IndexedIndirectAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_IndexedIndirectAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda ($00,x)");
 		var tokens = lexer.Tokenize();
 
@@ -433,8 +407,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_IndirectIndexedAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_IndirectIndexedAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda ($00),y");
 		var tokens = lexer.Tokenize();
 
@@ -452,8 +425,7 @@ public class LexerTests
 	#region Complex Source Tests
 
 	[Fact]
-	public void Tokenize_LabelDefinition_ReturnsCorrectTokens()
-	{
+	public void Tokenize_LabelDefinition_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("main_loop:");
 		var tokens = lexer.Tokenize();
 
@@ -464,8 +436,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_MultiLineSource_ReturnsCorrectTokens()
-	{
+	public void Tokenize_MultiLineSource_ReturnsCorrectTokens() {
 		var source = """
 			.org $8000
 			main:
@@ -491,8 +462,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_MacroDefinition_ReturnsCorrectTokens()
-	{
+	public void Tokenize_MacroDefinition_ReturnsCorrectTokens() {
 		var source = """
 			.macro PUSH_ALL
 				pha
@@ -512,8 +482,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_ConditionalAssembly_ReturnsCorrectTokens()
-	{
+	public void Tokenize_ConditionalAssembly_ReturnsCorrectTokens() {
 		var source = """
 			.ifdef DEBUG
 				lda #$ff
@@ -534,8 +503,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_Expression_ReturnsCorrectTokens()
-	{
+	public void Tokenize_Expression_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda #<(label+$10)");
 		var tokens = lexer.Tokenize();
 
@@ -546,8 +514,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_DataDirective_ReturnsCorrectTokens()
-	{
+	public void Tokenize_DataDirective_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer(".byte $00, $01, $02, $03");
 		var tokens = lexer.Tokenize();
 
@@ -567,8 +534,7 @@ public class LexerTests
 	#region Location Tracking Tests
 
 	[Fact]
-	public void Tokenize_TracksLineNumbers()
-	{
+	public void Tokenize_TracksLineNumbers() {
 		var source = "lda\nsta\njmp";
 		var lexer = new Core.Lexer.Lexer(source);
 		var tokens = lexer.Tokenize();
@@ -582,8 +548,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_TracksColumnNumbers()
-	{
+	public void Tokenize_TracksColumnNumbers() {
 		var lexer = new Core.Lexer.Lexer("  lda #$00");
 		var tokens = lexer.Tokenize();
 
@@ -593,8 +558,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_TracksFilename()
-	{
+	public void Tokenize_TracksFilename() {
 		var lexer = new Core.Lexer.Lexer("lda", "test.asm");
 		var tokens = lexer.Tokenize();
 
@@ -606,8 +570,7 @@ public class LexerTests
 	#region Error Handling Tests
 
 	[Fact]
-	public void Tokenize_UnterminatedString_ReturnsErrorToken()
-	{
+	public void Tokenize_UnterminatedString_ReturnsErrorToken() {
 		var lexer = new Core.Lexer.Lexer("\"unterminated string");
 		var tokens = lexer.Tokenize();
 
@@ -619,8 +582,7 @@ public class LexerTests
 	#region 65816 Specific Tests
 
 	[Fact]
-	public void Tokenize_65816_LongAddressing_ReturnsCorrectTokens()
-	{
+	public void Tokenize_65816_LongAddressing_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda $7e0000");
 		var tokens = lexer.Tokenize();
 
@@ -631,8 +593,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_65816_StackRelative_ReturnsCorrectTokens()
-	{
+	public void Tokenize_65816_StackRelative_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("lda $01,s");
 		var tokens = lexer.Tokenize();
 
@@ -642,8 +603,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_65816_BlockMove_ReturnsCorrectTokens()
-	{
+	public void Tokenize_65816_BlockMove_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("mvn $00,$7e");
 		var tokens = lexer.Tokenize();
 
@@ -656,8 +616,7 @@ public class LexerTests
 	#region Game Boy Specific Tests
 
 	[Fact]
-	public void Tokenize_GB_LoadHL_ReturnsCorrectTokens()
-	{
+	public void Tokenize_GB_LoadHL_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("ld [hl],a");
 		var tokens = lexer.Tokenize();
 
@@ -669,8 +628,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_GB_BitInstruction_ReturnsCorrectTokens()
-	{
+	public void Tokenize_GB_BitInstruction_ReturnsCorrectTokens() {
 		var lexer = new Core.Lexer.Lexer("bit 7,a");
 		var tokens = lexer.Tokenize();
 
@@ -684,8 +642,7 @@ public class LexerTests
 	#region Size Suffix Tests
 
 	[Fact]
-	public void Tokenize_SizeSuffix_ReturnsCorrectToken()
-	{
+	public void Tokenize_SizeSuffix_ReturnsCorrectToken() {
 		var lexer = new Core.Lexer.Lexer("lda.b #$00");
 		var tokens = lexer.Tokenize();
 
@@ -695,8 +652,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_WordSizeSuffix_ReturnsCorrectToken()
-	{
+	public void Tokenize_WordSizeSuffix_ReturnsCorrectToken() {
 		var lexer = new Core.Lexer.Lexer("lda.w #$0000");
 		var tokens = lexer.Tokenize();
 
@@ -705,8 +661,7 @@ public class LexerTests
 	}
 
 	[Fact]
-	public void Tokenize_LongSizeSuffix_ReturnsCorrectToken()
-	{
+	public void Tokenize_LongSizeSuffix_ReturnsCorrectToken() {
 		var lexer = new Core.Lexer.Lexer("jsr.l $c00000");
 		var tokens = lexer.Tokenize();
 

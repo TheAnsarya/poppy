@@ -10,8 +10,7 @@ namespace Poppy.Core.CodeGen;
 /// <summary>
 /// Provides instruction encoding for the MOS 6502 processor.
 /// </summary>
-public static class InstructionSet6502
-{
+public static class InstructionSet6502 {
 	/// <summary>
 	/// Instruction encoding information.
 	/// </summary>
@@ -22,17 +21,14 @@ public static class InstructionSet6502
 	/// <summary>
 /// Custom comparer for case-insensitive mnemonic lookup.
 /// </summary>
-private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, AddressingMode Mode)>
-{
+private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, AddressingMode Mode)> {
 	public static readonly MnemonicComparer Instance = new();
 
-	public bool Equals((string Mnemonic, AddressingMode Mode) x, (string Mnemonic, AddressingMode Mode) y)
-	{
+	public bool Equals((string Mnemonic, AddressingMode Mode) x, (string Mnemonic, AddressingMode Mode) y) {
 		return string.Equals(x.Mnemonic, y.Mnemonic, StringComparison.OrdinalIgnoreCase) && x.Mode == y.Mode;
 	}
 
-	public int GetHashCode((string Mnemonic, AddressingMode Mode) obj)
-	{
+	public int GetHashCode((string Mnemonic, AddressingMode Mode) obj) {
 		return HashCode.Combine(obj.Mnemonic.ToLowerInvariant(), obj.Mode);
 	}
 }
@@ -325,16 +321,14 @@ private static readonly Dictionary<(string Mnemonic, AddressingMode Mode), Instr
 	/// <param name="mode">The addressing mode.</param>
 	/// <param name="encoding">The encoding if found.</param>
 	/// <returns>True if the encoding was found.</returns>
-	public static bool TryGetEncoding(string mnemonic, AddressingMode mode, out InstructionEncoding encoding)
-	{
+	public static bool TryGetEncoding(string mnemonic, AddressingMode mode, out InstructionEncoding encoding) {
 		return _opcodes.TryGetValue((mnemonic, mode), out encoding);
 	}
 
 	/// <summary>
 	/// Gets all supported mnemonics.
 	/// </summary>
-	public static IEnumerable<string> GetAllMnemonics()
-	{
+	public static IEnumerable<string> GetAllMnemonics() {
 		return _opcodes.Keys.Select(k => k.Mnemonic).Distinct(StringComparer.OrdinalIgnoreCase);
 	}
 
@@ -343,8 +337,7 @@ private static readonly Dictionary<(string Mnemonic, AddressingMode Mode), Instr
 	/// </summary>
 	/// <param name="mnemonic">The mnemonic to check.</param>
 	/// <returns>The supported addressing modes.</returns>
-	public static IEnumerable<AddressingMode> GetSupportedModes(string mnemonic)
-	{
+	public static IEnumerable<AddressingMode> GetSupportedModes(string mnemonic) {
 		return _opcodes.Keys
 			.Where(k => k.Mnemonic.Equals(mnemonic, StringComparison.OrdinalIgnoreCase))
 			.Select(k => k.Mode);

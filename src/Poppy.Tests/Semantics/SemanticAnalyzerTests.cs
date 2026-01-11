@@ -13,8 +13,7 @@ namespace Poppy.Tests.Semantics;
 /// <summary>
 /// Unit tests for the SemanticAnalyzer class.
 /// </summary>
-public class SemanticAnalyzerTests
-{
+public class SemanticAnalyzerTests {
 	// ========================================================================
 	// Helper Methods
 	// ========================================================================
@@ -22,8 +21,7 @@ public class SemanticAnalyzerTests
 	/// <summary>
 	/// Helper to parse and analyze source code.
 	/// </summary>
-	private static SemanticAnalyzer Analyze(string source, TargetArchitecture target = TargetArchitecture.MOS6502)
-	{
+	private static SemanticAnalyzer Analyze(string source, TargetArchitecture target = TargetArchitecture.MOS6502) {
 		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
@@ -39,8 +37,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_SimpleLabel_DefinesSymbol()
-	{
+	public void Analyze_SimpleLabel_DefinesSymbol() {
 		var analyzer = Analyze("main:");
 
 		Assert.True(analyzer.SymbolTable.TryGetSymbol("main", out var symbol));
@@ -52,8 +49,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_LabelAfterInstructions_HasCorrectAddress()
-	{
+	public void Analyze_LabelAfterInstructions_HasCorrectAddress() {
 		var source = """
 			.org $8000
 			nop
@@ -68,8 +64,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_MultipleLabels_AllDefined()
-	{
+	public void Analyze_MultipleLabels_AllDefined() {
 		var source = """
 			.org $8000
 			start:
@@ -91,8 +86,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_DuplicateLabel_ReportsError()
-	{
+	public void Analyze_DuplicateLabel_ReportsError() {
 		var source = """
 			label:
 			label:
@@ -109,8 +103,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_EquDirective_DefinesConstant()
-	{
+	public void Analyze_EquDirective_DefinesConstant() {
 		var source = "PPUCTRL = $2000";
 
 		var analyzer = Analyze(source);
@@ -122,8 +115,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_DefineDirective_DefinesConstant()
-	{
+	public void Analyze_DefineDirective_DefinesConstant() {
 		var source = ".define SCREEN_WIDTH, 256";
 
 		var analyzer = Analyze(source);
@@ -137,8 +129,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_ForwardReference_Resolves()
-	{
+	public void Analyze_ForwardReference_Resolves() {
 		var source = """
 			jmp target
 			target:
@@ -152,8 +143,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_UndefinedSymbol_ReportsError()
-	{
+	public void Analyze_UndefinedSymbol_ReportsError() {
 		var source = "jmp undefined_label";
 
 		var analyzer = Analyze(source);
@@ -167,8 +157,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_OrgDirective_SetsAddress()
-	{
+	public void Analyze_OrgDirective_SetsAddress() {
 		var source = """
 			.org $c000
 			label:
@@ -181,8 +170,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_MultipleOrg_UpdatesAddress()
-	{
+	public void Analyze_MultipleOrg_UpdatesAddress() {
 		var source = """
 			.org $8000
 			first:
@@ -200,8 +188,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_ImmediateInstruction_AddsTwo()
-	{
+	public void Analyze_ImmediateInstruction_AddsTwo() {
 		var source = """
 			.org $8000
 			lda #$00
@@ -215,8 +202,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_AbsoluteInstruction_AddsThree()
-	{
+	public void Analyze_AbsoluteInstruction_AddsThree() {
 		var source = """
 			.org $8000
 			lda $2000
@@ -230,8 +216,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_ImpliedInstruction_AddsOne()
-	{
+	public void Analyze_ImpliedInstruction_AddsOne() {
 		var source = """
 			.org $8000
 			nop
@@ -249,8 +234,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_ByteDirective_AddsBytes()
-	{
+	public void Analyze_ByteDirective_AddsBytes() {
 		var source = """
 			.org $8000
 			.byte $01, $02, $03
@@ -264,8 +248,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_WordDirective_AddsWords()
-	{
+	public void Analyze_WordDirective_AddsWords() {
 		var source = """
 			.org $8000
 			.word $1234, $5678
@@ -279,8 +262,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_StringDirective_AddsBytes()
-	{
+	public void Analyze_StringDirective_AddsBytes() {
 		var source = """
 			.org $8000
 			.db "Hello"
@@ -294,8 +276,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_DsDirective_ReservesSpace()
-	{
+	public void Analyze_DsDirective_ReservesSpace() {
 		var source = """
 			.org $8000
 			.ds 16
@@ -313,8 +294,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void EvaluateExpression_NumberLiteral_ReturnsValue()
-	{
+	public void EvaluateExpression_NumberLiteral_ReturnsValue() {
 		var analyzer = Analyze("");
 		var lexer = new Poppy.Core.Lexer.Lexer("$ff", "test.asm");
 		var tokens = lexer.Tokenize();
@@ -335,8 +315,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_ExpressionWithOperators_Evaluates()
-	{
+	public void Analyze_ExpressionWithOperators_Evaluates() {
 		var source = """
 			BASE = $1000
 			OFFSET = $100
@@ -350,8 +329,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_BitwiseOperations_Evaluate()
-	{
+	public void Analyze_BitwiseOperations_Evaluate() {
 		var source = """
 			MASK = $ff00
 			VALUE = MASK & $f0f0
@@ -364,8 +342,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_ShiftOperations_Evaluate()
-	{
+	public void Analyze_ShiftOperations_Evaluate() {
 		var source = """
 			BASE = 1
 			SHIFTED = BASE << 8
@@ -378,8 +355,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_LowByteOperator_Evaluates()
-	{
+	public void Analyze_LowByteOperator_Evaluates() {
 		var source = """
 			ADDR = $1234
 			LOW = <ADDR
@@ -392,8 +368,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_HighByteOperator_Evaluates()
-	{
+	public void Analyze_HighByteOperator_Evaluates() {
 		var source = """
 			ADDR = $1234
 			HIGH = >ADDR
@@ -406,8 +381,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_BankByteOperator_Evaluates()
-	{
+	public void Analyze_BankByteOperator_Evaluates() {
 		var source = """
 			ADDR = $7e1234
 			BANK = ^ADDR
@@ -424,8 +398,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_LongAddress_AddsFourBytes()
-	{
+	public void Analyze_LongAddress_AddsFourBytes() {
 		var source = """
 			.org $8000
 			lda.l $7e0000
@@ -439,8 +412,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_SizeSuffix_OverridesDefault()
-	{
+	public void Analyze_SizeSuffix_OverridesDefault() {
 		var source = """
 			.org $8000
 			lda.b $00
@@ -458,8 +430,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_LocalLabel_ScopedToParent()
-	{
+	public void Analyze_LocalLabel_ScopedToParent() {
 		// Using @ for local labels instead of . (. is directive prefix)
 		var source = """
 			main:
@@ -480,8 +451,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_OrgWithoutArgument_ReportsError()
-	{
+	public void Analyze_OrgWithoutArgument_ReportsError() {
 		var source = ".org";
 
 		var analyzer = Analyze(source);
@@ -491,8 +461,7 @@ public class SemanticAnalyzerTests
 	}
 
 	[Fact]
-	public void Analyze_EquWithoutValue_ReportsError()
-	{
+	public void Analyze_EquWithoutValue_ReportsError() {
 		var source = "NAME =";
 
 		var analyzer = Analyze(source);
@@ -506,8 +475,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_MacroDefinition_DefinesSymbol()
-	{
+	public void Analyze_MacroDefinition_DefinesSymbol() {
 		var source = """
 			.macro test
 				nop
@@ -525,8 +493,7 @@ public class SemanticAnalyzerTests
 	// ========================================================================
 
 	[Fact]
-	public void Analyze_CompleteNESProgram_NoErrors()
-	{
+	public void Analyze_CompleteNESProgram_NoErrors() {
 		var source = """
 			; NES Program Header
 			.org $8000

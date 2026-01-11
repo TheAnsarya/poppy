@@ -15,13 +15,11 @@ namespace Poppy.Tests.CodeGen;
 /// <summary>
 /// Unit tests for the CodeGenerator class.
 /// </summary>
-public class CodeGeneratorTests
-{
+public class CodeGeneratorTests {
 	/// <summary>
 	/// Helper to generate code from source.
 	/// </summary>
-	private static (byte[] Code, CodeGenerator Generator) GenerateCode(string source)
-	{
+	private static (byte[] Code, CodeGenerator Generator) GenerateCode(string source) {
 		var lexer = new PoppyLexer(source);
 		var tokens = lexer.Tokenize();
 		var parser = new PoppyParser(tokens);
@@ -41,8 +39,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_LdaImmediate()
-	{
+	public void Generate_LdaImmediate() {
 		var source = "lda #$42";
 		var (code, gen) = GenerateCode(source);
 
@@ -51,8 +48,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_LdaZeroPage()
-	{
+	public void Generate_LdaZeroPage() {
 		var source = "lda $42";
 		var (code, gen) = GenerateCode(source);
 
@@ -61,8 +57,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_LdaAbsolute()
-	{
+	public void Generate_LdaAbsolute() {
 		var source = "lda $1234";
 		var (code, gen) = GenerateCode(source);
 
@@ -71,8 +66,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_LdaAbsoluteX()
-	{
+	public void Generate_LdaAbsoluteX() {
 		var source = "lda $1234,x";
 		var (code, gen) = GenerateCode(source);
 
@@ -81,8 +75,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_LdaAbsoluteY()
-	{
+	public void Generate_LdaAbsoluteY() {
 		var source = "lda $1234,y";
 		var (code, gen) = GenerateCode(source);
 
@@ -91,8 +84,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_LdaIndirectX()
-	{
+	public void Generate_LdaIndirectX() {
 		var source = "lda ($42,x)";
 		var (code, gen) = GenerateCode(source);
 
@@ -101,8 +93,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_LdaIndirectY()
-	{
+	public void Generate_LdaIndirectY() {
 		var source = "lda ($42),y";
 		var (code, gen) = GenerateCode(source);
 
@@ -115,8 +106,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_Nop()
-	{
+	public void Generate_Nop() {
 		var source = "nop";
 		var (code, gen) = GenerateCode(source);
 
@@ -125,8 +115,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_Inx()
-	{
+	public void Generate_Inx() {
 		var source = "inx";
 		var (code, gen) = GenerateCode(source);
 
@@ -135,8 +124,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_Rts()
-	{
+	public void Generate_Rts() {
 		var source = "rts";
 		var (code, gen) = GenerateCode(source);
 
@@ -145,8 +133,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_AslAccumulator()
-	{
+	public void Generate_AslAccumulator() {
 		var source = "asl a";
 		var (code, gen) = GenerateCode(source);
 
@@ -159,8 +146,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_MultipleInstructions()
-	{
+	public void Generate_MultipleInstructions() {
 		var source = """
 			lda #$00
 			sta $2000
@@ -177,8 +163,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_JmpToLabel()
-	{
+	public void Generate_JmpToLabel() {
 		var source = """
 			.org $8000
 			start:
@@ -191,8 +176,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_JsrToLabel()
-	{
+	public void Generate_JsrToLabel() {
 		var source = """
 			.org $8000
 			jsr subroutine
@@ -213,8 +197,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_BranchForward()
-	{
+	public void Generate_BranchForward() {
 		var source = """
 			.org $8000
 			beq skip
@@ -230,8 +213,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_BranchBackward()
-	{
+	public void Generate_BranchBackward() {
 		var source = """
 			.org $8000
 			loop:
@@ -251,8 +233,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_ByteDirective()
-	{
+	public void Generate_ByteDirective() {
 		var source = ".byte $01, $02, $03";
 		var (code, gen) = GenerateCode(source);
 
@@ -261,8 +242,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_DbDirective()
-	{
+	public void Generate_DbDirective() {
 		var source = ".db $ff, $00, $aa";
 		var (code, gen) = GenerateCode(source);
 
@@ -271,8 +251,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_WordDirective()
-	{
+	public void Generate_WordDirective() {
 		var source = ".word $1234, $5678";
 		var (code, gen) = GenerateCode(source);
 
@@ -281,8 +260,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_DwDirective()
-	{
+	public void Generate_DwDirective() {
 		var source = ".dw $abcd";
 		var (code, gen) = GenerateCode(source);
 
@@ -291,8 +269,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_StringData()
-	{
+	public void Generate_StringData() {
 		var source = ".byte \"ABC\"";
 		var (code, gen) = GenerateCode(source);
 
@@ -305,8 +282,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_FillDirective()
-	{
+	public void Generate_FillDirective() {
 		var source = ".fill 5, $ff";
 		var (code, gen) = GenerateCode(source);
 
@@ -315,8 +291,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_DsDirective()
-	{
+	public void Generate_DsDirective() {
 		var source = ".ds 3";
 		var (code, gen) = GenerateCode(source);
 
@@ -325,8 +300,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_ResDirective()
-	{
+	public void Generate_ResDirective() {
 		var source = ".res 4, $ea";
 		var (code, gen) = GenerateCode(source);
 
@@ -339,8 +313,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_ConstantInOperand()
-	{
+	public void Generate_ConstantInOperand() {
 		var source = """
 			ADDR = $2000
 			lda ADDR
@@ -353,8 +326,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_ExpressionInOperand()
-	{
+	public void Generate_ExpressionInOperand() {
 		var source = """
 			BASE = $2000
 			lda BASE+$10
@@ -370,8 +342,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_SimpleProgram()
-	{
+	public void Generate_SimpleProgram() {
 		var source = """
 			.org $8000
 
@@ -419,8 +390,7 @@ public class CodeGeneratorTests
 	[InlineData("ldy #$42", new byte[] { 0xa0, 0x42 })]
 	[InlineData("ora #$42", new byte[] { 0x09, 0x42 })]
 	[InlineData("sbc #$42", new byte[] { 0xe9, 0x42 })]
-	public void Generate_ImmediateModeInstructions(string source, byte[] expected)
-	{
+	public void Generate_ImmediateModeInstructions(string source, byte[] expected) {
 		var (code, gen) = GenerateCode(source);
 		Assert.False(gen.HasErrors);
 		Assert.Equal(expected, code);
@@ -451,8 +421,7 @@ public class CodeGeneratorTests
 	[InlineData("txa", new byte[] { 0x8a })]
 	[InlineData("txs", new byte[] { 0x9a })]
 	[InlineData("tya", new byte[] { 0x98 })]
-	public void Generate_ImpliedModeInstructions(string source, byte[] expected)
-	{
+	public void Generate_ImpliedModeInstructions(string source, byte[] expected) {
 		var (code, gen) = GenerateCode(source);
 		Assert.False(gen.HasErrors);
 		Assert.Equal(expected, code);
@@ -463,8 +432,7 @@ public class CodeGeneratorTests
 	[InlineData("lsr a", new byte[] { 0x4a })]
 	[InlineData("rol a", new byte[] { 0x2a })]
 	[InlineData("ror a", new byte[] { 0x6a })]
-	public void Generate_AccumulatorModeInstructions(string source, byte[] expected)
-	{
+	public void Generate_AccumulatorModeInstructions(string source, byte[] expected) {
 		var (code, gen) = GenerateCode(source);
 		Assert.False(gen.HasErrors);
 		Assert.Equal(expected, code);
@@ -473,8 +441,7 @@ public class CodeGeneratorTests
 	[Theory]
 	[InlineData("bit $42", new byte[] { 0x24, 0x42 })]
 	[InlineData("bit $1234", new byte[] { 0x2c, 0x34, 0x12 })]
-	public void Generate_BitInstruction(string source, byte[] expected)
-	{
+	public void Generate_BitInstruction(string source, byte[] expected) {
 		var (code, gen) = GenerateCode(source);
 		Assert.False(gen.HasErrors);
 		Assert.Equal(expected, code);
@@ -483,16 +450,14 @@ public class CodeGeneratorTests
 	[Theory]
 	[InlineData("jmp $1234", new byte[] { 0x4c, 0x34, 0x12 })]
 	[InlineData("jmp ($1234)", new byte[] { 0x6c, 0x34, 0x12 })]
-	public void Generate_JmpInstruction(string source, byte[] expected)
-	{
+	public void Generate_JmpInstruction(string source, byte[] expected) {
 		var (code, gen) = GenerateCode(source);
 		Assert.False(gen.HasErrors);
 		Assert.Equal(expected, code);
 	}
 
 	[Fact]
-	public void Generate_JsrInstruction()
-	{
+	public void Generate_JsrInstruction() {
 		var source = "jsr $1234";
 		var (code, gen) = GenerateCode(source);
 
@@ -501,8 +466,7 @@ public class CodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_BrkInstruction()
-	{
+	public void Generate_BrkInstruction() {
 		var source = "brk";
 		var (code, gen) = GenerateCode(source);
 
@@ -515,8 +479,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_MultipleOrgSegments()
-	{
+	public void Generate_MultipleOrgSegments() {
 		var source = """
 			.org $8000
 			.byte $11, $22, $33
@@ -536,8 +499,7 @@ public class CodeGeneratorTests
 	// ========================================================================
 
 	[Fact]
-	public void Generate_InvalidAddressingMode_ReportsError()
-	{
+	public void Generate_InvalidAddressingMode_ReportsError() {
 		// STA doesn't support immediate mode
 		var source = "sta #$42";
 		var (code, gen) = GenerateCode(source);
@@ -554,8 +516,7 @@ public class CodeGeneratorTests
 	[InlineData("LDA #$42")]
 	[InlineData("lda #$42")]
 	[InlineData("Lda #$42")]
-	public void Generate_CaseInsensitiveMnemonics(string source)
-	{
+	public void Generate_CaseInsensitiveMnemonics(string source) {
 		var (code, gen) = GenerateCode(source);
 
 		Assert.False(gen.HasErrors);

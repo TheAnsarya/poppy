@@ -10,8 +10,7 @@ namespace Poppy.Core.Semantics;
 /// <summary>
 /// Represents a symbol in the symbol table.
 /// </summary>
-public sealed class Symbol
-{
+public sealed class Symbol {
 	/// <summary>
 	/// The name of the symbol.
 	/// </summary>
@@ -57,16 +56,14 @@ public sealed class Symbol
 	/// </summary>
 	/// <param name="name">The name of the symbol.</param>
 	/// <param name="type">The type of the symbol.</param>
-	public Symbol(string name, SymbolType type)
-	{
+	public Symbol(string name, SymbolType type) {
 		Name = name;
 		Type = type;
 		IsDefined = false;
 	}
 
 	/// <inheritdoc />
-	public override string ToString()
-	{
+	public override string ToString() {
 		var valueStr = Value.HasValue ? $" = ${Value:x}" : " (undefined)";
 		return $"{Type} {Name}{valueStr}";
 	}
@@ -75,8 +72,7 @@ public sealed class Symbol
 /// <summary>
 /// Types of symbols in the symbol table.
 /// </summary>
-public enum SymbolType
-{
+public enum SymbolType {
 	/// <summary>A label representing a code or data address.</summary>
 	Label,
 
@@ -93,8 +89,7 @@ public enum SymbolType
 /// <summary>
 /// Symbol table for managing labels, constants, and macros.
 /// </summary>
-public sealed class SymbolTable
-{
+public sealed class SymbolTable {
 	private readonly Dictionary<string, Symbol> _symbols = new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<SemanticError> _errors = [];
 	private string? _currentScope;
@@ -112,8 +107,7 @@ public sealed class SymbolTable
 	/// <summary>
 	/// Gets or sets the current scope (parent label for local labels).
 	/// </summary>
-	public string? CurrentScope
-	{
+	public string? CurrentScope {
 		get => _currentScope;
 		set => _currentScope = value;
 	}
@@ -126,8 +120,7 @@ public sealed class SymbolTable
 	/// <param name="value">The symbol value (if known).</param>
 	/// <param name="location">The definition location.</param>
 	/// <returns>The symbol.</returns>
-	public Symbol Define(string name, SymbolType type, long? value, SourceLocation location)
-	{
+	public Symbol Define(string name, SymbolType type, long? value, SourceLocation location) {
 		var fullName = GetFullName(name);
 
 		if (_symbols.TryGetValue(fullName, out var existing)) {
@@ -168,8 +161,7 @@ public sealed class SymbolTable
 	/// <param name="name">The symbol name.</param>
 	/// <param name="location">The reference location.</param>
 	/// <returns>The symbol, or null if it cannot be resolved.</returns>
-	public Symbol? Reference(string name, SourceLocation location)
-	{
+	public Symbol? Reference(string name, SourceLocation location) {
 		var fullName = GetFullName(name);
 
 		if (_symbols.TryGetValue(fullName, out var existing)) {
@@ -194,8 +186,7 @@ public sealed class SymbolTable
 	/// <param name="name">The symbol name.</param>
 	/// <param name="symbol">The symbol if found.</param>
 	/// <returns>True if the symbol exists.</returns>
-	public bool TryGetSymbol(string name, out Symbol? symbol)
-	{
+	public bool TryGetSymbol(string name, out Symbol? symbol) {
 		var fullName = GetFullName(name);
 		return _symbols.TryGetValue(fullName, out symbol);
 	}
@@ -203,8 +194,7 @@ public sealed class SymbolTable
 	/// <summary>
 	/// Checks for undefined symbols and reports errors.
 	/// </summary>
-	public void ValidateAllDefined()
-	{
+	public void ValidateAllDefined() {
 		foreach (var symbol in _symbols.Values) {
 			if (!symbol.IsDefined && symbol.References.Count > 0) {
 				var firstRef = symbol.References[0];
@@ -218,8 +208,7 @@ public sealed class SymbolTable
 	/// <summary>
 	/// Gets the full name for a symbol (handling local labels).
 	/// </summary>
-	private string GetFullName(string name)
-	{
+	private string GetFullName(string name) {
 		if (IsLocalName(name) && _currentScope is not null) {
 			return $"{_currentScope}{name}";
 		}
@@ -229,8 +218,7 @@ public sealed class SymbolTable
 	/// <summary>
 	/// Checks if a name is a local label (starts with . or @).
 	/// </summary>
-	private static bool IsLocalName(string name)
-	{
+	private static bool IsLocalName(string name) {
 		return name.Length > 0 && (name[0] == '.' || name[0] == '@');
 	}
 }
@@ -238,8 +226,7 @@ public sealed class SymbolTable
 /// <summary>
 /// Represents a semantic analysis error.
 /// </summary>
-public sealed class SemanticError
-{
+public sealed class SemanticError {
 	/// <summary>
 	/// The error message.
 	/// </summary>
@@ -255,8 +242,7 @@ public sealed class SemanticError
 	/// </summary>
 	/// <param name="message">The error message.</param>
 	/// <param name="location">The source location.</param>
-	public SemanticError(string message, SourceLocation location)
-	{
+	public SemanticError(string message, SourceLocation location) {
 		Message = message;
 		Location = location;
 	}

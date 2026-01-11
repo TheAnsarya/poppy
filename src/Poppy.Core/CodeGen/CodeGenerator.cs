@@ -12,8 +12,7 @@ namespace Poppy.Core.CodeGen;
 /// <summary>
 /// Generates binary code from an analyzed AST.
 /// </summary>
-public sealed class CodeGenerator : IAstVisitor<object?>
-{
+public sealed class CodeGenerator : IAstVisitor<object?> {
 	private readonly SemanticAnalyzer _analyzer;
 	private readonly TargetArchitecture _target;
 	private readonly List<CodeError> _errors;
@@ -41,8 +40,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// </summary>
 	/// <param name="analyzer">The semantic analyzer with symbol table.</param>
 	/// <param name="target">The target architecture.</param>
-	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502)
-	{
+	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502) {
 		_analyzer = analyzer;
 		_target = target;
 		_errors = [];
@@ -55,8 +53,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// </summary>
 	/// <param name="program">The program AST.</param>
 	/// <returns>The generated binary data.</returns>
-	public byte[] Generate(ProgramNode program)
-	{
+	public byte[] Generate(ProgramNode program) {
 		_currentAddress = 0;
 		_currentSegment = null;
 		_segments.Clear();
@@ -71,8 +68,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitProgram(ProgramNode node)
-	{
+	public object? VisitProgram(ProgramNode node) {
 		foreach (var statement in node.Statements) {
 			statement.Accept(this);
 		}
@@ -80,15 +76,13 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitLabel(LabelNode node)
-	{
+	public object? VisitLabel(LabelNode node) {
 		// Labels don't generate code, just update address tracking
 		return null;
 	}
 
 	/// <inheritdoc />
-	public object? VisitInstruction(InstructionNode node)
-	{
+	public object? VisitInstruction(InstructionNode node) {
 		EnsureSegment(node.Location);
 
 		var mnemonic = node.Mnemonic;
@@ -158,8 +152,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Resolves the best addressing mode based on operand value.
 	/// </summary>
-	private AddressingMode ResolveAddressingMode(string mnemonic, AddressingMode mode, long value)
-	{
+	private AddressingMode ResolveAddressingMode(string mnemonic, AddressingMode mode, long value) {
 		// Check if we can optimize to zero page variant
 		var isZeroPage = value >= 0 && value <= 0xff;
 
@@ -185,8 +178,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	}
 
 	/// <inheritdoc />
-	public object? VisitDirective(DirectiveNode node)
-	{
+	public object? VisitDirective(DirectiveNode node) {
 		switch (node.Name.ToLowerInvariant()) {
 			case "org":
 				HandleOrgDirective(node);
@@ -236,8 +228,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	public object? VisitStringLiteral(StringLiteralNode node) => node.Value;
 
 	/// <inheritdoc />
-	public object? VisitIdentifier(IdentifierNode node)
-	{
+	public object? VisitIdentifier(IdentifierNode node) {
 		if (_analyzer.SymbolTable.TryGetSymbol(node.Name, out var symbol) && symbol?.Value.HasValue == true) {
 			return symbol.Value;
 		}
@@ -257,8 +248,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .org directive.
 	/// </summary>
-	private void HandleOrgDirective(DirectiveNode node)
-	{
+	private void HandleOrgDirective(DirectiveNode node) {
 		if (node.Arguments.Count < 1) return;
 
 		var value = _analyzer.EvaluateExpression(node.Arguments[0]);
@@ -274,8 +264,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .byte / .db directive.
 	/// </summary>
-	private void HandleByteDirective(DirectiveNode node)
-	{
+	private void HandleByteDirective(DirectiveNode node) {
 		EnsureSegment(node.Location);
 
 		foreach (var arg in node.Arguments) {
@@ -303,8 +292,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .word / .dw directive.
 	/// </summary>
-	private void HandleWordDirective(DirectiveNode node)
-	{
+	private void HandleWordDirective(DirectiveNode node) {
 		EnsureSegment(node.Location);
 
 		foreach (var arg in node.Arguments) {
@@ -324,8 +312,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .long / .dl / .dd directive.
 	/// </summary>
-	private void HandleLongDirective(DirectiveNode node)
-	{
+	private void HandleLongDirective(DirectiveNode node) {
 		EnsureSegment(node.Location);
 
 		var bytes = _target == TargetArchitecture.WDC65816 ? 3 : 4;
@@ -349,8 +336,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Handles .ds / .fill / .res directive.
 	/// </summary>
-	private void HandleSpaceDirective(DirectiveNode node)
-	{
+	private void HandleSpaceDirective(DirectiveNode node) {
 		EnsureSegment(node.Location);
 
 		if (node.Arguments.Count < 1) return;
@@ -378,8 +364,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Ensures a current segment exists.
 	/// </summary>
-	private void EnsureSegment(SourceLocation location)
-	{
+	private void EnsureSegment(SourceLocation location) {
 		if (_currentSegment is null) {
 			_currentSegment = new OutputSegment(_currentAddress);
 			_segments.Add(_currentSegment);
@@ -389,8 +374,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Emits a single byte.
 	/// </summary>
-	private void EmitByte(byte value)
-	{
+	private void EmitByte(byte value) {
 		_currentSegment?.Data.Add(value);
 		_currentAddress++;
 	}
@@ -398,8 +382,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Emits a 16-bit word (little-endian).
 	/// </summary>
-	private void EmitWord(ushort value)
-	{
+	private void EmitWord(ushort value) {
 		EmitByte((byte)(value & 0xff));
 		EmitByte((byte)((value >> 8) & 0xff));
 	}
@@ -407,8 +390,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Emits a value with the specified number of bytes.
 	/// </summary>
-	private void EmitValue(long value, int bytes, char? sizeSuffix)
-	{
+	private void EmitValue(long value, int bytes, char? sizeSuffix) {
 		// Size suffix overrides
 		if (sizeSuffix.HasValue) {
 			bytes = sizeSuffix.Value switch {
@@ -427,8 +409,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Tries to get instruction encoding from the appropriate instruction set.
 	/// </summary>
-	private bool TryGetInstructionEncoding(string mnemonic, AddressingMode mode, out InstructionSet6502.InstructionEncoding encoding)
-	{
+	private bool TryGetInstructionEncoding(string mnemonic, AddressingMode mode, out InstructionSet6502.InstructionEncoding encoding) {
 		// For now, only 6502 is implemented
 		return InstructionSet6502.TryGetEncoding(mnemonic, mode, out encoding);
 	}
@@ -436,8 +417,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Checks if an instruction is a branch instruction.
 	/// </summary>
-	private static bool IsBranchInstruction(string mnemonic)
-	{
+	private static bool IsBranchInstruction(string mnemonic) {
 		return mnemonic.ToLowerInvariant() switch {
 			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
 			_ => false
@@ -447,8 +427,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 	/// <summary>
 	/// Flattens all segments into a single byte array.
 	/// </summary>
-	private byte[] FlattenSegments()
-	{
+	private byte[] FlattenSegments() {
 		if (_segments.Count == 0) {
 			return [];
 		}
@@ -475,8 +454,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>
 /// <summary>
 /// Represents an output segment with a start address and data.
 /// </summary>
-public sealed class OutputSegment
-{
+public sealed class OutputSegment {
 	/// <summary>
 	/// The starting address of this segment.
 	/// </summary>
@@ -491,8 +469,7 @@ public sealed class OutputSegment
 	/// Creates a new output segment.
 	/// </summary>
 	/// <param name="startAddress">The starting address.</param>
-	public OutputSegment(long startAddress)
-	{
+	public OutputSegment(long startAddress) {
 		StartAddress = startAddress;
 	}
 }
@@ -500,8 +477,7 @@ public sealed class OutputSegment
 /// <summary>
 /// Represents a code generation error.
 /// </summary>
-public sealed class CodeError
-{
+public sealed class CodeError {
 	/// <summary>
 	/// The error message.
 	/// </summary>
@@ -517,8 +493,7 @@ public sealed class CodeError
 	/// </summary>
 	/// <param name="message">The error message.</param>
 	/// <param name="location">The source location.</param>
-	public CodeError(string message, SourceLocation location)
-	{
+	public CodeError(string message, SourceLocation location) {
 		Message = message;
 		Location = location;
 	}

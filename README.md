@@ -117,9 +117,18 @@ irq:
 
 ## 📖 Documentation
 
+### User Guides
+
 | Document | Description |
 |----------|-------------|
+| [User Manual](docs/user-manual.md) | Complete usage guide with examples |
+| [Project File Format](docs/project-file-format.md) | `.poppy` project configuration |
 | [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
+
+### Technical Reference
+
+| Document | Description |
+|----------|-------------|
 | [Architecture](docs/architecture.md) | Compiler design and structure |
 | [File Formats](docs/file-formats.md) | ROM and patch format reference |
 | [Resources](docs/resources.md) | External links and research |
@@ -131,6 +140,7 @@ irq:
 | [Roadmap](~docs/roadmap.md) | Development roadmap and milestones |
 | [Short-Term Plan](~plans/short-term-plan.md) | 4-week immediate goals |
 | [Long-Term Plan](~plans/long-term-plan.md) | Quarterly milestones |
+| [GitHub Issues (Expanded)](~plans/github-issues-expanded.md) | Comprehensive issue templates |
 
 ### Internal Documentation
 

@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // Program.cs - Poppy Compiler CLI Entry Point
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -13,8 +13,7 @@ namespace Poppy.CLI;
 /// <summary>
 /// Main entry point for the Poppy compiler CLI.
 /// </summary>
-internal static class Program
-{
+internal static class Program {
 	private static readonly string Version = "0.1.0";
 	private static readonly string AppName = "Poppy Compiler";
 
@@ -23,8 +22,7 @@ internal static class Program
 	/// </summary>
 	/// <param name="args">Command line arguments.</param>
 	/// <returns>Exit code (0 for success).</returns>
-	public static int Main(string[] args)
-	{
+	public static int Main(string[] args) {
 		// Parse command line arguments
 		var options = ParseArguments(args);
 
@@ -51,8 +49,7 @@ internal static class Program
 	/// <summary>
 	/// Compiles a source file.
 	/// </summary>
-	private static int Compile(CompilerOptions options)
-	{
+	private static int Compile(CompilerOptions options) {
 		var inputFile = options.InputFile!;
 
 		// Check input file exists
@@ -174,8 +171,7 @@ internal static class Program
 	/// <summary>
 	/// Writes a listing file.
 	/// </summary>
-	private static void WriteListing(string filename, ProgramNode program, SemanticAnalyzer analyzer, byte[] code)
-	{
+	private static void WriteListing(string filename, ProgramNode program, SemanticAnalyzer analyzer, byte[] code) {
 		using var writer = new StreamWriter(filename);
 
 		writer.WriteLine($"; {AppName} v{Version} Listing");
@@ -197,8 +193,7 @@ internal static class Program
 	/// <summary>
 	/// Parses command line arguments.
 	/// </summary>
-	private static CompilerOptions ParseArguments(string[] args)
-	{
+	private static CompilerOptions ParseArguments(string[] args) {
 		var options = new CompilerOptions();
 
 		for (int i = 0; i < args.Length; i++) {
@@ -261,8 +256,7 @@ internal static class Program
 	/// <summary>
 	/// Shows help message.
 	/// </summary>
-	private static void ShowHelp()
-	{
+	private static void ShowHelp() {
 		Console.WriteLine($"{AppName} v{Version}");
 		Console.WriteLine();
 		Console.WriteLine("Usage: poppy [options] <input.asm>");
@@ -287,8 +281,7 @@ internal static class Program
 	/// <summary>
 	/// Shows version information.
 	/// </summary>
-	private static void ShowVersion()
-	{
+	private static void ShowVersion() {
 		Console.WriteLine($"{AppName} v{Version}");
 		Console.WriteLine("Target architectures: 6502, 65816, SM83");
 		Console.WriteLine("Copyright (c) 2024");
@@ -298,8 +291,7 @@ internal static class Program
 /// <summary>
 /// Compiler options parsed from command line.
 /// </summary>
-internal sealed class CompilerOptions
-{
+internal sealed class CompilerOptions {
 	/// <summary>Input source file.</summary>
 	public string? InputFile { get; set; }
 
