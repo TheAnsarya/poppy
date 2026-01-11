@@ -21,18 +21,51 @@ The compiler aims to support compilation of retro game projects including Dragon
 ## ✨ Features
 
 ### Implemented ✅
+
+**Core Compiler Features:**
 - 📝 Clean, lowercase assembly syntax
 - 🔢 `$` prefix for hexadecimal values (e.g., `$40df`)
-- 🏷️ Labels and constants
+- 🏷️ Labels, local labels, and anonymous labels
 - 📍 `.org` directive for address setting
 - 📊 Data directives (`.byte`, `.word`, `.long`, `.fill`, `.ds`)
 - 🔀 All 6502 addressing modes
 - 📈 Automatic zero-page optimization
-- 📋 Symbol table listing output
 - 🖥️ Command-line interface
 
+**File System & Organization:**
+- 📦 `.include` directive for file inclusion
+- 📂 `.incbin` directive for binary data inclusion
+- 🔄 Preprocessor with include path resolution
+- 🗂️ Multi-file project support
+
+**Label System:**
+- 🏷️ Global labels
+- 📌 Local labels with `@` prefix and scoping
+- ➕ Anonymous forward labels (`+`, `++`, etc.)
+- ➖ Anonymous backward labels (`-`, `--`, etc.)
+
+**Directives & Features:**
+- 🎯 Target directives (`.nes`, `.snes`, `.gb`)
+- 🗺️ Memory mapping (`.lorom`, `.hirom`, `.exhirom`)
+- 🔧 Mapper selection (`.mapper`)
+- 📐 Alignment directives (`.align`, `.pad`)
+- ✅ Compile-time assertions (`.assert`)
+- ⚠️ Error and warning directives (`.error`, `.warning`)
+- 💬 Multi-line comments (`/* */`)
+
+**NES ROM Generation:**
+- 🎮 iNES 1.0 and iNES 2.0 header generation
+- 📋 12 iNES header directives (`.ines_prg`, `.ines_chr`, `.ines_mapper`, etc.)
+- 🗺️ Support for mappers 0-4095, submappers 0-15
+- 🔋 Battery backup, trainer, mirroring configuration
+- 🌍 NTSC/PAL timing selection
+
+**Output Formats:**
+- 🎮 NES ROM with iNES 2.0 header
+- 🐛 Debug symbol files (FCEUX .nl, Mesen .mlb, generic .sym)
+- 📊 Symbol table listing output
+
 ### Coming Soon 🚧
-- 📦 Multi-file project support with `.include`
 - 🛠️ Macro and conditional assembly
 - 🎯 65816 instruction set (SNES)
 - 🎮 SM83 instruction set (Game Boy)
@@ -66,6 +99,11 @@ poppy game.asm                     # Output: game.bin
 # Specify output file
 poppy -o rom.nes game.asm          # Output: rom.nes
 
+# Generate debug symbols
+poppy -s game.nl game.asm          # Creates FCEUX .nl symbol file
+poppy -s game.mlb game.asm         # Creates Mesen .mlb symbol file
+poppy -s game.sym game.asm         # Creates generic .sym symbol file
+
 # Generate listing file
 poppy -l game.lst game.asm         # Creates symbol table listing
 
@@ -81,12 +119,20 @@ poppy -t sm83 game.asm             # Game Boy
 ### Example Assembly (NES/6502)
 
 ```asm
-; Example Poppy assembly (NES/6502)
-.org $8000
+; Example NES ROM with iNES 2.0 header
+.nes
+.ines_prg 2        ; 32KB PRG ROM
+.ines_chr 1        ; 8KB CHR ROM
+.ines_mapper 0     ; NROM mapper
+.ines_mirroring 1  ; vertical mirroring
 
 ; Constants
 PPU_CTRL = $2000
 PPU_MASK = $2001
+PPU_STATUS = $2002
+
+; Reset vector
+.org $8000
 
 reset:
     sei
@@ -98,19 +144,81 @@ reset:
     sta PPU_CTRL
     sta PPU_MASK
 
-loop:
-    jmp loop
+@wait_vblank1:
+    bit PPU_STATUS
+    bpl @wait_vblank1
 
-; Interrupt handlers
+@wait_vblank2:
+    bit PPU_STATUS
+    bpl @wait_vblank2
+
+main_loop:
+    jmp main_loop
+
+; NMI handler
 nmi:
+    rti
+
+; IRQ handler  
 irq:
     rti
 
-; Vectors
+; Interrupt vectors
 .org $fffa
 .word nmi        ; NMI vector
-.word reset      ; Reset vector  
-.word irq        ; IRQ vector
+.word reset      ; Reset vector
+.word irq        ; IRQ/BRK vector
+```
+
+### Advanced Features
+
+#### Local Labels
+```asm
+subroutine1:
+@local_loop:     ; local to subroutine1
+    dex
+    bne @local_loop
+    rts
+
+subroutine2:
+@local_loop:     ; different local scope
+    dey
+    bne @local_loop
+    rts
+```
+
+#### Anonymous Labels
+```asm
+; Forward references (+)
+lda #$00
+beq +            ; jump to next +
+lda #$01
++:
+sta $2000
+
+; Backward references (-)
+-:
+lda ($00),y
+sta $2007
+iny
+bne -            ; jump to previous -
+```
+
+#### File Inclusion
+```asm
+.include "constants.inc"
+.include "macros.inc"
+
+; Binary data inclusion
+.org $a000
+.incbin "graphics.chr"
+```
+
+#### Compile-Time Assertions
+```asm
+.assert * < $8000, "Code exceeds PRG ROM bank"
+.error "Not implemented yet"
+.warning "TODO: Optimize this section"
 ```
 
 ---
@@ -196,13 +304,19 @@ rts
 
 ## 🏗️ Project Status
 
-**Current Phase:** Foundation
+**Current Phase:** v0.1.0 - Foundation Complete
 
 - ✅ Project structure established
 - ✅ Documentation framework in place
 - ✅ Coding standards defined
-- 🔄 Architecture design in progress
-- ⬜ Core compiler implementation
+- ✅ Core compiler implementation
+- ✅ NES ROM generation with iNES 2.0
+- ✅ Symbol export for debuggers
+- ✅ Include system and preprocessor
+- ✅ Label system (global, local, anonymous)
+- ✅ Comprehensive test suite (375 tests)
+
+**Next Phase:** Macro System & Conditional Assembly
 
 ---
 
