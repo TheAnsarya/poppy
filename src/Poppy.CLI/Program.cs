@@ -72,15 +72,22 @@ internal static class Program {
 			Console.WriteLine($"Compiling: {inputFile}");
 		}
 
-		// Lexical analysis
-		var lexer = new Lexer(source);
-		var tokens = lexer.Tokenize();
+		// Preprocessing (handles .include directives)
+		var preprocessor = new Preprocessor(options.IncludePaths);
+		var tokens = preprocessor.Process(source, inputFile);
+
+		if (preprocessor.HasErrors) {
+			foreach (var error in preprocessor.Errors) {
+				Console.Error.WriteLine($"{error.Location.FilePath}:{error.Location.Line}:{error.Location.Column}: error: {error.Message}");
+			}
+			return 1;
+		}
 
 		// Check for lexer errors (Error tokens)
 		var lexerErrors = tokens.Where(t => t.Type == TokenType.Error).ToList();
 		if (lexerErrors.Count > 0) {
 			foreach (var error in lexerErrors) {
-				Console.Error.WriteLine($"{inputFile}:{error.Location.Line}:{error.Location.Column}: error: {error.Text}");
+				Console.Error.WriteLine($"{error.Location.FilePath}:{error.Location.Line}:{error.Location.Column}: error: {error.Text}");
 			}
 			return 1;
 		}
@@ -238,7 +245,13 @@ internal static class Program {
 							"sm83" or "gb" or "gameboy" => TargetArchitecture.SM83,
 							_ => options.Target
 						};
-						i++;
+					}
+					break;
+
+				case "-I":
+				case "--include":
+					if (i + 1 < args.Length) {
+						options.IncludePaths.Add(args[++i]);
 					}
 					break;
 
@@ -267,6 +280,7 @@ internal static class Program {
 		Console.WriteLine("  -V, --verbose        Enable verbose output");
 		Console.WriteLine("  -o, --output <file>  Output file (default: input.bin)");
 		Console.WriteLine("  -l, --listing <file> Generate listing file");
+		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
 		Console.WriteLine("                         65816, snes   - WDC 65816");
@@ -300,6 +314,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Listing file path.</summary>
 	public string? ListingFile { get; set; }
+
+	/// <summary>Include search paths.</summary>
+	public List<string> IncludePaths { get; } = [];
 
 	/// <summary>Target architecture.</summary>
 	public TargetArchitecture Target { get; set; } = TargetArchitecture.MOS6502;
