@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>Poppy.Core</RootNamespace>
+		<AssemblyName>Poppy.Core</AssemblyName>
+		<Version>0.1.0</Version>
+		<Authors>Ansarya</Authors>
+		<Description>Core library for the Poppy multi-system assembly compiler</Description>
+		<Copyright>Copyright © 2026</Copyright>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+</Project>
+
