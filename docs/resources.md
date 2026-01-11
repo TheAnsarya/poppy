@@ -217,6 +217,240 @@
 
 ---
 
+## �️ 65816 Instruction Set Summary
+
+> Research completed January 11, 2026 from SuperFamicom Wiki
+
+### Internal Registers
+
+| Register | Name | Description |
+|----------|------|-------------|
+| A | Accumulator | Math register, 8 or 16-bit |
+| X, Y | Index | Index/counter registers, 8 or 16-bit |
+| S | Stack Pointer | Points to next available stack location |
+| DBR / DB | Data Bank | Default bank for memory transfers |
+| D / DP | Direct Page | Direct page addressing base |
+| PB / PBR | Program Bank | Bank address of instruction fetches |
+| P | Processor Status | Flags and processor states |
+| PC | Program Counter | Current instruction address |
+
+### Processor Flags (P Register)
+
+| Flag | Bit | Value | Description |
+|------|-----|-------|-------------|
+| N | 7 | `$80` | Negative |
+| V | 6 | `$40` | Overflow |
+| M | 5 | `$20` | Accumulator size (0=16-bit, 1=8-bit) - native mode only |
+| X | 4 | `$10` | Index size (0=16-bit, 1=8-bit) - native mode only |
+| D | 3 | `$08` | Decimal mode |
+| I | 2 | `$04` | IRQ disable |
+| Z | 1 | `$02` | Zero |
+| C | 0 | `$01` | Carry |
+| E | - | - | 6502 emulation mode (hidden, accessed via XCE) |
+| B | 4 | `$10` | Break (emulation mode only, shares bit with X) |
+
+### 65816 Addressing Modes (~24 modes)
+
+| Mode | Syntax | Description |
+|------|--------|-------------|
+| Implied | `pha`, `nop` | No operand |
+| Accumulator | `inc a`, `asl a` | Operates on A register |
+| Immediate (8-bit) | `sep #$20` | Always 8-bit constant |
+| Immediate (mem) | `lda #$ff` | 8 or 16-bit based on M flag |
+| Immediate (index) | `ldx #$ff` | 8 or 16-bit based on X flag |
+| Direct Page | `lda $10` | Zero/direct page address |
+| Direct Page,X | `lda $10,x` | DP indexed by X |
+| Direct Page,Y | `lda $10,y` | DP indexed by Y |
+| Absolute | `lda $1000` | 16-bit address in current bank |
+| Absolute,X | `lda $1000,x` | Absolute indexed by X |
+| Absolute,Y | `lda $1000,y` | Absolute indexed by Y |
+| Absolute Long | `lda $7e1000` | 24-bit full address |
+| Absolute Long,X | `lda $7e1000,x` | Long indexed by X |
+| DP Indirect | `lda ($10)` | Indirect through DP |
+| DP Indirect,Y | `lda ($10),y` | Indirect indexed |
+| DP Indexed Indirect | `lda ($10,x)` | Indexed indirect |
+| DP Indirect Long | `lda [$10]` | Long indirect (24-bit pointer) |
+| DP Indirect Long,Y | `lda [$10],y` | Long indirect indexed |
+| Absolute Indirect | `jmp ($1000)` | Jump indirect |
+| Absolute Indirect Long | `jml [$1000]` | Jump indirect long |
+| Absolute Indexed Indirect | `jmp ($1000,x)` | Jump indexed indirect |
+| Stack Relative | `lda $05,s` | Stack-relative addressing |
+| Stack Relative Indirect Indexed | `lda ($05,s),y` | Complex stack mode |
+| Relative | `bne label` | 8-bit signed offset |
+| Relative Long | `brl label` | 16-bit signed offset |
+| Block Move | `mvn $7e,$7f` | Block memory transfer |
+
+### 65816 Instruction Categories
+
+| Category | Instructions | Count |
+|----------|-------------|-------|
+| Load/Store | `lda`, `ldx`, `ldy`, `sta`, `stx`, `sty`, `stz` | 7 |
+| Transfer | `tax`, `tay`, `txa`, `tya`, `txy`, `tyx`, `tcd`, `tcs`, `tdc`, `tsc`, `tsx`, `txs` | 12 |
+| Stack | `pha`, `phx`, `phy`, `php`, `phb`, `phd`, `phk`, `pla`, `plx`, `ply`, `plp`, `plb`, `pld`, `pea`, `pei`, `per` | 16 |
+| Arithmetic | `adc`, `sbc`, `inc`, `inx`, `iny`, `dec`, `dex`, `dey` | 8 |
+| Logic | `and`, `ora`, `eor`, `bit`, `trb`, `tsb` | 6 |
+| Shift/Rotate | `asl`, `lsr`, `rol`, `ror` | 4 |
+| Compare | `cmp`, `cpx`, `cpy` | 3 |
+| Branch | `bcc`/`blt`, `bcs`/`bge`, `beq`, `bne`, `bmi`, `bpl`, `bvc`, `bvs`, `bra`, `brl` | 10 |
+| Jump | `jmp`, `jml`, `jsr`, `jsl`, `rts`, `rtl`, `rti` | 7 |
+| Flag | `clc`, `cld`, `cli`, `clv`, `sec`, `sed`, `sei`, `rep`, `sep` | 9 |
+| Block Move | `mvn`, `mvp` | 2 |
+| Misc | `nop`, `wai`, `stp`, `wdm`, `xba`, `xce`, `brk`, `cop` | 8 |
+| **Total** | | **~92** |
+
+### 65816 vs 6502 Key Differences
+
+| Feature | 6502 | 65816 |
+|---------|------|-------|
+| Accumulator | 8-bit only | 8 or 16-bit (M flag) |
+| Index registers | 8-bit only | 8 or 16-bit (X flag) |
+| Address space | 64KB | 16MB (24-bit) |
+| Stack | 256 bytes (page 1) | 64KB (full 16-bit pointer) |
+| Direct/Zero page | Fixed at $0000 | Relocatable (D register) |
+| Data bank | N/A | DBR for default bank |
+| Emulation mode | N/A | Can emulate 6502 |
+| New instructions | N/A | 30+ new instructions |
+
+### 65816 Mode Switching
+
+```asm
+; Enter native mode (16-bit capable)
+clc
+xce
+
+; Set 16-bit accumulator and index
+rep #$30		; clear M and X flags
+
+; Set 8-bit accumulator, 16-bit index
+sep #$20		; set M flag
+rep #$10		; clear X flag
+
+; Return to emulation mode
+sec
+xce
+```
+
+---
+
+## 🎮 Game Boy CPU (SM83) Summary
+
+> Research completed January 11, 2026 from Pan Docs and gbdev.io
+
+### Note on CPU Name
+
+The Game Boy CPU is often incorrectly called "Z80" but is actually a custom **Sharp SM83** (or LR35902). It's closer to an Intel 8080 than a Z80, lacking the Z80's IX/IY registers and extended instruction set.
+
+### Registers
+
+| Register | Size | Description |
+|----------|------|-------------|
+| A | 8-bit | Accumulator |
+| F | 8-bit | Flags register |
+| B, C | 8-bit | General purpose, can pair as BC (16-bit) |
+| D, E | 8-bit | General purpose, can pair as DE (16-bit) |
+| H, L | 8-bit | General purpose, can pair as HL (16-bit) |
+| SP | 16-bit | Stack Pointer |
+| PC | 16-bit | Program Counter |
+
+### Register Pairs
+
+| Pair | Usage |
+|------|-------|
+| AF | Accumulator + Flags (for push/pop) |
+| BC | General purpose 16-bit |
+| DE | General purpose 16-bit |
+| HL | General purpose, memory pointer |
+
+### Flags (F Register, bits 7-4)
+
+| Bit | Flag | Name | Description |
+|-----|------|------|-------------|
+| 7 | Z | Zero | Set if result is zero |
+| 6 | N | Subtract | Set if last operation was subtraction (BCD) |
+| 5 | H | Half Carry | Carry from bit 3 to bit 4 (BCD) |
+| 4 | C | Carry | Carry/borrow from bit 7 |
+| 3-0 | - | Unused | Always 0 |
+
+### Addressing Modes
+
+| Mode | Syntax | Example |
+|------|--------|---------|
+| Implied | `nop`, `halt` | No operand |
+| Register | `inc b`, `dec a` | Single register |
+| Register to Register | `ld b, c` | Reg-to-reg transfer |
+| Immediate 8-bit | `ld b, $ff` | Load constant |
+| Immediate 16-bit | `ld bc, $1234` | Load 16-bit constant |
+| Register Indirect | `ld a, [hl]` | Memory via HL |
+| Register Indirect (BC/DE) | `ld a, [bc]` | Memory via BC/DE |
+| HL Increment/Decrement | `ld a, [hl+]` | Auto inc/dec HL |
+| Direct 16-bit | `ld a, [$ff44]` | Absolute address |
+| High RAM | `ldh a, [$ff00+n]` | $ff00-$ffff shortcut |
+| High RAM (C) | `ldh a, [c]` | $ff00+C |
+| Relative | `jr label` | Signed 8-bit offset |
+| SP Relative | `ld hl, sp+n` | Stack pointer offset |
+
+### Instruction Categories
+
+| Category | Instructions | Notes |
+|----------|-------------|-------|
+| **Load 8-bit** | `ld`, `ldh` | Register/memory loads |
+| **Load 16-bit** | `ld`, `push`, `pop` | 16-bit register ops |
+| **Arithmetic 8-bit** | `add`, `adc`, `sub`, `sbc`, `inc`, `dec` | A register math |
+| **Arithmetic 16-bit** | `add hl`, `inc`, `dec`, `add sp` | 16-bit math |
+| **Logic** | `and`, `or`, `xor`, `cp` | Bitwise operations |
+| **Rotate/Shift** | `rlca`, `rrca`, `rla`, `rra`, `rlc`, `rrc`, `rl`, `rr`, `sla`, `sra`, `srl`, `swap` | Bit manipulation |
+| **Bit Test** | `bit`, `set`, `res` | Single bit operations |
+| **Jump** | `jp`, `jr`, `call`, `ret`, `reti`, `rst` | Control flow |
+| **Stack** | `push`, `pop` | Stack operations |
+| **Misc** | `nop`, `halt`, `stop`, `di`, `ei`, `daa`, `cpl`, `scf`, `ccf` | System control |
+
+### CB-Prefixed Instructions
+
+The `$cb` prefix enables extended bit operations:
+
+| Instruction | Description |
+|-------------|-------------|
+| `rlc r8` | Rotate left circular |
+| `rrc r8` | Rotate right circular |
+| `rl r8` | Rotate left through carry |
+| `rr r8` | Rotate right through carry |
+| `sla r8` | Shift left arithmetic |
+| `sra r8` | Shift right arithmetic |
+| `swap r8` | Swap nibbles |
+| `srl r8` | Shift right logical |
+| `bit n, r8` | Test bit n |
+| `res n, r8` | Reset bit n |
+| `set n, r8` | Set bit n |
+
+### SM83 vs Z80 Key Differences
+
+| Feature | Z80 | SM83 (Game Boy) |
+|---------|-----|-----------------|
+| IX, IY registers | Yes | No |
+| Shadow registers | Yes | No |
+| I, R registers | Yes | No |
+| Extended instructions (ED prefix) | Yes | No |
+| Block transfer (LDIR, etc.) | Yes | No |
+| Index addressing | Yes | No |
+| IN/OUT instructions | Yes | No (use memory-mapped I/O) |
+| `swap` instruction | No | Yes (unique to SM83) |
+
+### Memory Map Context
+
+| Range | Description |
+|-------|-------------|
+| `$0000-$3fff` | ROM Bank 0 (fixed) |
+| `$4000-$7fff` | ROM Bank N (switchable) |
+| `$8000-$9fff` | VRAM |
+| `$a000-$bfff` | External RAM |
+| `$c000-$dfff` | Work RAM |
+| `$fe00-$fe9f` | OAM (sprite data) |
+| `$ff00-$ff7f` | I/O Registers |
+| `$ff80-$fffe` | High RAM (fast) |
+| `$ffff` | Interrupt Enable |
+
+---
+
 ## 📝 Notes
 
 - Resources are organized by category
@@ -224,6 +458,7 @@
 - Add new resources as discovered during development
 - Mark broken links with ❌
 - Syntax research from Jan 11, 2026 - ASAR and ca65 analysis complete
+- 65816 research from Jan 11, 2026 - instruction set documented
 
 ---
 

@@ -63,8 +63,16 @@ jmp loop
 
 | Document | Description |
 |----------|-------------|
+| [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
+| [Architecture](docs/architecture.md) | Compiler design and structure |
+| [File Formats](docs/file-formats.md) | ROM and patch format reference |
+| [Resources](docs/resources.md) | External links and research |
+
+### Planning Documents
+
+| Document | Description |
+|----------|-------------|
 | [Roadmap](~docs/roadmap.md) | Development roadmap and milestones |
-| [Structure](~docs/structure.md) | Project folder structure |
 | [Short-Term Plan](~plans/short-term-plan.md) | 4-week immediate goals |
 | [Long-Term Plan](~plans/long-term-plan.md) | Quarterly milestones |
 
