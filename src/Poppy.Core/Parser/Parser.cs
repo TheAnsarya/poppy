@@ -130,11 +130,12 @@ public sealed class Parser {
 
 	private StatementNode ParseLabelOrIdentifier() {
 		var token = Advance();
+		var isLocal = token.Text.StartsWith('@');
 
 		// If followed by colon, it's a label definition
 		if (Check(TokenType.Colon)) {
 			Advance(); // consume colon
-			return new LabelNode(token.Location, token.Text);
+			return new LabelNode(token.Location, token.Text, isLocal);
 		}
 
 		// If followed by equals, it's an assignment (EQU-style)
@@ -148,7 +149,7 @@ public sealed class Parser {
 		// Otherwise, it could be a macro invocation
 		// For now, report error - identifiers at statement level need context
 		ReportError($"Expected label definition or assignment, found identifier: {token.Text}", token.Location);
-		return new LabelNode(token.Location, token.Text); // Return as label for error recovery
+		return new LabelNode(token.Location, token.Text, isLocal); // Return as label for error recovery
 	}
 
 	private StatementNode ParseInstruction() {
@@ -501,6 +502,21 @@ public sealed class Parser {
 	}
 
 	private ExpressionNode ParseUnary() {
+		// Check for anonymous label reference first
+		// Anonymous labels (+ or -) are used when NOT followed by a primary expression start
+		if (Check(TokenType.Plus) || Check(TokenType.Minus)) {
+			bool isPlus = Check(TokenType.Plus);
+			// Look ahead to see what follows
+			int lookahead = _current + 1;
+			bool hasPrimary = lookahead < _tokens.Count &&
+				IsPrimaryExpressionStart(_tokens[lookahead].Type);
+
+			// If not followed by a primary expression, treat as anonymous label
+			if (!hasPrimary) {
+				return ParsePrimary(); // This will handle anonymous labels
+			}
+		}
+
 		// Negation (-)
 		if (Match(TokenType.Minus)) {
 			var location = Previous.Location;
@@ -546,6 +562,21 @@ public sealed class Parser {
 		return ParsePrimary();
 	}
 
+	/// <summary>
+	/// Checks if a token type can start a primary expression.
+	/// </summary>
+	private static bool IsPrimaryExpressionStart(TokenType type) {
+		return type switch {
+			TokenType.Number => true,
+			TokenType.String => true,
+			TokenType.Identifier => true,
+			TokenType.Mnemonic => true,
+			TokenType.Star => true,
+			TokenType.LeftParen => true,
+			_ => false
+		};
+	}
+
 	private ExpressionNode ParsePrimary() {
 		// Number literal
 		if (Check(TokenType.Number)) {
@@ -568,6 +599,19 @@ public sealed class Parser {
 		// Current address (*)
 		if (Match(TokenType.Star)) {
 			return new IdentifierNode(Previous.Location, "*");
+		}
+
+		// Anonymous label reference (+ or -)
+		// Handles +, ++, +++, ... and -, --, ---, ...
+		if (Check(TokenType.Plus) || Check(TokenType.Minus)) {
+			var location = CurrentToken.Location;
+			bool isForward = Check(TokenType.Plus);
+			var builder = new System.Text.StringBuilder();
+			while (Check(TokenType.Plus) == isForward && (Check(TokenType.Plus) || Check(TokenType.Minus))) {
+				builder.Append(isForward ? '+' : '-');
+				Advance();
+			}
+			return new IdentifierNode(location, builder.ToString());
 		}
 
 		// Grouped expression
