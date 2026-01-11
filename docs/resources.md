@@ -459,6 +459,7 @@ The `$cb` prefix enables extended bit operations:
 - Mark broken links with ❌
 - Syntax research from Jan 11, 2026 - ASAR and ca65 analysis complete
 - 65816 research from Jan 11, 2026 - instruction set documented
+- Game Boy SM83 research from Jan 11, 2026 - registers, flags, instructions documented
 
 ---
 
