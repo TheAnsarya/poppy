@@ -376,11 +376,11 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				.Select(p => new MacroParameter(p))
 				.ToList();
 
-			// For now, store empty token list (macro expansion will be implemented later)
-			var bodyTokens = new List<Token>();
+			// Store the macro body as statements
+			var body = node.Body.ToList();
 
 			// Define the macro in the macro table
-			_macroTable.Define(node.Name, parameters, bodyTokens, node.Location);
+			_macroTable.Define(node.Name, parameters, body, node.Location);
 
 			// Also add to symbol table for reference tracking
 			_symbolTable.Define(

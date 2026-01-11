@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Poppy.Core.Lexer;
+using Poppy.Core.Parser;
 
 namespace Poppy.Core.Semantics;
 
@@ -26,7 +27,7 @@ public sealed class MacroTable
 		"lsr", "nop", "ora", "pha", "php", "pla", "plp", "rol",
 		"ror", "rti", "rts", "sbc", "sec", "sed", "sei", "sta",
 		"stx", "sty", "tax", "tay", "tsx", "txa", "txs", "tya",
-		
+
 		// Common directives
 		"org", "byte", "word", "long", "db", "dw", "dl", "dd",
 		"ds", "fill", "res", "equ", "define", "include", "incbin",
@@ -55,12 +56,12 @@ public sealed class MacroTable
 	/// </summary>
 	/// <param name="name">The macro name.</param>
 	/// <param name="parameters">The macro parameters.</param>
-	/// <param name="body">The macro body tokens.</param>
+	/// <param name="body">The macro body statements.</param>
 	/// <param name="location">The source location.</param>
 	public void Define(
 		string name,
 		IReadOnlyList<MacroParameter> parameters,
-		IReadOnlyList<Token> body,
+		IReadOnlyList<StatementNode> body,
 		SourceLocation location)
 	{
 		// Validate macro name

@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Poppy.Core.Lexer;
+using Poppy.Core.Parser;
 
 namespace Poppy.Core.Semantics;
 
@@ -23,9 +24,9 @@ public sealed class MacroDefinition
 	public IReadOnlyList<MacroParameter> Parameters { get; }
 
 	/// <summary>
-	/// The tokens that make up the macro body.
+	/// The statements that make up the macro body.
 	/// </summary>
-	public IReadOnlyList<Token> Body { get; }
+	public IReadOnlyList<StatementNode> Body { get; }
 
 	/// <summary>
 	/// The source location where the macro was defined.
@@ -37,12 +38,12 @@ public sealed class MacroDefinition
 	/// </summary>
 	/// <param name="name">The macro name.</param>
 	/// <param name="parameters">The macro parameters.</param>
-	/// <param name="body">The macro body tokens.</param>
+	/// <param name="body">The macro body statements.</param>
 	/// <param name="location">The source location.</param>
 	public MacroDefinition(
 		string name,
 		IReadOnlyList<MacroParameter> parameters,
-		IReadOnlyList<Token> body,
+		IReadOnlyList<StatementNode> body,
 		SourceLocation location)
 	{
 		Name = name;
