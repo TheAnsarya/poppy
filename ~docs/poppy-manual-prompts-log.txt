@@ -1,7 +1,13 @@
 
 git commit with descriptions
 
+--- Run `~init.txt` prompts;
 
+during research, save all URLs and resources to a `docs/resources.md` file; continue working, updating logs, docs, etc;
+
+continue working the github issues and todolists (and making more) and work for a long time;
+
+always use the most modern versions of languages and libraries and modern practices, so don't use dotnet 8, use dotnet 10 and c#14, etc; continue and work for a long time; do the "next steps"; update github issues and todo lists and documentation and update chat and session logs; go go go;
 
 
 

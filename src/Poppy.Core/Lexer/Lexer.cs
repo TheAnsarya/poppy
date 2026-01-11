@@ -48,7 +48,7 @@ public sealed class Lexer {
 
 		// Comments
 		if (c == ';') {
-			return ScanLineComment(location);
+			return ScanLineComment(location, 1);
 		}
 
 		if (c == '/' && Peek() == '*') {
@@ -57,8 +57,8 @@ public sealed class Lexer {
 		}
 
 		if (c == '/' && Peek() == '/') {
-			Advance(); // consume /
-			return ScanLineComment(location);
+			Advance(); // consume second /
+			return ScanLineComment(location, 2);
 		}
 
 		// Numbers
@@ -83,7 +83,12 @@ public sealed class Lexer {
 			return ScanCharacter(location);
 		}
 
-		// Identifiers (including mnemonics and directives)
+		// Directives start with . followed by an identifier
+		if (c == '.' && IsIdentifierStart(Peek())) {
+			return ScanDirective(location);
+		}
+
+		// Identifiers (including mnemonics)
 		if (IsIdentifierStart(c)) {
 			return ScanIdentifier(location, c);
 		}
@@ -111,8 +116,8 @@ public sealed class Lexer {
 	// Scanning Methods
 	// ========================================================================
 
-	private Token ScanLineComment(SourceLocation location) {
-		var start = _position - 1;
+	private Token ScanLineComment(SourceLocation location, int prefixLength) {
+		var start = _position - prefixLength;
 
 		while (!IsAtEnd() && Peek() != '\n') {
 			Advance();
@@ -227,6 +232,19 @@ public sealed class Lexer {
 		Advance(); // consume closing quote
 
 		return MakeToken(TokenType.Character, text, location);
+	}
+
+	private Token ScanDirective(SourceLocation location) {
+		// Start position is at the . (which is already consumed)
+		var start = _position - 1;
+
+		// Scan the identifier part after the .
+		while (IsIdentifierContinue(Peek())) {
+			Advance();
+		}
+
+		var text = _source[start.._position];
+		return MakeToken(TokenType.Directive, text, location);
 	}
 
 	private Token ScanIdentifier(SourceLocation location, char first) {
@@ -362,9 +380,19 @@ public sealed class Lexer {
 			return TokenType.Directive;
 		}
 
-		// Check if it's a known mnemonic
+		// Check if it's a known mnemonic (with or without size suffix)
 		var lower = text.ToLowerInvariant();
-		if (IsMnemonic(lower)) {
+
+		// Strip size suffix for mnemonic check (e.g., lda.b -> lda)
+		var baseText = lower;
+		if (lower.Length > 2 && lower[^2] == '.') {
+			var suffix = lower[^1];
+			if (suffix == 'b' || suffix == 'w' || suffix == 'l') {
+				baseText = lower[..^2];
+			}
+		}
+
+		if (IsMnemonic(baseText)) {
 			return TokenType.Mnemonic;
 		}
 
