@@ -1,0 +1,59 @@
+
+
+
+&&&&&&&&&&&&&&&&
+Creating a new project using AI (Claude Opus 4.5):
+------------------------------------------------------------------
+
+Project name: `<project long name>`
+Project url: `https://github.com/TheAnsarya/<projectname>`
+
+Get an `.editorconfig` file together, use your last one probably, resolve tabs/spaces, braces, etc. A good one is at `https://raw.githubusercontent.com/TheAnsarya/GameInfo/refs/heads/main/.editorconfig`;
+copy the `.gitignore` from the `GameInfo` repos;
+create folders: `/~docs/` for information about the creation of the repos/project, `/docs/` for information about the project itself, add summary logs and chat logs in the `~docs` folder as markdown files;
+and always use tabs --never spaces-- for indentation, TABS NOT SPACES ever in any file or situation unless the format requires spaces, opening braces are always on the previous line (K&R style), all hexadecimal values are lowercase, always use utf8 for encoding and crlf for line endings and include a blank line at the end of every file, and delete whitespace at the end of lines;
+comment and document everything; maintain chat logs like `2026-01-11-chat-01.md` in the `~docs\chat-logs` folder, and session summaries like `2026-01-11-session-01.md` in the `~docs\session-logs` folder, see the `GameInfo` repos for inspiration;
+Activate github issues for this project and then create a kanban board for the project and make issues and todo-lists for every piece of work in the project and plan, everytime there is more work added, create new issues to handle the work and always tie those issues to the git commits;
+As you go along, update the todo-lists, and github issues, and git commit everything in logical batches, tie them to those issues;
+make new feature branches for each big work effort and merge them back down the chain when they are done;
+make sure to update all the supporting files, logs, docs, issues, etc. and git commit as you go;
+Make plans and a roadmap then implement them; we have the `~plans` folder for longterm/shorterm plans and a roadmap;
+Make documentation for everything and all documentation should be reachable from the primary `README.md`, organize everything mostly in the `docs` folder or in line in the folders it is documenting, with emojis and colors and formatting;
+UTF-8, and add BOM so everything handles unicode and emjois without error, instead of removing the unicode stuff;
+hexadecimal values are lowercase and assembly files should use lowercase operands we want all hexadecimal values to be lowercase unless they have to be uppercase for a particular format and all `asm`/`s`/`inc` disassembly code files and all the documentation with ASM code examples or descriptions, so all hexadecimal values and asm code operands (like lda, inc, tya, mult, jsr, etc.) should be lowercase as well;
+
+Create a new branch for each issue/feature and then merge it back into `main`/`master` before moving on to the next one;
+
+Main purpose of the project:
+Create comprehensive plans and todolists and documentation and github issues and a roadmap and epics, etc, for this effort;
+<description of project>
+
+I forgot a lot so figure out what else we need for a generic project base, don't add nonsense, only neccessity;
+
+Add this prompt to `/~docs/<projectshortname>-manual-prompts-log.txt` and then never edit that file again, it is manually updated; you can and should git-commit changes I make to this file but you should never edit or update it or `git restore` it or touch it it in any other way than storing it in git;
+
+create a copilot instructions file at `.github/copilot-instructions.md`
+&&&&&&&&&&&&&&&&
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
