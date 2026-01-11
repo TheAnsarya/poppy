@@ -542,5 +542,195 @@ public class SemanticAnalyzerTests {
 		Assert.Equal(0x8000L, reset!.Value);
 		Assert.Equal(0x2000L, ppuctrl!.Value);
 	}
+
+	// ========================================================================
+	// Local Label Tests
+	// ========================================================================
+
+	[Fact]
+	public void Analyze_LocalLabel_ScopedToGlobalLabel() {
+		var source = """
+			routine1:
+				@loop:
+					nop
+					jmp @loop
+
+			routine2:
+				@loop:
+					nop
+					jmp @loop
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+
+		// Both @loop labels should be defined (scoped to their parent)
+		Assert.True(analyzer.SymbolTable.TryGetSymbol("routine1@loop", out var loop1));
+		Assert.True(analyzer.SymbolTable.TryGetSymbol("routine2@loop", out var loop2));
+
+		Assert.NotNull(loop1);
+		Assert.NotNull(loop2);
+		Assert.NotEqual(loop1!.Value, loop2!.Value);
+	}
+
+	[Fact]
+	public void Analyze_LocalLabelReference_ResolvesInScope() {
+		var source = """
+			.org $8000
+			routine:
+				@loop:
+					dex
+					bne @loop
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.True(analyzer.SymbolTable.TryGetSymbol("routine@loop", out var loop));
+		Assert.Equal(0x8000L, loop!.Value);
+	}
+
+	[Fact]
+	public void Analyze_LocalLabelOutOfScope_ReportsError() {
+		var source = """
+			routine1:
+				@local:
+					nop
+
+			routine2:
+				jmp @local
+			""";
+
+		var analyzer = Analyze(source);
+
+		// The @local reference in routine2 should create routine2@local which is undefined
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("Undefined"));
+	}
+
+	[Fact]
+	public void Analyze_MultipleLocalLabelsInSameScope_AllDefined() {
+		var source = """
+			.org $8000
+			routine:
+				@start:
+					nop
+				@middle:
+					nop
+				@end:
+					nop
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+
+		Assert.True(analyzer.SymbolTable.TryGetSymbol("routine@start", out var start));
+		Assert.True(analyzer.SymbolTable.TryGetSymbol("routine@middle", out var middle));
+		Assert.True(analyzer.SymbolTable.TryGetSymbol("routine@end", out var end));
+
+		Assert.Equal(0x8000L, start!.Value);
+		Assert.Equal(0x8001L, middle!.Value);
+		Assert.Equal(0x8002L, end!.Value);
+	}
+
+	// ========================================================================
+	// Anonymous Label Tests
+	// ========================================================================
+
+	[Fact]
+	public void Analyze_AnonymousBackwardLabel_DefinesCorrectly() {
+		var source = """
+			.org $8000
+			-
+				nop
+				jmp -
+			""";
+
+		var analyzer = Analyze(source);
+
+		// No errors - anonymous backward label should resolve
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
+
+	[Fact]
+	public void Analyze_AnonymousForwardLabel_DefinesCorrectly() {
+		var source = """
+			.org $8000
+				jmp +
+				nop
+			+
+			""";
+
+		var analyzer = Analyze(source);
+
+		// No errors - anonymous forward label should resolve
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
+
+	[Fact]
+	public void Analyze_MultipleAnonymousLabels_ResolveByCount() {
+		var source = """
+			.org $8000
+			-
+				nop
+			-
+				nop
+				jmp --
+			""";
+
+		var analyzer = Analyze(source);
+
+		// -- should jump to the first -, not the second
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
+
+	[Fact]
+	public void Analyze_MixedAnonymousLabels_ResolveCorrectly() {
+		var source = """
+			.org $8000
+			-
+				nop
+				jmp +
+				nop
+			+
+				jmp -
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+	}
+
+	[Fact]
+	public void Analyze_AnonymousForwardLabel_NotFound_ReportsError() {
+		var source = """
+			.org $8000
+				jmp +
+				nop
+			""";
+
+		var analyzer = Analyze(source);
+
+		// No + label defined, should report error
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("forward label"));
+	}
+
+	[Fact]
+	public void Analyze_AnonymousBackwardLabel_NotFound_ReportsError() {
+		var source = """
+			.org $8000
+				jmp -
+				nop
+			""";
+
+		var analyzer = Analyze(source);
+
+		// No - label defined before reference, should report error
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("backward label"));
+	}
 }
 

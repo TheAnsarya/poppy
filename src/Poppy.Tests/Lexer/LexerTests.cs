@@ -77,6 +77,63 @@ public class LexerTests {
 		Assert.Equal(TokenType.EndOfFile, tokens[4].Type);
 	}
 
+	[Fact]
+	public void Tokenize_BlockComment_ReturnsCommentToken() {
+		var lexer = new Core.Lexer.Lexer("/* block comment */");
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Comment, tokens[0].Type);
+		Assert.Equal("/* block comment */", tokens[0].Text);
+	}
+
+	[Fact]
+	public void Tokenize_BlockCommentMultiLine_ReturnsCommentToken() {
+		var source = """
+			/* this is
+			   a multi-line
+			   comment */
+			""";
+		var lexer = new Core.Lexer.Lexer(source);
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Comment, tokens[0].Type);
+		Assert.Contains("multi-line", tokens[0].Text);
+	}
+
+	[Fact]
+	public void Tokenize_BlockCommentNested_HandlesNesting() {
+		var lexer = new Core.Lexer.Lexer("/* outer /* inner */ still outer */");
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Comment, tokens[0].Type);
+		Assert.Equal("/* outer /* inner */ still outer */", tokens[0].Text);
+	}
+
+	[Fact]
+	public void Tokenize_BlockCommentBetweenCode_ReturnsBothTokens() {
+		var lexer = new Core.Lexer.Lexer("lda /* inline */ #$00");
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(5, tokens.Count);
+		Assert.Equal(TokenType.Mnemonic, tokens[0].Type);
+		Assert.Equal(TokenType.Comment, tokens[1].Type);
+		Assert.Equal(TokenType.Hash, tokens[2].Type);
+		Assert.Equal(TokenType.Number, tokens[3].Type);
+	}
+
+	[Fact]
+	public void Tokenize_BlockCommentEmpty_ReturnsCommentToken() {
+		var lexer = new Core.Lexer.Lexer("/**/");
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Comment, tokens[0].Type);
+		Assert.Equal("/**/", tokens[0].Text);
+	}
+
 	#endregion
 
 	#region Number Tests
