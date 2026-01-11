@@ -64,7 +64,21 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		}
 
 		// Flatten segments into output
-		return FlattenSegments();
+		var binary = FlattenSegments();
+
+		// Prepend iNES header if configured (for NES target only)
+		if (_target == TargetArchitecture.MOS6502) {
+			var headerBuilder = _analyzer.GetINesHeaderBuilder();
+			if (headerBuilder is not null) {
+				var header = headerBuilder.Build();
+				var output = new byte[header.Length + binary.Length];
+				Array.Copy(header, 0, output, 0, header.Length);
+				Array.Copy(binary, 0, output, header.Length, binary.Length);
+				return output;
+			}
+		}
+
+		return binary;
 	}
 
 	/// <inheritdoc />
