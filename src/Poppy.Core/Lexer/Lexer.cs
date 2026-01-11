@@ -366,7 +366,7 @@ public sealed class Lexer {
 	};
 
 	private static bool IsIdentifierStart(char c) =>
-		(c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+		(c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '@';
 
 	private static bool IsIdentifierContinue(char c) =>
 		IsIdentifierStart(c) || (c >= '0' && c <= '9');

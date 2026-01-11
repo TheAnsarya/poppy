@@ -258,7 +258,6 @@ public class LexerTests
 	[InlineData(",", TokenType.Comma)]
 	[InlineData(":", TokenType.Colon)]
 	[InlineData("#", TokenType.Hash)]
-	[InlineData("@", TokenType.At)]
 	public void Tokenize_Punctuation_ReturnsCorrectToken(string input, TokenType expected)
 	{
 		var lexer = new Core.Lexer.Lexer(input);
@@ -266,6 +265,30 @@ public class LexerTests
 
 		Assert.Equal(2, tokens.Count);
 		Assert.Equal(expected, tokens[0].Type);
+	}
+
+	[Fact]
+	public void Tokenize_AtSign_ReturnsIdentifier()
+	{
+		// @ by itself is a local label identifier prefix
+		var lexer = new Core.Lexer.Lexer("@");
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Identifier, tokens[0].Type);
+		Assert.Equal("@", tokens[0].Text);
+	}
+
+	[Fact]
+	public void Tokenize_AtLabel_ReturnsIdentifier()
+	{
+		// @loop is a local label
+		var lexer = new Core.Lexer.Lexer("@loop");
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Identifier, tokens[0].Type);
+		Assert.Equal("@loop", tokens[0].Text);
 	}
 
 	#endregion
