@@ -98,4 +98,3 @@ print_info "  cd $PROJECT_PATH"
 print_info "  # Edit files in src/ to create your game"
 print_info "  # Add assets to assets/ directories"
 print_info "  # Build with: make"
-
