@@ -73,22 +73,20 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 ### Phase 4: Code Generation - 6502 ✅ (Complete)
 **Status:** Complete
 **Goal:** Generate correct binary for NES/6502 assembly
+**Completed:** January 11, 2026
 
 #### Tasks
 - ✅ Create opcode-to-byte mapping tables (InstructionSet6502)
 - ✅ Implement all 6502 addressing modes
 - ✅ Label and symbol resolution (SemanticAnalyzer)
 - ✅ Generate binary output (CodeGenerator)
-- ⬜ NES header (.ines) generation
-- ✅ Verify output against known-good assemblers (manual testing)
-- ⬜ Generate binary output
-- ⬜ NES header (.ines) generation
-- ⬜ Verify output against known-good assemblers
+- ✅ iNES header generation
+- ✅ Comprehensive testing (375 tests passing)
 
 ---
 
-### Phase 5: Code Generation - 65816 🔄 (In Progress)
-**Status:** In Progress
+### Phase 5: Code Generation - 65816 ⬜ (Not Started)
+**Status:** Not Started
 **Goal:** Add SNES/65816 support
 
 #### Tasks
@@ -100,17 +98,59 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 6: Advanced Features 🔄 (Partial)
-**Status:** Partially Complete
-**Goal:** Add macros, conditionals, and advanced directives
+### Phase 6: Include System & Label Features ✅ (Complete)
+**Status:** Complete
+**Goal:** Multi-file support and advanced label features
+**Completed:** January 11, 2026
 
 #### Tasks
-- ✅ Macro definitions (parsing complete)
-- ⬜ Macro expansion
+- ✅ .include directive for file inclusion
+- ✅ .incbin directive for binary data inclusion
+- ✅ Local labels with @ prefix and scoping
+- ✅ Anonymous forward labels (+)
+- ✅ Anonymous backward labels (-)
+- ✅ Target directives (.nes, .snes, .gb)
+- ✅ Mapper selection (.mapper)
+- ✅ Alignment directives (.align, .pad)
+- ✅ Compile-time assertions (.assert, .error, .warning)
+- ✅ Multi-line comments (/* */)
+
+---
+
+### Phase 7: Output Formats ✅ (Complete)
+**Status:** Complete
+**Goal:** ROM generation and debug symbol export
+**Completed:** January 11, 2026
+
+#### Tasks
+- ✅ iNES 1.0 and iNES 2.0 header generation
+- ✅ 12 iNES header directives (.ines_prg, .ines_chr, etc.)
+- ✅ Debug symbol export (FCEUX .nl, Mesen .mlb, generic .sym)
+- ✅ CLI integration with -s/--symbols flag
+- ✅ Automatic header prepending for NES ROMs
+
+---
+
+### Phase 8: Macro System & Conditional Assembly 🔄 (In Progress)
+**Status:** In Progress
+**Goal:** Add macros, conditionals, and code reuse features
+**Started:** January 11, 2026
+
+#### Tasks
+- ⬜ Macro definitions (.macro/.endmacro)
+- ⬜ Macro expansion engine
+- ⬜ Macro parameters and substitution
+- ⬜ Macro-local labels
 - ⬜ Conditional assembly (.if, .else, .endif)
-- ✅ Math expressions in operands
-- ⬜ Include directive
-- ⬜ Asset include with convertors
+- ⬜ Symbol conditionals (.ifdef, .ifndef)
+- ⬜ Comparison conditionals (.ifeq, .ifne, etc.)
+- ⬜ Repeat blocks (.rept/.endr)
+- ⬜ Enumeration blocks (.enum/.ende)
+- ⬜ String operations
+
+**GitHub Issues:** #24-#33
+**Tests:** Target 60+ tests
+**Documentation:** Phase 2 implementation plan created
 
 ---
 
