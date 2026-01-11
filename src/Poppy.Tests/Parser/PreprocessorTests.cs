@@ -39,7 +39,7 @@ public sealed class PreprocessorTests : IDisposable {
 	[Fact]
 	public void Process_SimpleSourceWithoutIncludes_ReturnsAllTokens() {
 		var source = "lda #$00\nsta $2000";
-		var filePath = CreateTempFile("test.asm", source);
+		var filePath = CreateTempFile("test.pasm", source);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(source, filePath);
@@ -54,7 +54,7 @@ public sealed class PreprocessorTests : IDisposable {
 		var includeContent = "CONST = $42\n";
 		var includePath = CreateTempFile("constants.inc", includeContent);
 		var mainContent = $".include \"constants.inc\"\nlda #CONST";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(mainContent, mainPath);
@@ -73,7 +73,7 @@ public sealed class PreprocessorTests : IDisposable {
 		CreateTempFile("level1.inc", level1Content);
 
 		var mainContent = ".include \"level1.inc\"\nmain_label:\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(mainContent, mainPath);
@@ -93,7 +93,7 @@ public sealed class PreprocessorTests : IDisposable {
 		CreateTempFile("file2.inc", file2Content);
 
 		var mainContent = ".include \"file1.inc\"\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(mainContent, mainPath);
@@ -105,7 +105,7 @@ public sealed class PreprocessorTests : IDisposable {
 	[Fact]
 	public void Process_MissingIncludeFile_ReportsError() {
 		var mainContent = ".include \"nonexistent.inc\"\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(mainContent, mainPath);
@@ -123,7 +123,7 @@ public sealed class PreprocessorTests : IDisposable {
 		File.WriteAllText(Path.Combine(includeDir, "myinc.inc"), includeContent);
 
 		var mainContent = ".include \"myinc.inc\"\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor([includeDir]);
 		var tokens = preprocessor.Process(mainContent, mainPath);
@@ -135,9 +135,9 @@ public sealed class PreprocessorTests : IDisposable {
 	[Fact]
 	public void Process_IncludePreservesSourceLocations() {
 		var includeContent = "included_label:\n";
-		var includePath = CreateTempFile("inc.asm", includeContent);
-		var mainContent = ".include \"inc.asm\"\nmain_label:\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var includePath = CreateTempFile("inc.pasm", includeContent);
+		var mainContent = ".include \"inc.pasm\"\nmain_label:\n";
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(mainContent, mainPath);
@@ -146,11 +146,11 @@ public sealed class PreprocessorTests : IDisposable {
 
 		// Find the included label token and check its location
 		var includedLabel = tokens.First(t => t.Text == "included_label");
-		Assert.Contains("inc.asm", includedLabel.Location.FilePath);
+		Assert.Contains("inc.pasm", includedLabel.Location.FilePath);
 
 		// Find the main label and check its location
 		var mainLabel = tokens.First(t => t.Text == "main_label");
-		Assert.Contains("main.asm", mainLabel.Location.FilePath);
+		Assert.Contains("main.pasm", mainLabel.Location.FilePath);
 	}
 
 	[Fact]
@@ -162,7 +162,7 @@ public sealed class PreprocessorTests : IDisposable {
 		}
 
 		var mainContent = ".include \"level0.inc\"\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		// Set max depth to 3
 		var preprocessor = new Preprocessor(maxIncludeDepth: 3);
@@ -175,7 +175,7 @@ public sealed class PreprocessorTests : IDisposable {
 	[Fact]
 	public void Process_IncbinDirective_PassedThrough() {
 		var mainContent = ".incbin \"data.bin\"\n";
-		var mainPath = CreateTempFile("main.asm", mainContent);
+		var mainPath = CreateTempFile("main.pasm", mainContent);
 
 		var preprocessor = new Preprocessor();
 		var tokens = preprocessor.Process(mainContent, mainPath);

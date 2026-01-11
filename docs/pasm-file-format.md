@@ -1,0 +1,516 @@
+# 📄 Poppy Assembly (.pasm) File Format
+
+## Overview
+
+Poppy uses the `.pasm` file extension for assembly source files to distinguish them from standard assembler formats. This extension indicates that the file uses Poppy's enhanced assembly syntax with support for:
+
+- Modern macro system with parameters
+- Conditional assembly directives  
+- Multi-architecture support (6502, 65816, SM83)
+- Platform-specific directives (.ines, .target, etc.)
+- Unicode and emoji support in comments
+- Flexible formatting options
+
+## Why `.pasm`?
+
+The `.pasm` extension:
+
+✅ **Distinguishes Poppy files** from standard `.asm` files  
+✅ **Indicates enhanced features** not found in traditional assemblers  
+✅ **Enables proper syntax highlighting** in editors with Poppy support  
+✅ **Avoids conflicts** with other assembler file associations  
+✅ **Makes file purpose clear** in mixed-assembler projects
+
+## File Structure
+
+### Basic Format
+
+```asm
+; comment - Standard semicolon comments
+// comment - Alternative C-style comments
+# comment  - Alternative hash comments
+
+; Labels
+label_name:
+	instruction operand
+
+; Local labels (start with @)
+global_label:
+@local:
+	instruction operand
+```
+
+### Character Encoding
+
+All `.pasm` files must be:
+- **UTF-8 encoded with BOM**
+- **CRLF line endings** (Windows style)
+- Support Unicode characters in:
+	- Comments
+	- String literals
+	- Symbol names (letters, digits, underscore)
+
+### Indentation
+
+Poppy uses **tabs for indentation** (never spaces):
+- Tab width: 4 spaces (8 for pure assembly sections)
+- Labels at column 0 (no indent)
+- Instructions indented with 1 tab
+- Nested blocks indented further
+
+## Syntax Features
+
+### Case Sensitivity
+
+- **Opcodes:** Case-insensitive (`LDA`, `lda`, `Lda` all valid)
+- **Labels:** Case-sensitive (`Reset` ≠ `reset`)
+- **Directives:** Case-insensitive (`.BYTE`, `.byte` same)
+- **Reserved words:** Case-insensitive validation
+
+### Number Formats
+
+```asm
+; Hexadecimal (always lowercase)
+.byte $ff, $0a, $1234
+
+; Decimal
+.byte 255, 10
+
+; Binary
+.byte %11111111, %00001010
+
+; Character
+.byte 'A', 'B'
+```
+
+**Important:** Hexadecimal values must use lowercase letters (`$ff` not `$FF`)
+
+### String Literals
+
+```asm
+; Standard strings
+.byte "Hello, World!", 0
+
+; Unicode support
+.byte "你好世界", 0  ; Chinese
+.byte "🎮 Game", 0   ; Emojis
+
+; Escape sequences
+.byte "Line 1\nLine 2", 0
+.byte "Tab\there", 0
+```
+
+### Comments
+
+```asm
+; Semicolon comments - Traditional style
+lda #$00  ; End-of-line comment
+
+// C-style comments - Alternative
+lda #$00  // Also end-of-line
+
+# Hash comments - Alternative
+lda #$00  # Yet another style
+```
+
+## Directives
+
+### Platform Directives
+
+```asm
+; NES-specific
+.ines mapper 0
+.ines prg_banks 2
+.ines chr_banks 1
+.ines mirroring horizontal
+
+; SNES-specific  
+.target snes
+.lorom
+.org $8000
+
+; Multi-platform
+.target 6502    ; NES
+.target 65816   ; SNES
+.target sm83    ; Game Boy
+```
+
+### Data Directives
+
+```asm
+; Byte data
+.byte $00, $01, $02
+.db $00, $01, $02    ; Alias
+
+; Word data (16-bit, little-endian)
+.word $1234, $5678
+.dw $1234, $5678     ; Alias
+
+; Long data (24-bit)
+.long $123456
+.dl $123456          ; Alias
+
+; ASCII/String
+.byte "Text", 0
+
+; Fill/Reserve space
+.fill 256, $ff       ; Fill 256 bytes with $ff
+.res 128             ; Reserve 128 bytes (uninitialized)
+```
+
+### Assembly Directives
+
+```asm
+; Origin - Set assembly address
+.org $8000
+
+; Alignment
+.align 256           ; Align to 256-byte boundary
+
+; Constants
+.equ PPUCTRL, $2000
+.define SCREEN_WIDTH, 256
+
+; Include files
+.include "macros.pasm"
+.include "constants.pasm"
+```
+
+## Macros
+
+### Macro Definition
+
+```asm
+; Simple macro
+.macro wait_vblank
+	:
+		bit $2002
+		bpl :-
+.endmacro
+
+; Macro with parameters (space-separated)
+.macro set_ppu_addr address
+	bit $2002
+	lda #>address
+	sta $2006
+	lda #<address
+	sta $2006
+.endmacro
+
+; Macro with parameters (comma-separated)
+.macro sprite_dma, addr, count
+	lda #>addr
+	sta $2003
+	lda #<addr
+	sta $2004
+	ldx count
+.endmacro
+```
+
+### Macro Invocation
+
+```asm
+; Call macro without parameters
+wait_vblank
+
+; Call macro with parameters
+set_ppu_addr $2000
+sprite_dma sprite_data, 64
+```
+
+### Reserved Names
+
+Macros cannot use reserved names:
+- 6502/65816 opcodes (`lda`, `sta`, `jmp`, etc.)
+- Directives (`org`, `byte`, `include`, etc.)
+- Macro keywords (`macro`, `endmacro`, `if`, `endif`, etc.)
+
+## Conditional Assembly
+
+### Basic Conditionals
+
+```asm
+; .if/.else/.endif
+.if DEBUG
+	.byte "Debug Build", 0
+.else
+	.byte "Release Build", 0
+.endif
+
+; Symbol checks
+.ifdef FEATURE_SOUND
+	jsr init_sound
+.endif
+
+.ifndef NO_GRAPHICS
+	jsr init_ppu
+.endif
+```
+
+### Comparison Conditionals
+
+```asm
+; Equality
+.ifeq MAPPER, 0
+	; MMC0 code
+.endif
+
+; Inequality
+.ifne TARGET, NES
+	.error "This code is NES-only"
+.endif
+
+; Greater than
+.ifgt PRG_SIZE, $8000
+	.warning "Large PRG-ROM"
+.endif
+```
+
+## Labels
+
+### Global Labels
+
+```asm
+reset:              ; Global label
+	lda #$00
+	sta $2000
+
+nmi:                ; Another global
+	rti
+```
+
+### Local Labels
+
+```asm
+reset:
+	ldx #$00
+@clear_loop:        ; Local to 'reset'
+	sta $0000, x
+	inx
+	bne @clear_loop
+	rts
+
+nmi:
+@wait:              ; Different @wait (local to 'nmi')
+	bit $2002
+	bpl @wait
+	rti
+```
+
+### Anonymous Labels
+
+```asm
+reset:
+	ldx #$00
+:                   ; Anonymous forward label
+	sta $0000, x
+	inx
+	bne :-          ; Branch to previous ':'
+	
+:                   ; New anonymous label
+	lda #$01
+	bne :+          ; Branch to next ':'
+	
+:                   ; Target of :+
+	rts
+```
+
+## Expressions
+
+### Arithmetic
+
+```asm
+.byte 10 + 5        ; Addition
+.byte 10 - 5        ; Subtraction
+.byte 10 * 5        ; Multiplication  
+.byte 10 / 5        ; Division
+.byte 10 % 3        ; Modulo
+```
+
+### Bitwise
+
+```asm
+.byte $0f & $f0     ; AND
+.byte $0f | $f0     ; OR
+.byte $0f ^ $f0     ; XOR
+.byte ~$0f          ; NOT
+.byte $01 << 4      ; Left shift
+.byte $10 >> 2      ; Right shift
+```
+
+### Address Operators
+
+```asm
+.byte <$1234        ; Low byte ($34)
+.byte >$1234        ; High byte ($12)
+.word ^$123456      ; Bank byte ($12 for 24-bit address)
+```
+
+## Complete Example
+
+```asm
+; game.pasm - Simple NES game
+;
+; A complete example showing Poppy assembly syntax
+
+; ============================================================================
+; iNES Header
+; ============================================================================
+
+.ines mapper 0
+.ines prg_banks 1
+.ines chr_banks 1
+.ines mirroring vertical
+
+; ============================================================================
+; Constants
+; ============================================================================
+
+.equ PPUCTRL,   $2000
+.equ PPUMASK,   $2001
+.equ PPUSTATUS, $2002
+.equ PPUADDR,   $2006
+.equ PPUDATA,   $2007
+
+; ============================================================================
+; Macros
+; ============================================================================
+
+.macro wait_vblank
+:
+	bit PPUSTATUS
+	bpl :-
+.endmacro
+
+.macro ppu_addr, address
+	bit PPUSTATUS
+	lda #>address
+	sta PPUADDR
+	lda #<address
+	sta PPUADDR
+.endmacro
+
+; ============================================================================
+; PRG-ROM
+; ============================================================================
+
+.org $8000
+
+reset:
+	sei
+	cld
+	
+	; Wait for PPU warmup
+	wait_vblank
+	wait_vblank
+	
+	; Initialize PPU
+	lda #$00
+	sta PPUCTRL
+	sta PPUMASK
+	
+	; Clear palette
+	ppu_addr $3f00
+	ldx #$20
+@clear_palette:
+	sta PPUDATA
+	dex
+	bne @clear_palette
+	
+	; Enable rendering
+	lda #%00011110
+	sta PPUMASK
+	
+	; Main loop
+@main_loop:
+	wait_vblank
+	jmp @main_loop
+
+nmi:
+	rti
+
+; ============================================================================
+; Vectors
+; ============================================================================
+
+.org $fffa
+.word nmi
+.word reset
+.word 0
+
+; ============================================================================
+; CHR-ROM
+; ============================================================================
+
+.org $0000
+.incbin "graphics.chr"
+```
+
+## Best Practices
+
+### Style Guidelines
+
+1. **Use tabs for indentation** - Never spaces
+2. **Lowercase hex values** - `$ff` not `$FF`
+3. **Meaningful label names** - `player_init` not `p1`
+4. **Comment thoroughly** - Explain complex logic
+5. **Organize with sections** - Use comment banners
+6. **One statement per line** - For clarity
+
+### File Organization
+
+```
+project/
+├── src/
+│   ├── main.pasm          # Entry point
+│   ├── graphics.pasm      # Graphics routines
+│   ├── sound.pasm         # Sound routines
+│   ├── macros.pasm        # Shared macros
+│   └── constants.pasm     # Shared constants
+├── data/
+│   ├── graphics.chr       # CHR data
+│   └── music.bin          # Music data
+└── build/
+    └── game.nes           # Output ROM
+```
+
+### Portability
+
+For maximum portability:
+- Avoid platform-specific directives when possible
+- Use `.target` to explicitly declare architecture
+- Separate platform-specific code with conditionals
+- Document architecture requirements in comments
+
+## File Extensions
+
+- `.pasm` - Poppy assembly source
+- `.chr` - CHR-ROM graphics data (binary)
+- `.bin` - Generic binary data
+- `.inc` - Legacy include files (use `.pasm` instead)
+
+## Editor Support
+
+Configure your editor to:
+- Recognize `.pasm` as assembly language
+- Use tabs (not spaces) for indentation
+- Set tab width to 4 (or 8 for pure assembly)
+- Save as UTF-8 with BOM
+- Use CRLF line endings
+
+## Migration from .asm
+
+To convert existing `.asm` files:
+
+1. Rename files: `*.asm` → `*.pasm`
+2. Update include directives: `.include "file.asm"` → `.include "file.pasm"`
+3. Verify hex values are lowercase
+4. Ensure UTF-8 with BOM encoding
+5. Test with Poppy compiler
+
+---
+
+**See Also:**
+- [User Manual](user-manual.md) - Complete language reference
+- [README](../README.md) - Quick start guide
+- [Examples](../~manual-testing/) - Sample `.pasm` files

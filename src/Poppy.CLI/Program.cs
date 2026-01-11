@@ -294,7 +294,7 @@ internal static class Program {
 	private static void ShowHelp() {
 		Console.WriteLine($"{AppName} v{Version}");
 		Console.WriteLine();
-		Console.WriteLine("Usage: poppy [options] <input.asm>");
+		Console.WriteLine("Usage: poppy [options] <input.pasm>");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -310,9 +310,9 @@ internal static class Program {
 		Console.WriteLine("                         sm83, gb      - Sharp SM83 (Game Boy)");
 		Console.WriteLine();
 		Console.WriteLine("Examples:");
-		Console.WriteLine("  poppy game.asm                    Assemble to game.bin");
-		Console.WriteLine("  poppy -o rom.nes game.asm         Assemble to rom.nes");
-		Console.WriteLine("  poppy -t snes -l game.lst game.asm");
+		Console.WriteLine("  poppy game.pasm                    Assemble to game.bin");
+		Console.WriteLine("  poppy -o rom.nes game.pasm         Assemble to rom.nes");
+		Console.WriteLine("  poppy -t snes -l game.lst game.pasm");
 	}
 
 	/// <summary>

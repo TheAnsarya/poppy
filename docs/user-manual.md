@@ -96,10 +96,10 @@ Copyright (c) 2024
 
 ### Your First Program
 
-Create a file named `hello.asm`:
+Create a file named `hello.pasm`:
 
 ```asm
-; hello.asm - Simple NES program
+; hello.pasm - Simple NES program
 .org $8000
 
 reset:
@@ -128,16 +128,16 @@ loop:
 
 ```bash
 # Basic compilation
-poppy hello.asm
+poppy hello.pasm
 
 # With output name
-poppy -o hello.bin hello.asm
+poppy -o hello.bin hello.pasm
 
 # Generate listing file
-poppy -l hello.lst hello.asm
+poppy -l hello.lst hello.pasm
 
 # Verbose mode
-poppy -V hello.asm
+poppy -V hello.pasm
 ```
 
 ### Check Output
@@ -157,7 +157,7 @@ xxd hello.bin | head -20
 ### Synopsis
 
 ```
-poppy [options] <input.asm>
+poppy [options] <input.pasm>
 ```
 
 ### Options
@@ -175,13 +175,13 @@ poppy [options] <input.asm>
 
 ```bash
 # Compile to specific output
-poppy -o game.nes main.asm
+poppy -o game.nes main.pasm
 
 # Target SNES
-poppy -t 65816 -o game.sfc main.asm
+poppy -t 65816 -o game.sfc main.pasm
 
 # Generate all files with verbose output
-poppy -V -l game.lst -o game.nes main.asm
+poppy -V -l game.lst -o game.nes main.pasm
 ```
 
 ---
@@ -286,7 +286,7 @@ SCREEN_WIDTH = 256
 
 ```asm
 ; Include files (not yet implemented)
-.include "macros.asm"
+.include "macros.pasm"
 .incbin "data.bin"
 
 ; Conditional assembly (not yet implemented)
@@ -464,7 +464,7 @@ routine2:
 Default target. All standard 6502 instructions supported.
 
 ```bash
-poppy -t 6502 game.asm
+poppy -t 6502 game.pasm
 ```
 
 Supported features:
@@ -475,7 +475,7 @@ Supported features:
 ### 65816 (SNES) - Coming Soon
 
 ```bash
-poppy -t 65816 game.asm
+poppy -t 65816 game.pasm
 ```
 
 Additional features:
@@ -487,7 +487,7 @@ Additional features:
 ### SM83 (Game Boy) - Coming Soon
 
 ```bash
-poppy -t sm83 game.asm
+poppy -t sm83 game.pasm
 ```
 
 Features:
@@ -504,7 +504,7 @@ Features:
 Plain binary output with no headers.
 
 ```bash
-poppy -o output.bin source.asm
+poppy -o output.bin source.pasm
 ```
 
 ### iNES Format (Coming Soon)
@@ -531,7 +531,7 @@ SNES ROM with internal header.
 Generate assembly listing with addresses and machine code:
 
 ```bash
-poppy -l output.lst source.asm
+poppy -l output.lst source.pasm
 ```
 
 Output format:
@@ -794,8 +794,8 @@ Error: Cannot evaluate operand for instruction 'lda'
 
 ### Debug Tips
 
-1. **Use verbose mode:** `poppy -V source.asm`
-2. **Generate listing:** `poppy -l output.lst source.asm`
+1. **Use verbose mode:** `poppy -V source.pasm`
+2. **Generate listing:** `poppy -l output.lst source.pasm`
 3. **Check symbol values** in listing file
 4. **Verify addresses** match expected locations
 

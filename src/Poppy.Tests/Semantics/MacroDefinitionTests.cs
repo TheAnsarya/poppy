@@ -14,7 +14,7 @@ public class MacroDefinitionTests
 	nop
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -43,7 +43,7 @@ public class MacroDefinitionTests
 	ldx count
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -69,7 +69,7 @@ public class MacroDefinitionTests
 .macro empty
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -96,7 +96,7 @@ public class MacroDefinitionTests
 	inc $00
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -119,7 +119,7 @@ public class MacroDefinitionTests
 	nop
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -142,7 +142,7 @@ public class MacroDefinitionTests
 	nop
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -165,7 +165,7 @@ public class MacroDefinitionTests
 	nop
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -192,7 +192,7 @@ public class MacroDefinitionTests
 	jmp p5
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -227,7 +227,7 @@ public class MacroDefinitionTests
 	dec $01
 .endmacro
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();

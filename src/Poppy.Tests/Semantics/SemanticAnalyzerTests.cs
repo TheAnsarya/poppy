@@ -22,7 +22,7 @@ public class SemanticAnalyzerTests {
 	/// Helper to parse and analyze source code.
 	/// </summary>
 	private static SemanticAnalyzer Analyze(string source, TargetArchitecture target = TargetArchitecture.MOS6502) {
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -296,13 +296,13 @@ public class SemanticAnalyzerTests {
 	[Fact]
 	public void EvaluateExpression_NumberLiteral_ReturnsValue() {
 		var analyzer = Analyze("");
-		var lexer = new Poppy.Core.Lexer.Lexer("$ff", "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer("$ff", "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 
 		// Parse an expression directly
 		var source = "lda #$ff";
-		var lexer2 = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer2 = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens2 = lexer2.Tokenize();
 		var parser2 = new Poppy.Core.Parser.Parser(tokens2);
 		var program = parser2.Parse();

@@ -3,7 +3,7 @@ Implement the .include directive to include other assembly files.
 
 ## Syntax
 ```asm
-.include "filename.asm"
+.include "filename.pasm"
 .include "path/to/file.inc"
 ```
 

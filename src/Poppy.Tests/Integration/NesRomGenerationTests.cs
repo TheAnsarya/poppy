@@ -26,7 +26,7 @@ reset:
 	.word reset
 	.word reset
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -41,7 +41,7 @@ reset:
 		// assert
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
-		
+
 		// Check iNES header (first 16 bytes)
 		Assert.Equal(0x4e, binary[0]);	// 'N'
 		Assert.Equal(0x45, binary[1]);	// 'E'
@@ -49,7 +49,7 @@ reset:
 		Assert.Equal(0x1a, binary[3]);	// MS-DOS EOF
 		Assert.Equal(1, binary[4]);		// PRG ROM size
 		Assert.Equal(0, binary[5]);		// CHR ROM size
-		
+
 		// Check that code follows after header
 		Assert.True(binary.Length > 16);
 	}
@@ -65,7 +65,7 @@ reset:
 	lda #$00
 	sta $2000
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -80,7 +80,7 @@ reset:
 		// assert
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
-		
+
 		// Should NOT have iNES header (first bytes should be machine code)
 		// lda #$00 = $a9 $00
 		Assert.NotEqual(0x4e, binary[0]);	// NOT 'N'
@@ -125,7 +125,7 @@ nmi:
 	.word reset
 	.word 0
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -140,7 +140,7 @@ nmi:
 		// assert
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
-		
+
 		// Verify iNES header
 		Assert.Equal(0x4e, binary[0]);	// 'N'
 		Assert.Equal(0x45, binary[1]);	// 'E'
@@ -149,7 +149,7 @@ nmi:
 		Assert.Equal(2, binary[4]);		// 32KB PRG ROM
 		Assert.Equal(1, binary[5]);		// 8KB CHR ROM
 		Assert.Equal(0x01, binary[6] & 0x01);	// vertical mirroring
-		
+
 		// Verify binary size (header + PRG data)
 		// Note: This is the actual assembled size, not necessarily 32KB + header
 		Assert.True(binary.Length >= 16);	// at least has header
@@ -170,7 +170,7 @@ nmi:
 .org $8000
 	nop
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -185,7 +185,7 @@ nmi:
 		// assert
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
-		
+
 		// Verify iNES 2.0 header
 		Assert.Equal(32, binary[4]);	// PRG ROM size
 		Assert.Equal(16, binary[5]);	// CHR ROM size

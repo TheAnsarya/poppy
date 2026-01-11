@@ -21,7 +21,7 @@ public class ParserTests {
 	/// Helper to parse source code and return the program node.
 	/// </summary>
 	private static ProgramNode Parse(string source) {
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		return parser.Parse();
@@ -31,7 +31,7 @@ public class ParserTests {
 	/// Helper to parse and get errors.
 	/// </summary>
 	private static (ProgramNode Program, IReadOnlyList<ParseError> Errors) ParseWithErrors(string source) {
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -391,13 +391,13 @@ public class ParserTests {
 
 	[Fact]
 	public void Parse_IncludeDirective() {
-		var program = Parse(".include \"other.asm\"");
+		var program = Parse(".include \"other.pasm\"");
 		var directive = Assert.IsType<DirectiveNode>(program.Statements[0]);
 		Assert.Equal("include", directive.Name);
 		Assert.Single(directive.Arguments);
 
 		var arg = Assert.IsType<StringLiteralNode>(directive.Arguments[0]);
-		Assert.Equal("other.asm", arg.Value);
+		Assert.Equal("other.pasm", arg.Value);
 	}
 
 	[Fact]

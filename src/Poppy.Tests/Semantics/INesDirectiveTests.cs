@@ -14,7 +14,7 @@ public class INesDirectiveTests
 .nes
 .ines_prg 2
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -39,7 +39,7 @@ public class INesDirectiveTests
 .nes
 .ines_chr 1
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -64,7 +64,7 @@ public class INesDirectiveTests
 .nes
 .ines_mapper 1
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -90,7 +90,7 @@ public class INesDirectiveTests
 .ines_mapper 1
 .ines_submapper 5
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -115,7 +115,7 @@ public class INesDirectiveTests
 .nes
 .ines_mirroring 0
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -140,7 +140,7 @@ public class INesDirectiveTests
 .nes
 .ines_mirroring 1
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -165,7 +165,7 @@ public class INesDirectiveTests
 .nes
 .ines_battery
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -190,7 +190,7 @@ public class INesDirectiveTests
 .nes
 .ines_fourscreen
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -215,7 +215,7 @@ public class INesDirectiveTests
 .nes
 .ines_pal
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -244,7 +244,7 @@ public class INesDirectiveTests
 .ines_mirroring 0   ; horizontal
 .ines_battery
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -258,7 +258,7 @@ public class INesDirectiveTests
 		var headerBuilder = analyzer.GetINesHeaderBuilder();
 		Assert.NotNull(headerBuilder);
 		var header = headerBuilder.Build();
-		
+
 		Assert.Equal(0x4e, header[0]);	// 'N'
 		Assert.Equal(0x45, header[1]);	// 'E'
 		Assert.Equal(0x53, header[2]);	// 'S'
@@ -277,7 +277,7 @@ public class INesDirectiveTests
 .snes
 .ines_prg 2
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();
@@ -299,7 +299,7 @@ public class INesDirectiveTests
 .nes
 nop
 ";
-		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.asm");
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new Poppy.Core.Parser.Parser(tokens);
 		var program = parser.Parse();

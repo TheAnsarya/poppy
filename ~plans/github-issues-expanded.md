@@ -18,7 +18,7 @@ Labels: phase-6, enhancement
 Implement the .include directive to include other assembly files.
 
 ## Acceptance Criteria
-- [ ] Parse .include "filename.asm" syntax
+- [ ] Parse .include "filename.pasm" syntax
 - [ ] Recursively process included files
 - [ ] Track include paths for error reporting
 - [ ] Prevent circular includes
@@ -296,9 +296,9 @@ target: nes
 
 # Source files in compilation order
 sources:
-  - src/main.asm
-  - src/graphics.asm
-  - src/sound.asm
+  - src/main.pasm
+  - src/graphics.pasm
+  - src/sound.pasm
 
 # Asset files with conversion settings
 assets:

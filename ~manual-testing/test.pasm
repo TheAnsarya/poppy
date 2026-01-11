@@ -1,5 +1,5 @@
 ; ============================================================================
-; test.asm - Simple NES test program
+; test.pasm - Simple NES test program
 ; ============================================================================
 
 .org $8000
@@ -48,4 +48,5 @@ irq:
 .word nmi        ; NMI vector
 .word reset      ; Reset vector
 .word irq        ; IRQ vector
+
 

@@ -616,10 +616,10 @@ public class LexerTests {
 
 	[Fact]
 	public void Tokenize_TracksFilename() {
-		var lexer = new Core.Lexer.Lexer("lda", "test.asm");
+		var lexer = new Core.Lexer.Lexer("lda", "test.pasm");
 		var tokens = lexer.Tokenize();
 
-		Assert.Equal("test.asm", tokens[0].Location.FilePath);
+		Assert.Equal("test.pasm", tokens[0].Location.FilePath);
 	}
 
 	#endregion

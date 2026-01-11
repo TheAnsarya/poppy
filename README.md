@@ -94,26 +94,26 @@ dotnet run --project src/Poppy.CLI -- --help
 
 ```bash
 # Basic assembly
-poppy game.asm                     # Output: game.bin
+poppy game.pasm                     # Output: game.bin
 
 # Specify output file
-poppy -o rom.nes game.asm          # Output: rom.nes
+poppy -o rom.nes game.pasm          # Output: rom.nes
 
 # Generate debug symbols
-poppy -s game.nl game.asm          # Creates FCEUX .nl symbol file
-poppy -s game.mlb game.asm         # Creates Mesen .mlb symbol file
-poppy -s game.sym game.asm         # Creates generic .sym symbol file
+poppy -s game.nl game.pasm          # Creates FCEUX .nl symbol file
+poppy -s game.mlb game.pasm         # Creates Mesen .mlb symbol file
+poppy -s game.sym game.pasm         # Creates generic .sym symbol file
 
 # Generate listing file
-poppy -l game.lst game.asm         # Creates symbol table listing
+poppy -l game.lst game.pasm         # Creates symbol table listing
 
 # Verbose output
-poppy -V game.asm                  # Shows compilation progress
+poppy -V game.pasm                  # Shows compilation progress
 
 # Target different architectures
-poppy -t 6502 game.asm             # NES (default)
-poppy -t 65816 game.asm            # SNES
-poppy -t sm83 game.asm             # Game Boy
+poppy -t 6502 game.pasm             # NES (default)
+poppy -t 65816 game.pasm            # SNES
+poppy -t sm83 game.pasm             # Game Boy
 ```
 
 ### Example Assembly (NES/6502)
