@@ -270,6 +270,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitConditional(ConditionalNode node) => null;
 
+	/// <inheritdoc />
+	public object? VisitRepeatBlock(RepeatBlockNode node) => null;
+
 	// ========================================================================
 	// Directive Handlers
 	// ========================================================================

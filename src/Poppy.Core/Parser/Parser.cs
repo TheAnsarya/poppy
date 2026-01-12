@@ -125,6 +125,11 @@ public sealed class Parser {
 			return ParseSymbolConditional(token.Location, true); // ifndef = check if NOT defined
 		}
 
+		// Check for repeat block
+		if (directiveName.Equals("rept", StringComparison.OrdinalIgnoreCase)) {
+			return ParseRepeatBlock(token.Location);
+		}
+
 		// Parse directive arguments
 		var arguments = new List<ExpressionNode>();
 
@@ -536,6 +541,32 @@ public sealed class Parser {
 		}
 
 		throw new ParseException($"Expected .endif to close .{(negate ? "ifndef" : "ifdef")} block", location);
+	}
+
+	private RepeatBlockNode ParseRepeatBlock(SourceLocation location) {
+		// Parse the repeat count expression
+		var count = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Parse the body until .endr
+		var body = new List<StatementNode>();
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .endr
+			if (Check(TokenType.Directive) && CurrentToken.Text.Equals(".endr", StringComparison.OrdinalIgnoreCase)) {
+				Advance();
+				return new RepeatBlockNode(location, count, body);
+			}
+
+			var statement = ParseStatement();
+			if (statement is not null) {
+				body.Add(statement);
+			}
+		}
+
+		throw new ParseException("Expected .endr to close .rept block", location);
 	}
 
 	// ========================================================================

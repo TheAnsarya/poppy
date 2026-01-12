@@ -475,6 +475,28 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		return EvaluateExpression(expr) ?? 0;
 	}
 
+	/// <inheritdoc />
+	public object? VisitRepeatBlock(RepeatBlockNode node) {
+		// Evaluate the repeat count
+		var count = EvaluateExpression(node.Count);
+
+		if (!count.HasValue || count.Value < 0) {
+			_errors.Add(new SemanticError(
+				$"Invalid repeat count: {count?.ToString() ?? "null"}",
+				node.Location));
+			return null;
+		}
+
+		// Execute the body count times
+		for (int i = 0; i < count.Value; i++) {
+			foreach (var statement in node.Body) {
+				statement.Accept(this);
+			}
+		}
+
+		return null;
+	}
+
 	// ========================================================================
 	// Directive Handlers
 	// ========================================================================

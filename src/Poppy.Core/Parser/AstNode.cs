@@ -98,6 +98,11 @@ public interface IAstVisitor<T> {
 	/// <param name="node">The conditional assembly node to visit.</param>
 	/// <returns>The result of visiting the node.</returns>
 	T VisitConditional(ConditionalNode node);
+
+	/// <summary>Visits a repeat block node.</summary>
+	/// <param name="node">The repeat block node to visit.</param>
+	/// <returns>The result of visiting the node.</returns>
+	T VisitRepeatBlock(RepeatBlockNode node);
 }
 
 // ============================================================================
@@ -670,4 +675,37 @@ public sealed class ConditionalNode : StatementNode {
 
 	/// <inheritdoc />
 	public override T Accept<T>(IAstVisitor<T> visitor) => visitor.VisitConditional(this);
+}
+
+/// <summary>
+/// Represents a repeat block (.rept/.endr).
+/// </summary>
+public sealed class RepeatBlockNode : StatementNode {
+	/// <summary>
+	/// The number of times to repeat the block.
+	/// </summary>
+	public ExpressionNode Count { get; }
+
+	/// <summary>
+	/// The statements to repeat.
+	/// </summary>
+	public IReadOnlyList<StatementNode> Body { get; }
+
+	/// <summary>
+	/// Creates a new repeat block node.
+	/// </summary>
+	/// <param name="location">The source location where this node begins.</param>
+	/// <param name="count">The number of times to repeat the block.</param>
+	/// <param name="body">The statements to repeat.</param>
+	public RepeatBlockNode(
+		SourceLocation location,
+		ExpressionNode count,
+		IReadOnlyList<StatementNode> body)
+		: base(location) {
+		Count = count;
+		Body = body;
+	}
+
+	/// <inheritdoc />
+	public override T Accept<T>(IAstVisitor<T> visitor) => visitor.VisitRepeatBlock(this);
 }
