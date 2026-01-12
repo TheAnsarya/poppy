@@ -146,10 +146,21 @@ public sealed class Parser {
 			return new DirectiveNode(token.Location, "equ", [new IdentifierNode(token.Location, token.Text), value]);
 		}
 
-		// Otherwise, it could be a macro invocation
-		// For now, report error - identifiers at statement level need context
-		ReportError($"Expected label definition or assignment, found identifier: {token.Text}", token.Location);
-		return new LabelNode(token.Location, token.Text, isLocal); // Return as label for error recovery
+		// Otherwise, it's a macro invocation
+		// Parse arguments (comma-separated expressions until end of statement)
+		var arguments = new List<ExpressionNode>();
+
+		if (!IsAtEndOfStatement()) {
+			arguments.Add(ParseExpression());
+
+			// Parse additional comma-separated arguments
+			while (Match(TokenType.Comma)) {
+				arguments.Add(ParseExpression());
+			}
+		}
+
+		ExpectEndOfStatement();
+		return new MacroInvocationNode(token.Location, token.Text, arguments);
 	}
 
 	private StatementNode ParseInstruction() {
@@ -302,10 +313,10 @@ public sealed class Parser {
 		//   .macro name, param1, param2, param3   (comma-separated)
 		//   .macro name param1, param2, param3    (mixed)
 		var parameters = new List<string>();
-		
+
 		// Skip optional comma after macro name
 		Match(TokenType.Comma);
-		
+
 		// Parse parameters separated by spaces and/or commas
 		while (Check(TokenType.Identifier)) {
 			parameters.Add(Advance().Text);
@@ -606,6 +617,14 @@ public sealed class Parser {
 	}
 
 	private ExpressionNode ParsePrimary() {
+		// Immediate value (#)
+		if (Match(TokenType.Hash)) {
+			var location = Previous.Location;
+			var value = ParsePrimary();  // Parse the expression after #
+			// Wrap in a unary expression to preserve the # prefix
+			return new UnaryExpressionNode(location, UnaryOperator.Immediate, value);
+		}
+
 		// Number literal
 		if (Check(TokenType.Number)) {
 			var token = Advance();

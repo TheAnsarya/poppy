@@ -19,6 +19,7 @@ namespace Poppy.Core.Semantics;
 public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private readonly SymbolTable _symbolTable;
 	private readonly MacroTable _macroTable;
+	private readonly MacroExpander _macroExpander;
 	private readonly List<SemanticError> _errors;
 	private TargetArchitecture _target;
 	private bool _targetSetFromSource;
@@ -119,6 +120,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	public SemanticAnalyzer(TargetArchitecture target = TargetArchitecture.MOS6502) {
 		_symbolTable = new SymbolTable();
 		_macroTable = new MacroTable();
+		_macroExpander = new MacroExpander(_macroTable);
 		_errors = [];
 		_target = target;
 		_currentAddress = 0;
@@ -139,6 +141,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		_symbolTable.ValidateAllDefined();
 		_errors.AddRange(_symbolTable.Errors);
 		_errors.AddRange(_macroTable.Errors);
+		_errors.AddRange(_macroExpander.Errors);
 
 		// Second pass: resolve references
 		_pass = 2;
@@ -401,6 +404,17 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		foreach (var arg in node.Arguments) {
 			arg.Accept(this);
 		}
+
+		// Expand the macro during pass 2
+		if (_pass == 2) {
+			var expandedStatements = _macroExpander.Expand(node, node.Arguments);
+
+			// Visit each expanded statement
+			foreach (var statement in expandedStatements) {
+				statement.Accept(this);
+			}
+		}
+
 		return null;
 	}
 

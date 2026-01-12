@@ -120,7 +120,7 @@ public sealed class MacroExpander
 		}
 
 		var expandedOperand = ExpandExpression(instruction.Operand, substitutions, macroName, expansionId);
-		
+
 		return new InstructionNode(
 			instruction.Location,
 			instruction.Mnemonic,

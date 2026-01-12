@@ -11,7 +11,7 @@ namespace Poppy.Tests.Semantics;
 
 public class MacroExpansionTests
 {
-	[Fact(Skip = "Requires macro invocation parsing")]
+	[Fact]
 	public void SimpleMacroExpansion_NoParameters()
 	{
 		// arrange
@@ -46,12 +46,12 @@ reset:
 		Assert.False(expander.HasErrors);
 		Assert.Equal(3, expanded.Count);
 		Assert.All(expanded, stmt => Assert.IsType<InstructionNode>(stmt));
-		
+
 		var instructions = expanded.Cast<InstructionNode>().ToList();
 		Assert.All(instructions, instr => Assert.Equal("nop", instr.Mnemonic));
 	}
 
-	[Fact(Skip = "Requires macro invocation parsing")]
+	[Fact]
 	public void MacroExpansion_WithParameters()
 	{
 		// arrange
@@ -87,12 +87,12 @@ reset:
 
 		var lda = Assert.IsType<InstructionNode>(expanded[0]);
 		Assert.Equal("lda", lda.Mnemonic);
-		
+
 		// The operand should be the substituted #$42
 		Assert.NotNull(lda.Operand);
 	}
 
-	[Fact(Skip = "Requires macro invocation parsing")]
+	[Fact]
 	public void MacroExpansion_LocalLabelRenaming()
 	{
 		// arrange
@@ -146,7 +146,7 @@ reset:
 		// arrange
 		var macroTable = new MacroTable();
 		var expander = new MacroExpander(macroTable);
-		
+
 		var invocation = new MacroInvocationNode(
 			new SourceLocation("test.pasm", 1, 1, 0),
 			"undefined_macro",
@@ -233,7 +233,7 @@ reset:
 
 		var lda = Assert.IsType<InstructionNode>(expanded[0]);
 		Assert.Equal("lda", lda.Mnemonic);
-		
+
 		// Operand should be a binary expression with substituted parameters
 		var binary = Assert.IsType<BinaryExpressionNode>(lda.Operand);
 		Assert.Equal(BinaryOperator.Add, binary.Operator);
@@ -316,7 +316,7 @@ reset:
 		Assert.Equal(2, expanded.Count);
 
 		// Both instructions should have unary expressions (low/high byte)
-		Assert.All(expanded.Cast<InstructionNode>(), 
+		Assert.All(expanded.Cast<InstructionNode>(),
 			instr => Assert.IsType<UnaryExpressionNode>(instr.Operand));
 	}
 

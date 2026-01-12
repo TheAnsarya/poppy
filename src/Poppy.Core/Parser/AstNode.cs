@@ -467,6 +467,8 @@ public enum UnaryOperator {
 	HighByte,
 	/// <summary>Bank byte extraction operator (^) for 65816.</summary>
 	BankByte,
+	/// <summary>Immediate addressing mode prefix (#).</summary>
+	Immediate,
 }
 
 /// <summary>
