@@ -178,6 +178,8 @@ lda #$00  # Yet another style
 
 ## Macros
 
+Macros are reusable code templates. Macro invocations require the `@` prefix to distinguish them from instructions.
+
 ### Macro Definition
 
 ```asm
@@ -211,11 +213,11 @@ lda #$00  # Yet another style
 
 ```asm
 ; Call macro without parameters
-wait_vblank
+@wait_vblank
 
 ; Call macro with parameters
-set_ppu_addr $2000
-sprite_dma sprite_data, 64
+@set_ppu_addr $2000
+@sprite_dma sprite_data, 64
 ```
 
 ### Reserved Names
@@ -535,7 +537,7 @@ reset:
 	sta PPUMASK
 	
 	; Clear palette
-	ppu_addr $3f00
+	@ppu_addr $3f00
 	ldx #$20
 @clear_palette:
 	sta PPUDATA

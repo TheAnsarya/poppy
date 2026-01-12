@@ -63,6 +63,7 @@ The compiler aims to support compilation of retro game projects including Dragon
 **Macro System & Advanced Directives:**
 - 🔧 Macro definitions with parameters (`.macro`/`.endmacro`)
 - 🔄 Macro expansion with parameter substitution
+- 📞 Macro invocations with `@` prefix (`@macro_name arg1, arg2`)
 - 🏷️ Local label support in macros with automatic renaming
 - ❓ Conditional assembly (`.if`/`.elseif`/`.else`/`.endif`)
 - 🔍 Symbol existence checks (`.ifdef`/`.ifndef`)

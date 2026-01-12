@@ -23,7 +23,7 @@ public class MacroExpansionTests
 .endmacro
 
 reset:
-	nop3
+	@nop3
 	rts
 ";
 		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
@@ -62,7 +62,7 @@ reset:
 .endmacro
 
 reset:
-	load_value #$42
+	@load_value #$42
 	rts
 ";
 		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
@@ -104,8 +104,8 @@ reset:
 .endmacro
 
 reset:
-	wait_loop
-	wait_loop
+	@wait_loop
+	@wait_loop
 	rts
 ";
 		var lexer = new Core.Lexer.Lexer(source, "test.pasm");

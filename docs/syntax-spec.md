@@ -194,10 +194,10 @@ All directives use a dot prefix for clarity.
 ### Architecture Selection
 
 ```asm
-.arch 6502              ; Target 6502 (NES)
-.arch 65816             ; Target 65816 (SNES)
-.arch sm83              ; Target SM83 (Game Boy)
-.arch spc700            ; Target SPC700 (SNES audio)
+.target 6502            ; Target 6502 (NES)
+.target 65816           ; Target 65816 (SNES)
+.target sm83            ; Target SM83 (Game Boy)
+.target spc700          ; Target SPC700 (SNES audio)
 ```
 
 ### SNES-Specific Directives
@@ -388,7 +388,7 @@ wait:
 ; NES Hello World
 ; Poppy Compiler Example
 
-.arch 6502
+.target 6502
 
 ; Constants
 .define PPU_CTRL    $2000

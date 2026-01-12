@@ -67,19 +67,19 @@ arch: 6502                       # 6502, 65816, sm83
 # Source file specification
 sources:
   # Simple list of files
-  - src/main.asm
-  - src/game.asm
-  - src/gfx.asm
+  - src/main.pasm
+  - src/game.pasm
+  - src/gfx.pasm
 
   # Or with glob patterns
-  - src/**/*.asm                 # All .asm in src/
+  - src/**/*.pasm                # All .pasm in src/
   - include/*.inc                # All .inc in include/
 
 # Source file ordering (when order matters)
 source_order:
-  - src/header.asm               # Compiled first
-  - src/**/*.asm                 # Then everything else
-  - src/vectors.asm              # Compiled last
+  - src/header.pasm              # Compiled first
+  - src/**/*.pasm                # Then everything else
+  - src/vectors.pasm             # Compiled last
 ```
 
 ### Include Paths
@@ -308,7 +308,7 @@ version: 1.0.0
 target: nes
 
 sources:
-  - src/main.asm
+  - src/main.pasm
 
 assets:
   - path: gfx/tiles.png
@@ -342,12 +342,12 @@ include_paths:
   - macros/
 
 sources:
-  - src/header.asm
-  - src/bank_00/*.asm
-  - src/bank_01/*.asm
-  - src/bank_02/*.asm
-  - src/bank_03/*.asm
-  - src/vectors.asm
+  - src/header.pasm
+  - src/bank_00/*.pasm
+  - src/bank_01/*.pasm
+  - src/bank_02/*.pasm
+  - src/bank_03/*.pasm
+  - src/vectors.pasm
 
 assets:
   # Graphics

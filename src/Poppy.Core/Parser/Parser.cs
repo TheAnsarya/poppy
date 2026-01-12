@@ -170,8 +170,15 @@ public sealed class Parser {
 			return new DirectiveNode(token.Location, "equ", [new IdentifierNode(token.Location, token.Text), value]);
 		}
 
-		// Otherwise, it's a macro invocation
-		// Parse arguments (comma-separated expressions until end of statement)
+		// Macro invocations MUST start with @
+		if (!isLocal) {
+			throw new ParseException(
+				$"Unexpected identifier '{token.Text}'. Did you mean '@{token.Text}' for a macro invocation?",
+				token.Location);
+		}
+
+		// It's a macro invocation (starts with @ and not followed by colon)
+		var macroName = token.Text[1..]; // Remove @ prefix
 		var arguments = new List<ExpressionNode>();
 
 		if (!IsAtEndOfStatement()) {
@@ -184,7 +191,7 @@ public sealed class Parser {
 		}
 
 		ExpectEndOfStatement();
-		return new MacroInvocationNode(token.Location, token.Text, arguments);
+		return new MacroInvocationNode(token.Location, macroName, arguments);
 	}
 
 	private StatementNode ParseInstruction() {

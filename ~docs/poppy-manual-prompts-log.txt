@@ -29,6 +29,7 @@ continue!;
 
 use k&r braces! contune and accomplish a whole lot, updating issues and todo lists and chat/session logs and documentation, go for a while to reach our goal of a custom comprehensive assembler that fits our work flow in GameInfo so we can replace the other compilers for our projects;
 
+use k&r braces! update and close issues that are done, update all the other issues that have work done, make sure to add issues for all work if an issue doesn't exist, document anything and everything, update the syntax documentation (it references `*.asm` files not `*.pasm` files in the examples, and are those `.arch` directive cannon?); I don't like that macros don't have a prefix, fix that; continue with more work and go for a while, keep going, document everything!;
 
 
 
