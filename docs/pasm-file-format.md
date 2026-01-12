@@ -780,6 +780,49 @@ For maximum portability:
 - Separate platform-specific code with conditionals
 - Document architecture requirements in comments
 
+## Error Messages
+
+Poppy provides detailed error messages with source context to help you quickly identify and fix issues.
+
+### Error Format
+
+```
+filename:line:column: error: message
+ line | source code
+      | ^
+```
+
+### Example Error Output
+
+For an invalid hex digit:
+```
+test.pasm:1:6: error: Invalid hex digit 'Z'
+    1 | lda #$ZZ
+      |      ^
+```
+
+For an undefined symbol:
+```
+game.pasm:15:5: error: Undefined symbol 'player_x'
+   15 |     lda player_x
+      |     ^
+```
+
+For multiple arguments:
+```
+main.pasm:42:1: error: Unknown directive '.baddir'
+   42 | .baddir value
+      | ^~~~~~~~~~~~
+```
+
+### Error Context Features
+
+- **Line number display** with proper padding for multi-digit line numbers
+- **Caret (`^`)** points to exact error location
+- **Underline (`^~~~`)** for range-based errors showing the full span
+- **Original source** displayed as-is with whitespace preserved
+- **Multiple error support** for batch error reporting
+
 ## File Extensions
 
 - `.pasm` - Poppy assembly source
@@ -812,3 +855,4 @@ To convert existing `.asm` files:
 - [User Manual](user-manual.md) - Complete language reference
 - [README](../README.md) - Quick start guide
 - [Examples](../~manual-testing/) - Sample `.pasm` files
+
