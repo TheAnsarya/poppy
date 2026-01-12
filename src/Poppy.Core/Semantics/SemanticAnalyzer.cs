@@ -418,6 +418,42 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		return null;
 	}
 
+	/// <inheritdoc />
+	public object? VisitConditional(ConditionalNode node) {
+		// Evaluate the condition
+		var conditionValue = EvaluateExpression(node.Condition);
+		
+		// Determine which block to execute
+		if (conditionValue != 0) {
+			// Execute the then block
+			foreach (var statement in node.ThenBlock) {
+				statement.Accept(this);
+			}
+		} else {
+			// Try elseif branches
+			bool executed = false;
+			foreach (var (condition, block) in node.ElseIfBranches) {
+				var elseIfValue = EvaluateExpression(condition);
+				if (elseIfValue != 0) {
+					foreach (var statement in block) {
+						statement.Accept(this);
+					}
+					executed = true;
+					break;
+				}
+			}
+			
+			// Execute else block if no conditions were true
+			if (!executed && node.ElseBlock is not null) {
+				foreach (var statement in node.ElseBlock) {
+					statement.Accept(this);
+				}
+			}
+		}
+		
+		return null;
+	}
+
 	// ========================================================================
 	// Directive Handlers
 	// ========================================================================

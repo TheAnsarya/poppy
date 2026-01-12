@@ -93,6 +93,11 @@ public interface IAstVisitor<T> {
 	/// <param name="node">The macro invocation node to visit.</param>
 	/// <returns>The result of visiting the node.</returns>
 	T VisitMacroInvocation(MacroInvocationNode node);
+
+	/// <summary>Visits a conditional assembly node.</summary>
+	/// <param name="node">The conditional assembly node to visit.</param>
+	/// <returns>The result of visiting the node.</returns>
+	T VisitConditional(ConditionalNode node);
 }
 
 // ============================================================================
@@ -616,4 +621,53 @@ public sealed class MacroInvocationNode : StatementNode {
 
 	/// <inheritdoc />
 	public override T Accept<T>(IAstVisitor<T> visitor) => visitor.VisitMacroInvocation(this);
+}
+
+/// <summary>
+/// Represents a conditional assembly block (.if/.elseif/.else/.endif).
+/// </summary>
+public sealed class ConditionalNode : StatementNode {
+	/// <summary>
+	/// The condition expression for the .if or .elseif branch.
+	/// </summary>
+	public ExpressionNode Condition { get; }
+
+	/// <summary>
+	/// The statements to execute if the condition is true.
+	/// </summary>
+	public IReadOnlyList<StatementNode> ThenBlock { get; }
+
+	/// <summary>
+	/// The list of .elseif branches (condition + statements).
+	/// </summary>
+	public IReadOnlyList<(ExpressionNode Condition, IReadOnlyList<StatementNode> Block)> ElseIfBranches { get; }
+
+	/// <summary>
+	/// The .else block (executed if all conditions are false).
+	/// </summary>
+	public IReadOnlyList<StatementNode>? ElseBlock { get; }
+
+	/// <summary>
+	/// Creates a new conditional assembly node.
+	/// </summary>
+	/// <param name="location">The source location where this node begins.</param>
+	/// <param name="condition">The condition expression for the .if branch.</param>
+	/// <param name="thenBlock">The statements to execute if the condition is true.</param>
+	/// <param name="elseIfBranches">The list of .elseif branches.</param>
+	/// <param name="elseBlock">The .else block, if any.</param>
+	public ConditionalNode(
+		SourceLocation location,
+		ExpressionNode condition,
+		IReadOnlyList<StatementNode> thenBlock,
+		IReadOnlyList<(ExpressionNode, IReadOnlyList<StatementNode>)> elseIfBranches,
+		IReadOnlyList<StatementNode>? elseBlock = null)
+		: base(location) {
+		Condition = condition;
+		ThenBlock = thenBlock;
+		ElseIfBranches = elseIfBranches;
+		ElseBlock = elseBlock;
+	}
+
+	/// <inheritdoc />
+	public override T Accept<T>(IAstVisitor<T> visitor) => visitor.VisitConditional(this);
 }

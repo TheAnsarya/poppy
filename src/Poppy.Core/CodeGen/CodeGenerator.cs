@@ -267,6 +267,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitMacroInvocation(MacroInvocationNode node) => null;
 
+	/// <inheritdoc />
+	public object? VisitConditional(ConditionalNode node) => null;
+
 	// ========================================================================
 	// Directive Handlers
 	// ========================================================================

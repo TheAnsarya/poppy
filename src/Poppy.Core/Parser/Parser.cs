@@ -111,6 +111,11 @@ public sealed class Parser {
 			return ParseMacroDefinition(token.Location);
 		}
 
+		// Check for conditional assembly
+		if (directiveName.Equals("if", StringComparison.OrdinalIgnoreCase)) {
+			return ParseConditional(token.Location);
+		}
+
 		// Parse directive arguments
 		var arguments = new List<ExpressionNode>();
 
@@ -345,6 +350,105 @@ public sealed class Parser {
 		}
 
 		return new MacroDefinitionNode(location, name, parameters, body);
+	}
+
+	private ConditionalNode ParseConditional(SourceLocation location) {
+		// Parse the .if condition
+		var condition = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Parse the then block
+		var thenBlock = new List<StatementNode>();
+		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode>? elseBlock = null;
+		bool hasElse = false;
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .elseif, .else, or .endif
+			if (Check(TokenType.Directive)) {
+				var directiveName = CurrentToken.Text[1..].ToLowerInvariant();
+
+				if (directiveName == "endif") {
+					Advance();
+					return new ConditionalNode(location, condition, thenBlock, elseIfBranches, elseBlock);
+				} else if (directiveName == "elseif") {
+					if (hasElse) {
+						throw new ParseException(".elseif cannot appear after .else", CurrentToken.Location);
+					}
+
+					Advance();
+					var elseIfCondition = ParseExpression();
+					ExpectEndOfStatement();
+
+					var elseIfBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif" || nextDirective == "elseif" || nextDirective == "else") {
+								break;
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseIfBlock.Add(statement);
+						}
+					}
+
+					elseIfBranches.Add((elseIfCondition, elseIfBlock));
+				} else if (directiveName == "else") {
+					if (hasElse) {
+						throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+					}
+
+					hasElse = true;
+					Advance();
+					ExpectEndOfStatement();
+
+					elseBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif") {
+								break;
+							} else if (nextDirective == "elseif") {
+								throw new ParseException(".elseif cannot appear after .else", CurrentToken.Location);
+							} else if (nextDirective == "else") {
+								throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseBlock.Add(statement);
+						}
+					}
+				} else {
+					// Regular directive inside the then block
+					var statement = ParseStatement();
+					if (statement is not null) {
+						thenBlock.Add(statement);
+					}
+				}
+			} else {
+				// Regular statement inside the then block
+				var statement = ParseStatement();
+				if (statement is not null) {
+					thenBlock.Add(statement);
+				}
+			}
+		}
+
+		throw new ParseException("Expected .endif to close .if block", location);
 	}
 
 	// ========================================================================
