@@ -1,0 +1,468 @@
+using Poppy.Core.Lexer;
+using Poppy.Core.Parser;
+using Poppy.Core.Semantics;
+using Xunit;
+
+namespace Poppy.Tests.Semantics;
+
+/// <summary>
+/// Comprehensive macro system tests covering edge cases, integration scenarios,
+/// and advanced macro features.
+/// </summary>
+public class MacroSystemComprehensiveTests {
+	[Fact]
+	public void MacroSystem_NestedMacroCalls() {
+		// arrange - macro calling another macro
+		var source = @"
+.macro set_a value
+	lda #value
+.endmacro
+
+.macro init_registers value
+	@set_a value
+	ldx #$00
+	ldy #$00
+.endmacro
+
+@init_registers $42
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - nested macro calls should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_AllAddressingModes() {
+		// arrange - macro with various addressing modes
+		var source = @"
+.macro memory_ops addr
+	lda addr          ; Absolute
+	lda addr,x        ; Absolute,X
+	lda addr,y        ; Absolute,Y
+	lda (addr,x)      ; Indexed Indirect
+	lda (addr),y      ; Indirect Indexed
+	sta addr          ; Absolute
+.endmacro
+
+@memory_ops $0200
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - all addressing modes should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_EmptyBody() {
+		// arrange - macro with empty body (documentation/placeholder macro)
+		var source = @"
+.macro placeholder
+.endmacro
+
+@placeholder
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - empty macro should be valid
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_InConditionalBlock() {
+		// arrange - macro invocation inside conditional assembly
+		var source = @"
+DEBUG = 1
+
+.macro debug_nop
+	nop
+	nop
+	nop
+.endmacro
+
+.if DEBUG
+	@debug_nop
+.endif
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - macro in conditional should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_MultipleSequentialInvocations() {
+		// arrange - multiple invocations in sequence
+		var source = @"
+.macro inc_mem addr
+	inc addr
+.endmacro
+
+@inc_mem $0200
+@inc_mem $0201
+@inc_mem $0202
+@inc_mem $0203
+@inc_mem $0204
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - multiple invocations should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_WithDataDirectives() {
+		// arrange - macro containing data directives
+		var source = @"
+.macro sprite_data tile, attr, x, y
+	.byte y
+	.byte tile
+	.byte attr
+	.byte x
+.endmacro
+
+@sprite_data $01, $00, $80, $60
+@sprite_data $02, $40, $90, $70
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - data directives in macro should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_UndefinedMacro_ReportsError() {
+		// arrange - calling undefined macro
+		var source = @"
+@undefined_macro
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - should report error for undefined macro
+		Assert.True(analyzer.HasErrors);
+		Assert.Contains(analyzer.Errors, e => e.Message.Contains("Undefined macro"));
+	}
+
+	[Fact]
+	public void MacroSystem_DuplicateMacroDefinition_ReportsError() {
+		// arrange - defining same macro twice
+		var source = @"
+.macro duplicate
+	nop
+.endmacro
+
+.macro duplicate
+	rts
+.endmacro
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - should report error for duplicate macro
+		Assert.True(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_ExpressionWithParameter() {
+		// arrange - using parameter in expression
+		var source = @"
+.macro offset_store base, offset
+	sta base + offset
+.endmacro
+
+@offset_store $0200, $10
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - parameter in expression should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_HighLowByteOperators() {
+		// arrange - high/low byte operators with parameters
+		var source = @"
+.macro load_address addr
+	lda #<addr    ; Low byte
+	sta $00
+	lda #>addr    ; High byte
+	sta $01
+.endmacro
+
+@load_address $8000
+@load_address $c000
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - high/low byte operators should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_WithDefaultsAndNesting() {
+		// arrange - combining defaults with nested calls
+		var source = @"
+.macro inner_op value=$00
+	lda #value
+.endmacro
+
+.macro outer_op x=$ff, y=$ff
+	@inner_op x
+	tax
+	@inner_op y
+	tay
+.endmacro
+
+@outer_op        ; Uses all defaults
+@outer_op $10    ; Override x
+@outer_op $10, $20  ; Override both
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - defaults with nesting should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_ImmediateAddressing() {
+		// arrange - immediate mode with various values
+		var source = @"
+.macro load_values a, x, y
+	lda #a
+	ldx #x
+	ldy #y
+.endmacro
+
+@load_values $00, $ff, $42
+@load_values 0, 255, 66
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - immediate addressing should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_ZeroPageAddressing() {
+		// arrange - zero page operations
+		var source = @"
+.macro zp_copy src, dest
+	lda src
+	sta dest
+.endmacro
+
+@zp_copy $00, $10
+@zp_copy $20, $30
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - zero page addressing should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_InRepeatBlock() {
+		// arrange - macro invocation inside repeat block
+		var source = @"
+.macro store_zero addr
+	stz addr
+.endmacro
+
+.rept 4
+	@store_zero $0200
+.endr
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - macro in repeat block should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_CaseInsensitiveName() {
+		// arrange - macro name case insensitivity
+		var source = @"
+.macro MyMacro
+	nop
+.endmacro
+
+@MYMACRO
+@mymacro
+@MyMacro
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - case insensitive invocations should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_ParameterCaseInsensitive() {
+		// arrange - parameter names are case insensitive
+		var source = @"
+.macro test_case Value
+	lda #VALUE
+	sta value
+.endmacro
+
+@test_case $42
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - case insensitive parameters should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_WordDirective() {
+		// arrange - macro with word directive
+		var source = @"
+.macro vector_entry handler
+	.word handler
+.endmacro
+
+reset_handler = $8000
+nmi_handler = $8100
+irq_handler = $8200
+
+@vector_entry nmi_handler
+@vector_entry reset_handler
+@vector_entry irq_handler
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - word directive in macro should work
+		Assert.False(analyzer.HasErrors);
+	}
+
+	[Fact]
+	public void MacroSystem_MixedInstructionsAndData() {
+		// arrange - macro with both instructions and data
+		var source = @"
+.macro message_data msg_addr, msg_len
+	lda #<msg_addr
+	sta $00
+	lda #>msg_addr
+	sta $01
+	lda #msg_len
+	sta $02
+.endmacro
+
+MESSAGE = $c000
+LEN = 32
+
+@message_data MESSAGE, LEN
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		// assert - mixed content should work
+		Assert.False(analyzer.HasErrors);
+	}
+}

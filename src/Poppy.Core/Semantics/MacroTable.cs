@@ -13,7 +13,7 @@ namespace Poppy.Core.Semantics;
 /// </summary>
 public sealed class MacroTable
 {
-	private readonly Dictionary<string, MacroDefinition> _macros = new();
+	private readonly Dictionary<string, MacroDefinition> _macros = new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<SemanticError> _errors = [];
 
 	// Reserved words that cannot be used as macro names
