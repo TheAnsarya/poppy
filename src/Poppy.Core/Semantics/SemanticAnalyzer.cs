@@ -421,8 +421,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitConditional(ConditionalNode node) {
 		// Evaluate the condition
-		var conditionValue = EvaluateExpression(node.Condition);
-		
+		// For symbol conditionals (.ifdef/.ifndef), null means symbol is not defined (treat as 0)
+		var conditionValue = EvaluateConditionalExpression(node.Condition);
+
 		// Determine which block to execute
 		if (conditionValue != 0) {
 			// Execute the then block
@@ -433,7 +434,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			// Try elseif branches
 			bool executed = false;
 			foreach (var (condition, block) in node.ElseIfBranches) {
-				var elseIfValue = EvaluateExpression(condition);
+				var elseIfValue = EvaluateConditionalExpression(condition);
 				if (elseIfValue != 0) {
 					foreach (var statement in block) {
 						statement.Accept(this);
@@ -442,7 +443,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 					break;
 				}
 			}
-			
+
 			// Execute else block if no conditions were true
 			if (!executed && node.ElseBlock is not null) {
 				foreach (var statement in node.ElseBlock) {
@@ -450,8 +451,28 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				}
 			}
 		}
-		
+
 		return null;
+	}
+
+	/// <summary>
+	/// Evaluates a conditional expression, treating null (undefined symbol) as 0.
+	/// </summary>
+	private long EvaluateConditionalExpression(ExpressionNode expr) {
+		// Special handling for identifier nodes in conditionals (.ifdef/.ifndef)
+		if (expr is IdentifierNode id) {
+			// For .ifdef: return 1 if defined, 0 if not
+			return _symbolTable.TryGetSymbol(id.Name, out var symbol) && symbol is not null ? 1 : 0;
+		}
+
+		// Special handling for logical NOT of identifier (.ifndef)
+		if (expr is UnaryExpressionNode { Operator: UnaryOperator.LogicalNot, Operand: IdentifierNode identifier }) {
+			// For .ifndef: return 1 if NOT defined, 0 if defined
+			return _symbolTable.TryGetSymbol(identifier.Name, out var symbol) && symbol is not null ? 0 : 1;
+		}
+
+		// For normal expressions, evaluate and treat null as 0
+		return EvaluateExpression(expr) ?? 0;
 	}
 
 	// ========================================================================

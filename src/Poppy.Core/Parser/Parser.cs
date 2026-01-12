@@ -116,6 +116,15 @@ public sealed class Parser {
 			return ParseConditional(token.Location);
 		}
 
+		// Check for symbol conditionals
+		if (directiveName.Equals("ifdef", StringComparison.OrdinalIgnoreCase)) {
+			return ParseSymbolConditional(token.Location, false); // ifdef = check if defined
+		}
+
+		if (directiveName.Equals("ifndef", StringComparison.OrdinalIgnoreCase)) {
+			return ParseSymbolConditional(token.Location, true); // ifndef = check if NOT defined
+		}
+
 		// Parse directive arguments
 		var arguments = new List<ExpressionNode>();
 
@@ -449,6 +458,84 @@ public sealed class Parser {
 		}
 
 		throw new ParseException("Expected .endif to close .if block", location);
+	}
+
+	private ConditionalNode ParseSymbolConditional(SourceLocation location, bool negate) {
+		// Parse the symbol name
+		if (!Check(TokenType.Identifier)) {
+			throw new ParseException($"Expected symbol name after .{(negate ? "ifndef" : "ifdef")}", CurrentToken.Location);
+		}
+
+		var symbolToken = Advance();
+		var symbolName = symbolToken.Text;
+		ExpectEndOfStatement();
+
+		// Create condition: for ifdef, just the identifier; for ifndef, wrap in logical NOT
+		ExpressionNode condition;
+		if (negate) {
+			// .ifndef - check if symbol is NOT defined
+			condition = new UnaryExpressionNode(
+				symbolToken.Location,
+				UnaryOperator.LogicalNot,
+				new IdentifierNode(symbolToken.Location, symbolName));
+		} else {
+			// .ifdef - check if symbol is defined
+			condition = new IdentifierNode(symbolToken.Location, symbolName);
+		}
+
+		// Parse the then block (reuse conditional parsing logic)
+		var thenBlock = new List<StatementNode>();
+		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode>? elseBlock = null;
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			if (Check(TokenType.Directive)) {
+				var directiveName = CurrentToken.Text[1..].ToLowerInvariant();
+
+				if (directiveName == "endif") {
+					Advance();
+					return new ConditionalNode(location, condition, thenBlock, elseIfBranches, elseBlock);
+				} else if (directiveName == "else") {
+					Advance();
+					ExpectEndOfStatement();
+
+					elseBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif") {
+								break;
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseBlock.Add(statement);
+						}
+					}
+				} else {
+					// Regular directive inside the then block
+					var statement = ParseStatement();
+					if (statement is not null) {
+						thenBlock.Add(statement);
+					}
+				}
+			} else {
+				// Regular statement inside the then block
+				var statement = ParseStatement();
+				if (statement is not null) {
+					thenBlock.Add(statement);
+				}
+			}
+		}
+
+		throw new ParseException($"Expected .endif to close .{(negate ? "ifndef" : "ifdef")} block", location);
 	}
 
 	// ========================================================================

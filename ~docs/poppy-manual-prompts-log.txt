@@ -27,6 +27,7 @@ continue working issues;
 
 continue!;
 
+use k&r braces! contune and accomplish a whole lot, updating issues and todo lists and chat/session logs and documentation, go for a while to reach our goal of a custom comprehensive assembler that fits our work flow in GameInfo so we can replace the other compilers for our projects;
 
 
 
