@@ -209,6 +209,64 @@ Macros are reusable code templates. Macro invocations require the `@` prefix to 
 .endmacro
 ```
 
+### Macro Default Parameters
+
+Macro parameters can have default values that are used when arguments are not provided.
+
+```asm
+; Single parameter with default
+.macro load_value value=$42
+	lda #value
+.endmacro
+
+@load_value          ; Uses default $42
+@load_value $ff      ; Uses provided $ff
+
+; Multiple parameters with defaults
+.macro init_sprite x=$00, y=$00, tile=$01
+	lda #x
+	sta $0200
+	lda #y
+	sta $0201
+	lda #tile
+	sta $0202
+.endmacro
+
+@init_sprite              ; Uses all defaults
+@init_sprite $10, $20     ; Provides x and y, uses default tile
+@init_sprite $10, $20, $30 ; Provides all values
+
+; Mixed required and optional parameters
+.macro ppu_write addr, value, count=$01
+	lda #>addr
+	sta $2006
+	lda #<addr
+	sta $2006
+	lda #value
+	ldx #count
+.endmacro
+
+@ppu_write $2000, $ff       ; Required params, default count
+@ppu_write $2000, $00, $20  ; All params provided
+
+; Expression as default (using defined symbol)
+BUFFER_SIZE = 256
+
+.macro fill_buffer value=$00, count=BUFFER_SIZE
+	ldx #count
+	lda #value
+.endmacro
+
+@fill_buffer  ; Uses $00 and 256
+```
+
+**Rules:**
+- Default parameters must follow the pattern `name=value`
+- Parameters without defaults are required
+- Required parameters should come before optional ones
+- Default values can be numbers, symbols, or expressions
+- Arguments are matched left-to-right
+
 ### Macro Invocation
 
 ```asm

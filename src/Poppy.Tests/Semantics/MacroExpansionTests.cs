@@ -191,7 +191,7 @@ reset:
 		// assert
 		Assert.True(expander.HasErrors);
 		Assert.Empty(expanded);
-		Assert.Contains(expander.Errors, e => e.Message.Contains("expects 2 argument(s), got 1"));
+		Assert.Contains(expander.Errors, e => e.Message.Contains("requires at least 2 argument(s), got 1"));
 	}
 
 	[Fact]

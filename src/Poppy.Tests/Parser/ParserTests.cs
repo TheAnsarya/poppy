@@ -643,7 +643,8 @@ public class ParserTests {
 
 		Assert.Equal("load_value", macro.Name);
 		Assert.Single(macro.Parameters);
-		Assert.Equal("value", macro.Parameters[0]);
+		Assert.Equal("value", macro.Parameters[0].Name);
+		Assert.False(macro.Parameters[0].HasDefault);
 	}
 
 	[Fact]
@@ -653,8 +654,10 @@ public class ParserTests {
 
 		Assert.Equal("copy", macro.Name);
 		Assert.Equal(2, macro.Parameters.Count);
-		Assert.Equal("src", macro.Parameters[0]);
-		Assert.Equal("dest", macro.Parameters[1]);
+		Assert.Equal("src", macro.Parameters[0].Name);
+		Assert.Equal("dest", macro.Parameters[1].Name);
+		Assert.False(macro.Parameters[0].HasDefault);
+		Assert.False(macro.Parameters[1].HasDefault);
 	}
 
 	// ========================================================================

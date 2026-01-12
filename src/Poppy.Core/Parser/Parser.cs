@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Poppy.Core.Lexer;
+using Poppy.Core.Semantics;
 
 namespace Poppy.Core.Parser;
 
@@ -363,19 +364,37 @@ public sealed class Parser {
 		}
 		var name = nameToken.Text;
 
-		// Parse parameters
+		// Parse parameters with optional default values
 		// Support flexible syntax:
-		//   .macro name param1 param2 param3      (space-separated)
-		//   .macro name, param1, param2, param3   (comma-separated)
-		//   .macro name param1, param2, param3    (mixed)
-		var parameters = new List<string>();
+		//   .macro name param1 param2 param3              (space-separated)
+		//   .macro name, param1, param2, param3           (comma-separated)
+		//   .macro name param1, param2, param3            (mixed)
+		//   .macro name param1=$00, param2, param3=$ff    (with defaults)
+		var parameters = new List<MacroParameter>();
 
 		// Skip optional comma after macro name
 		Match(TokenType.Comma);
 
 		// Parse parameters separated by spaces and/or commas
 		while (Check(TokenType.Identifier)) {
-			parameters.Add(Advance().Text);
+			var paramName = Advance().Text;
+			IReadOnlyList<Token>? defaultValue = null;
+
+			// Check for default value (param=value)
+			if (Match(TokenType.Equals)) {
+				// Parse default value tokens until comma or end of statement
+				var defaultTokens = new List<Token>();
+				while (!IsAtEndOfStatement() && !Check(TokenType.Comma)) {
+					defaultTokens.Add(Advance());
+				}
+				if (defaultTokens.Count == 0) {
+					throw new ParseException($"Expected default value after '=' for parameter '{paramName}'", CurrentToken.Location);
+				}
+				defaultValue = defaultTokens;
+			}
+
+			parameters.Add(new MacroParameter(paramName, defaultValue));
+
 			// Optional comma between parameters
 			Match(TokenType.Comma);
 		}
@@ -737,7 +756,12 @@ public sealed class Parser {
 	// Expression Parsing (Precedence Climbing)
 	// ========================================================================
 
-	private ExpressionNode ParseExpression() {
+	/// <summary>
+	/// Parses an expression from the current token stream.
+	/// This is exposed publicly to allow parsing default parameter values.
+	/// </summary>
+	/// <returns>The parsed expression node.</returns>
+	public ExpressionNode ParseExpression() {
 		return ParseLogicalOr();
 	}
 

@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Poppy.Core.Lexer;
+using Poppy.Core.Semantics;
 
 namespace Poppy.Core.Parser;
 
@@ -569,9 +570,9 @@ public sealed class MacroDefinitionNode : StatementNode {
 	public string Name { get; }
 
 	/// <summary>
-	/// The parameter names for the macro.
+	/// The parameters for the macro (with optional default values).
 	/// </summary>
-	public IReadOnlyList<string> Parameters { get; }
+	public IReadOnlyList<MacroParameter> Parameters { get; }
 
 	/// <summary>
 	/// The body of the macro (statements between .macro and .endmacro).
@@ -583,12 +584,12 @@ public sealed class MacroDefinitionNode : StatementNode {
 	/// </summary>
 	/// <param name="location">The source location where this node begins.</param>
 	/// <param name="name">The name of the macro.</param>
-	/// <param name="parameters">The parameter names for the macro.</param>
+	/// <param name="parameters">The parameters for the macro (with optional defaults).</param>
 	/// <param name="body">The body of the macro.</param>
 	public MacroDefinitionNode(
 		SourceLocation location,
 		string name,
-		IReadOnlyList<string> parameters,
+		IReadOnlyList<MacroParameter> parameters,
 		IReadOnlyList<StatementNode> body)
 		: base(location) {
 		Name = name;

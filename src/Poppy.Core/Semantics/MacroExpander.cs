@@ -54,20 +54,54 @@ public sealed class MacroExpander
 			return [];
 		}
 
+		// Count required parameters (those without defaults)
+		var requiredCount = macro.Parameters.Count(p => !p.HasDefault);
+		var totalCount = macro.Parameters.Count;
+
 		// Validate argument count
-		if (arguments.Count != macro.Parameters.Count)
+		if (arguments.Count < requiredCount)
 		{
 			_errors.Add(new SemanticError(
-				$"Macro '{invocation.Name}' expects {macro.Parameters.Count} argument(s), got {arguments.Count}",
+				$"Macro '{invocation.Name}' requires at least {requiredCount} argument(s), got {arguments.Count}",
 				invocation.Location));
 			return [];
 		}
 
-		// Create parameter substitution map
+		if (arguments.Count > totalCount)
+		{
+			_errors.Add(new SemanticError(
+				$"Macro '{invocation.Name}' accepts at most {totalCount} argument(s), got {arguments.Count}",
+				invocation.Location));
+			return [];
+		}
+
+		// Create parameter substitution map, using defaults for missing arguments
 		var substitutions = new Dictionary<string, ExpressionNode>(StringComparer.OrdinalIgnoreCase);
 		for (int i = 0; i < macro.Parameters.Count; i++)
 		{
-			substitutions[macro.Parameters[i].Name] = arguments[i];
+			var param = macro.Parameters[i];
+			if (i < arguments.Count)
+			{
+				// Use provided argument
+				substitutions[param.Name] = arguments[i];
+			}
+			else if (param.HasDefault)
+			{
+				// Use default value (parse from tokens)
+				var defaultExpr = ParseDefaultValue(param.DefaultValue!, invocation.Location);
+				if (defaultExpr != null)
+				{
+					substitutions[param.Name] = defaultExpr;
+				}
+			}
+			else
+			{
+				// This should never happen because we validated required params above
+				_errors.Add(new SemanticError(
+					$"Missing required parameter '{param.Name}' for macro '{invocation.Name}'",
+					invocation.Location));
+				return [];
+			}
 		}
 
 		// Generate unique expansion ID for local labels
@@ -85,6 +119,27 @@ public sealed class MacroExpander
 		}
 
 		return expanded;
+	}
+
+	/// <summary>
+	/// Parses a default parameter value from tokens.
+	/// </summary>
+	private ExpressionNode? ParseDefaultValue(IReadOnlyList<Token> tokens, SourceLocation errorLocation)
+	{
+		try
+		{
+			// Create a parser for just these tokens
+			var tokenList = tokens.ToList();
+			var parser = new Parser.Parser(tokenList);
+			return parser.ParseExpression();
+		}
+		catch (ParseException ex)
+		{
+			_errors.Add(new SemanticError(
+				$"Invalid default parameter value: {ex.Message}",
+				errorLocation));
+			return null;
+		}
 	}
 
 	/// <summary>

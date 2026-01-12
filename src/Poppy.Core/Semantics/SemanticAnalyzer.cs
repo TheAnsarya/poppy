@@ -96,12 +96,12 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <summary>
 	/// Gets all semantic errors.
 	/// </summary>
-	public IReadOnlyList<SemanticError> Errors => _errors;
+	public IReadOnlyList<SemanticError> Errors => _errors.Concat(_macroExpander.Errors).ToList();
 
 	/// <summary>
 	/// Gets whether analysis encountered any errors.
 	/// </summary>
-	public bool HasErrors => _errors.Count > 0;
+	public bool HasErrors => _errors.Count > 0 || _macroExpander.HasErrors;
 
 	/// <summary>
 	/// Gets the macro table.
@@ -374,10 +374,8 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitMacroDefinition(MacroDefinitionNode node) {
 		if (_pass == 1) {
-			// Convert parameter names to MacroParameter objects
-			var parameters = node.Parameters
-				.Select(p => new MacroParameter(p))
-				.ToList();
+			// Parameters are already MacroParameter objects (from the parser)
+			var parameters = node.Parameters.ToList();
 
 			// Store the macro body as statements
 			var body = node.Body.ToList();
