@@ -497,6 +497,51 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		return null;
 	}
 
+	/// <inheritdoc />
+	public object? VisitEnumerationBlock(EnumerationBlockNode node) {
+		// Only define symbols in pass 1
+		if (_pass != 1) return null;
+
+		// Evaluate the starting value
+		var currentValue = EvaluateExpression(node.StartValue);
+		if (!currentValue.HasValue) {
+			_errors.Add(new SemanticError(
+				"Enumeration start value must be a constant expression",
+				node.Location));
+			return null;
+		}
+
+		// Process each member
+		var value = currentValue.Value;
+		foreach (var member in node.Members) {
+			// If member has explicit value, use it
+			if (member.Value is not null) {
+				var explicitValue = EvaluateExpression(member.Value);
+				if (!explicitValue.HasValue) {
+					_errors.Add(new SemanticError(
+						$"Enumeration member '{member.Name}' value must be a constant expression",
+						node.Location));
+					continue;
+				}
+				value = explicitValue.Value;
+			}
+
+			// Define the symbol with current value
+			_symbolTable.Define(member.Name, SymbolType.Constant, value, node.Location);
+
+			// Auto-increment based on size directive
+			var incrementSize = member.SizeDirective switch {
+				".db" => 1,
+				".dw" => 2,
+				".dl" => 3,
+				_ => 1
+			};
+			value += incrementSize;
+		}
+
+		return null;
+	}
+
 	// ========================================================================
 	// Directive Handlers
 	// ========================================================================

@@ -103,6 +103,11 @@ public interface IAstVisitor<T> {
 	/// <param name="node">The repeat block node to visit.</param>
 	/// <returns>The result of visiting the node.</returns>
 	T VisitRepeatBlock(RepeatBlockNode node);
+
+	/// <summary>Visits an enumeration block node.</summary>
+	/// <param name="node">The enumeration block node to visit.</param>
+	/// <returns>The result of visiting the node.</returns>
+	T VisitEnumerationBlock(EnumerationBlockNode node);
 }
 
 // ============================================================================
@@ -708,4 +713,66 @@ public sealed class RepeatBlockNode : StatementNode {
 
 	/// <inheritdoc />
 	public override T Accept<T>(IAstVisitor<T> visitor) => visitor.VisitRepeatBlock(this);
+}
+
+/// <summary>
+/// Represents an enumeration block (.enum/.ende) member.
+/// </summary>
+public sealed class EnumerationMember {
+	/// <summary>
+	/// The name of the enumeration member.
+	/// </summary>
+	public string Name { get; }
+
+	/// <summary>
+	/// Optional explicit value for this member.
+	/// </summary>
+	public ExpressionNode? Value { get; }
+
+	/// <summary>
+	/// Optional size directive (.db, .dw, .dl).
+	/// </summary>
+	public string? SizeDirective { get; }
+
+	/// <summary>
+	/// Creates a new enumeration member.
+	/// </summary>
+	public EnumerationMember(string name, ExpressionNode? value = null, string? sizeDirective = null) {
+		Name = name;
+		Value = value;
+		SizeDirective = sizeDirective;
+	}
+}
+
+/// <summary>
+/// Represents an enumeration block (.enum/.ende).
+/// </summary>
+public sealed class EnumerationBlockNode : StatementNode {
+	/// <summary>
+	/// The starting address/value for the enumeration.
+	/// </summary>
+	public ExpressionNode StartValue { get; }
+
+	/// <summary>
+	/// The list of enumeration members.
+	/// </summary>
+	public IReadOnlyList<EnumerationMember> Members { get; }
+
+	/// <summary>
+	/// Creates a new enumeration block node.
+	/// </summary>
+	/// <param name="location">The source location where this node begins.</param>
+	/// <param name="startValue">The starting address/value for the enumeration.</param>
+	/// <param name="members">The list of enumeration members.</param>
+	public EnumerationBlockNode(
+		SourceLocation location,
+		ExpressionNode startValue,
+		IReadOnlyList<EnumerationMember> members)
+		: base(location) {
+		StartValue = startValue;
+		Members = members;
+	}
+
+	/// <inheritdoc />
+	public override T Accept<T>(IAstVisitor<T> visitor) => visitor.VisitEnumerationBlock(this);
 }

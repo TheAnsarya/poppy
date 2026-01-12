@@ -273,6 +273,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// <inheritdoc />
 	public object? VisitRepeatBlock(RepeatBlockNode node) => null;
 
+	/// <inheritdoc />
+	public object? VisitEnumerationBlock(EnumerationBlockNode node) => null;
+
 	// ========================================================================
 	// Directive Handlers
 	// ========================================================================

@@ -130,6 +130,11 @@ public sealed class Parser {
 			return ParseRepeatBlock(token.Location);
 		}
 
+		// Check for enumeration block
+		if (directiveName.Equals("enum", StringComparison.OrdinalIgnoreCase)) {
+			return ParseEnumerationBlock(token.Location);
+		}
+
 		// Parse directive arguments
 		var arguments = new List<ExpressionNode>();
 
@@ -567,6 +572,54 @@ public sealed class Parser {
 		}
 
 		throw new ParseException("Expected .endr to close .rept block", location);
+	}
+
+	private EnumerationBlockNode ParseEnumerationBlock(SourceLocation location) {
+		// Parse the starting value expression
+		var startValue = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Parse enumeration members until .ende
+		var members = new List<EnumerationMember>();
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .ende
+			if (Check(TokenType.Directive) && CurrentToken.Text.Equals(".ende", StringComparison.OrdinalIgnoreCase)) {
+				Advance();
+				return new EnumerationBlockNode(location, startValue, members);
+			}
+
+			// Parse member: IDENTIFIER [= value] [.db/.dw/.dl]
+			if (!Check(TokenType.Identifier)) {
+				throw new ParseException("Expected identifier in enumeration block", CurrentToken.Location);
+			}
+
+			var nameToken = Advance();
+			var name = nameToken.Text;
+			ExpressionNode? value = null;
+			string? sizeDirective = null;
+
+			// Check for explicit value assignment
+			if (Match(TokenType.Equals)) {
+				value = ParseExpression();
+			}
+
+			// Check for size directive
+			if (Check(TokenType.Directive)) {
+				var directive = CurrentToken.Text.ToLowerInvariant();
+				if (directive == ".db" || directive == ".dw" || directive == ".dl") {
+					sizeDirective = directive;
+					Advance();
+				}
+			}
+
+			members.Add(new EnumerationMember(name, value, sizeDirective));
+			ExpectEndOfStatement();
+		}
+
+		throw new ParseException("Expected .ende to close .enum block", location);
 	}
 
 	// ========================================================================
