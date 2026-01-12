@@ -60,17 +60,26 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 🔋 Battery backup, trainer, mirroring configuration
 - 🌍 NTSC/PAL timing selection
 
+**Macro System & Advanced Directives:**
+- 🔧 Macro definitions with parameters (`.macro`/`.endmacro`)
+- 🔄 Macro expansion with parameter substitution
+- 🏷️ Local label support in macros with automatic renaming
+- ❓ Conditional assembly (`.if`/`.elseif`/`.else`/`.endif`)
+- 🔍 Symbol existence checks (`.ifdef`/`.ifndef`)
+- 🔁 Repeat blocks (`.rept`/`.endr`) for code generation
+- 🔢 Enumeration blocks (`.enum`/`.ende`) for sequential constants
+
 **Output Formats:**
 - 🎮 NES ROM with iNES 2.0 header
 - 🐛 Debug symbol files (FCEUX .nl, Mesen .mlb, generic .sym)
 - 📊 Symbol table listing output
 
 ### Coming Soon 🚧
-- 🛠️ Macro and conditional assembly
 - 🎯 65816 instruction set (SNES)
 - 🎮 SM83 instruction set (Game Boy)
 - 🎨 Asset conversion pipeline
 - 📊 Enhanced error reporting with context
+- 🧮 More advanced expression evaluation
 
 ---
 

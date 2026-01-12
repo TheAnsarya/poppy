@@ -266,6 +266,131 @@ Macros cannot use reserved names:
 .endif
 ```
 
+## Repeat Blocks
+
+Repeat blocks allow you to generate repeated code or data with a single directive.
+
+### Basic Syntax
+
+```asm
+; .rept count
+;   ...body...
+; .endr
+
+; Fill buffer with zeros
+.rept 256
+	.byte $00
+.endr
+
+; Unrolled loop
+.rept 8
+	asl a
+	rol $00
+.endr
+```
+
+### With Expressions
+
+```asm
+; Count can be any constant expression
+BUFFER_SIZE = 128
+
+.rept BUFFER_SIZE / 2
+	.word $0000
+.endr
+
+; Nested repeats
+.rept 4
+	.rept 8
+		.byte $ff
+	.endr
+.endr
+```
+
+## Enumeration Blocks
+
+Enumeration blocks define a sequence of consecutive constants with auto-increment.
+
+### Basic Syntax
+
+```asm
+; .enum start_value
+;   SYMBOL1
+;   SYMBOL2
+;   ...
+; .ende
+
+; Zero page variables
+.enum $00
+	player_x
+	player_y
+	player_state
+	enemy_count
+.ende
+; player_x = $00, player_y = $01, player_state = $02, enemy_count = $03
+```
+
+### Explicit Values
+
+```asm
+; Override auto-increment with explicit values
+.enum $2000
+	PPUCTRL
+	PPUMASK
+	PPUSTATUS
+	OAMADDR = $2003  ; Skip to $2003
+	OAMDATA          ; Auto-continues from $2004
+	PPUSCROLL
+	PPUADDR
+	PPUDATA
+.ende
+```
+
+### Size Modifiers
+
+```asm
+; Use .db, .dw, .dl to control increment size
+.enum $0200
+	sprite_x    .db  ; +1 byte (default)
+	sprite_y    .db  ; +1 byte
+	sprite_ptr  .dw  ; +2 bytes (word)
+	sprite_bank .db  ; +1 byte
+	position    .dl  ; +3 bytes (65816 long address)
+.ende
+; sprite_x=$0200, sprite_y=$0201, sprite_ptr=$0202, sprite_bank=$0204, position=$0205
+```
+
+### Use Cases
+
+```asm
+; RAM layout definition
+.enum $0000
+	temp1
+	temp2
+	temp3
+	pointer  .dw
+	counter
+.ende
+
+; Memory-mapped I/O
+.enum $4000
+	SQ1_VOL = $4000
+	SQ1_SWEEP
+	SQ1_LO
+	SQ1_HI
+	SQ2_VOL
+.ende
+
+; Bit flags
+.enum 0
+	FLAG_CARRY
+	FLAG_ZERO
+	FLAG_INTERRUPT
+	FLAG_DECIMAL
+.ende
+; FLAG_CARRY=0, FLAG_ZERO=1, FLAG_INTERRUPT=2, FLAG_DECIMAL=3
+```
+
 ## Labels
 
 ### Global Labels
