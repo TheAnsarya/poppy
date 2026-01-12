@@ -232,14 +232,14 @@ Macros cannot use reserved names:
 ### Basic Conditionals
 
 ```asm
-; .if/.else/.endif
+; .if/.else/.endif - General conditional
 .if DEBUG
 	.byte "Debug Build", 0
 .else
 	.byte "Release Build", 0
 .endif
 
-; Symbol checks
+; Symbol existence checks
 .ifdef FEATURE_SOUND
 	jsr init_sound
 .endif
@@ -251,20 +251,133 @@ Macros cannot use reserved names:
 
 ### Comparison Conditionals
 
+Comparison conditionals evaluate two expressions and assemble code based on the result.
+
+#### Equality Comparisons
+
 ```asm
-; Equality
+; .ifeq left, right - Assemble if left == right
 .ifeq MAPPER, 0
-	; MMC0 code
+	.byte "NROM mapper", 0
 .endif
 
-; Inequality
+; .ifne left, right - Assemble if left != right
 .ifne TARGET, NES
 	.error "This code is NES-only"
 .endif
+```
 
-; Greater than
+#### Relational Comparisons
+
+```asm
+; .ifgt left, right - Assemble if left > right
 .ifgt PRG_SIZE, $8000
-	.warning "Large PRG-ROM"
+	.warning "Large PRG-ROM detected"
+.endif
+
+; .iflt left, right - Assemble if left < right
+.iflt RAM_SIZE, 2048
+	.error "Insufficient RAM"
+.endif
+
+; .ifge left, right - Assemble if left >= right
+.ifge VERSION, 2
+	jsr new_feature
+.endif
+
+; .ifle left, right - Assemble if left <= right
+.ifle BUFFER_SIZE, 256
+	.byte "Small buffer", 0
+.endif
+```
+
+#### With Expressions
+
+```asm
+; Comparison operands can be complex expressions
+SIZE = 128
+.ifgt SIZE * 2, 200
+	.byte $01  ; SIZE * 2 > 200 (256 > 200)
+.else
+	.byte $02
+.endif
+
+; Using defined symbols
+MAPPER_MMC1 = 1
+MAPPER_MMC3 = 4
+
+.ifeq MAPPER, MAPPER_MMC3
+	jsr init_mmc3
+.endif
+```
+
+#### Nested Conditionals
+
+```asm
+; Comparison conditionals can be nested
+DEBUG = 1
+LEVEL = 2
+
+.ifeq DEBUG, 1
+	.ifgt LEVEL, 1
+		.byte "Debug mode, level > 1", 0
+	.endif
+.endif
+
+; With .else blocks
+TARGET = 65816
+
+.ifeq TARGET, 6502
+	.byte "6502 code"
+.else
+	.byte "65816 code"
+.endif
+```
+
+### Supported Comparison Operators
+
+| Directive | Operator | Meaning |
+|-----------|----------|---------|
+| `.ifeq`   | `==`     | Equal to |
+| `.ifne`   | `!=`     | Not equal to |
+| `.ifgt`   | `>`      | Greater than |
+| `.iflt`   | `<`      | Less than |
+| `.ifge`   | `>=`     | Greater or equal |
+| `.ifle`   | `<=`     | Less or equal |
+
+### Common Use Cases
+
+```asm
+; Platform selection
+.ifeq TARGET_PLATFORM, PLATFORM_NES
+	.include "nes_init.pasm"
+.else
+	.include "snes_init.pasm"
+.endif
+
+; Feature gating by version
+.ifge VERSION, 3
+	jsr enhanced_graphics
+.else
+	jsr basic_graphics
+.endif
+
+; Size-based optimization
+.iflt CODE_SIZE, 256
+	; Use zero-page addressing
+	lda $00
+.else
+	; Use absolute addressing
+	lda $0200
+.endif
+
+; Mapper-specific code
+.ifeq MAPPER, 1  ; MMC1
+	jsr mmc1_bank_switch
+.endif
+
+.ifeq MAPPER, 4  ; MMC3
+	jsr mmc3_bank_switch
 .endif
 ```
 

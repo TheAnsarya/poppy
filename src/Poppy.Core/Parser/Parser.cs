@@ -125,6 +125,31 @@ public sealed class Parser {
 			return ParseSymbolConditional(token.Location, true); // ifndef = check if NOT defined
 		}
 
+		// Check for comparison conditionals
+		if (directiveName.Equals("ifeq", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.Equal);
+		}
+
+		if (directiveName.Equals("ifne", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.NotEqual);
+		}
+
+		if (directiveName.Equals("ifgt", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.GreaterThan);
+		}
+
+		if (directiveName.Equals("iflt", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.LessThan);
+		}
+
+		if (directiveName.Equals("ifge", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.GreaterOrEqual);
+		}
+
+		if (directiveName.Equals("ifle", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.LessOrEqual);
+		}
+
 		// Check for repeat block
 		if (directiveName.Equals("rept", StringComparison.OrdinalIgnoreCase)) {
 			return ParseRepeatBlock(token.Location);
@@ -553,6 +578,85 @@ public sealed class Parser {
 		}
 
 		throw new ParseException($"Expected .endif to close .{(negate ? "ifndef" : "ifdef")} block", location);
+	}
+
+	private ConditionalNode ParseComparisonConditional(SourceLocation location, BinaryOperator comparisonOp) {
+		// Parse first operand
+		var left = ParseExpression();
+
+		// Expect comma separator
+		if (!Match(TokenType.Comma)) {
+			throw new ParseException($"Expected comma after first operand in comparison conditional", CurrentToken.Location);
+		}
+
+		// Parse second operand
+		var right = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Create comparison expression
+		var condition = new BinaryExpressionNode(location, left, comparisonOp, right);
+
+		// Parse the then block
+		var thenBlock = new List<StatementNode>();
+		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode>? elseBlock = null;
+		bool hasElse = false;
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			if (Check(TokenType.Directive)) {
+				var directiveName = CurrentToken.Text[1..].ToLowerInvariant();
+
+				if (directiveName == "endif") {
+					Advance();
+					return new ConditionalNode(location, condition, thenBlock, elseIfBranches, elseBlock);
+				} else if (directiveName == "else") {
+					if (hasElse) {
+						throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+					}
+
+					hasElse = true;
+					Advance();
+					ExpectEndOfStatement();
+
+					elseBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif") {
+								break;
+							} else if (nextDirective == "else") {
+								throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseBlock.Add(statement);
+						}
+					}
+				} else {
+					// Regular directive inside the then block
+					var statement = ParseStatement();
+					if (statement is not null) {
+						thenBlock.Add(statement);
+					}
+				}
+			} else {
+				// Regular statement inside the then block
+				var statement = ParseStatement();
+				if (statement is not null) {
+					thenBlock.Add(statement);
+				}
+			}
+		}
+
+		throw new ParseException("Expected .endif to close comparison conditional block", location);
 	}
 
 	private RepeatBlockNode ParseRepeatBlock(SourceLocation location) {
