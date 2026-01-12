@@ -131,43 +131,49 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 8: Macro System & Conditional Assembly 🔄 (In Progress)
-**Status:** In Progress
+### Phase 8: Macro System & Conditional Assembly ✅ (Complete)
+**Status:** Complete
 **Goal:** Add macros, conditionals, and code reuse features
-**Started:** January 11, 2026
+**Completed:** January 12, 2026
 
 #### Tasks
-- ⬜ Macro definitions (.macro/.endmacro)
-- ⬜ Macro expansion engine
-- ⬜ Macro parameters and substitution
-- ⬜ Macro-local labels
-- ⬜ Conditional assembly (.if, .else, .endif)
-- ⬜ Symbol conditionals (.ifdef, .ifndef)
-- ⬜ Comparison conditionals (.ifeq, .ifne, etc.)
-- ⬜ Repeat blocks (.rept/.endr)
-- ⬜ Enumeration blocks (.enum/.ende)
-- ⬜ String operations
+- ✅ Macro definitions (.macro/.endmacro)
+- ✅ Macro expansion engine (MacroExpander)
+- ✅ Macro parameters and substitution
+- ✅ Macro default parameters (param=value syntax)
+- ✅ Macro-local labels
+- ✅ Macro invocation with @ prefix
+- ✅ Case-insensitive macro names
+- ✅ Conditional assembly (.if, .else, .endif)
+- ✅ Symbol conditionals (.ifdef, .ifndef)
+- ✅ Comparison conditionals (.ifeq, .ifne, .ifgt, .iflt, .ifge, .ifle)
+- ✅ Repeat blocks (.rept/.endr)
+- ✅ Enumeration blocks (.enum/.ende)
+- ✅ Comprehensive macro tests (30+ tests)
 
 **GitHub Issues:** #24-#33
-**Tests:** Target 60+ tests
-**Documentation:** Phase 2 implementation plan created
+**Tests:** 60+ tests
+**Documentation:** pasm-file-format.md updated
 
 ---
 
-### Phase 7: CLI & Integration ✅ (Complete)
+### Phase 9: Developer Experience ✅ (Complete)
 **Status:** Complete
-**Goal:** Command-line interface and tooling
+**Goal:** Improve error reporting and developer tools
+**Completed:** January 12, 2026
 
 #### Tasks
-- ✅ CLI argument parsing
-- ✅ Verbose output mode
-- ✅ Listing file generation
-- ✅ Target architecture selection
-- ⬜ Error context and suggestions
+- ✅ Error messages with source context (ErrorFormatter)
+- ✅ Listing file generation (ListingGenerator)
+- ✅ Symbol table in listings
+- ✅ Multi-file listing support
+- ✅ 24+ tests for error/listing features
+
+**GitHub Issues:** #7, #8
 
 ---
 
-### Phase 8: Target Project Compilation
+### Phase 10: Target Project Compilation ⬜ (Not Started)
 **Status:** Not Started
 **Goal:** Successfully compile target game projects
 
@@ -179,7 +185,22 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 8: Polish & Documentation
+### Phase 11: 65816 Support ⬜ (Not Started)
+**Status:** Not Started
+**Goal:** Add SNES/65816 architecture support
+
+#### Tasks
+- ⬜ 65816 instruction set implementation
+- ⬜ 16-bit mode support
+- ⬜ Bank switching
+- ⬜ SNES header generation
+- ⬜ Memory mapping
+
+**GitHub Issue:** #12 (Epic)
+
+---
+
+### Phase 12: Polish & Documentation ⬜ (Not Started)
 **Status:** Not Started
 **Goal:** Complete documentation and prepare for release
 
@@ -259,11 +280,11 @@ Learning from existing assemblers:
 
 Poppy 1.0 will be complete when:
 - ✅ Core configuration and documentation in place
-- ⬜ Can compile 6502/NES assembly correctly
+- ✅ Can compile 6502/NES assembly correctly
 - ⬜ Can compile 65816/SNES assembly correctly
 - ⬜ Successfully compiles DW1, FFMQ, DW4, DQ3r
-- ⬜ Comprehensive documentation exists
-- ⬜ Error messages are clear and helpful
+- ✅ Comprehensive documentation exists
+- ✅ Error messages are clear and helpful
 - ⬜ Performance is competitive with existing assemblers
 
 ---
