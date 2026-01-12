@@ -173,15 +173,18 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 10: Target Project Compilation ⬜ (Not Started)
+### Phase 10: Project Build System ⬜ (Not Started)
 **Status:** Not Started
-**Goal:** Successfully compile target game projects
+**Goal:** Implement project file support and build pipeline
 
 #### Tasks
-- ⬜ Compile Dragon Warrior 1 (NES)
-- ⬜ Compile Final Fantasy Mystic Quest (SNES)
-- ⬜ Compile Dragon Warrior 4 (NES)
-- ⬜ Compile Dragon Quest 3 Remake (SNES)
+- ⬜ Define poppy.json project file format (#49)
+- ⬜ Implement project file parser
+- ⬜ Multi-file compilation support
+- ⬜ Watch mode for auto-recompilation (#50)
+- ⬜ Build configurations (debug/release)
+
+**GitHub Issue:** #45 (Epic)
 
 ---
 
@@ -190,26 +193,70 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Add SNES/65816 architecture support
 
 #### Tasks
-- ⬜ 65816 instruction set implementation
-- ⬜ 16-bit mode support
-- ⬜ Bank switching
-- ⬜ SNES header generation
-- ⬜ Memory mapping
+- ⬜ 65816 instruction set implementation (#39)
+- ⬜ M/X flag mode tracking (#40)
+- ⬜ Long (24-bit) addressing support
+- ⬜ SNES memory mapping directives (#41)
+- ⬜ SNES ROM output (SFC) (#42)
 
 **GitHub Issue:** #12 (Epic)
 
 ---
 
-### Phase 12: Polish & Documentation ⬜ (Not Started)
+### Phase 12: GameInfo Integration ⬜ (Not Started)
 **Status:** Not Started
-**Goal:** Complete documentation and prepare for release
+**Goal:** Compile target game projects from GameInfo repository
+
+#### Tasks
+- ⬜ Compile Dragon Warrior 1 (NES/6502)
+- ⬜ Compile Final Fantasy Mystic Quest (SNES/65816)
+- ⬜ Compile Dragon Warrior 4 (NES/6502)
+- ⬜ Compile Dragon Quest 3 Remake (SNES/65816)
+- ⬜ Update GameInfo repos to use Poppy build system
+
+**GitHub Issue:** #44 (Epic)
+
+---
+
+### Phase 13: Game Boy Support ⬜ (Not Started)
+**Status:** Not Started
+**Goal:** Add Game Boy (DMG/CGB) architecture support
+
+#### Tasks
+- ⬜ SM83 (GB-Z80) instruction set
+- ⬜ Game Boy header directives
+- ⬜ MBC bank switching support
+- ⬜ CGB (Color) mode features
+
+**GitHub Issue:** #48 (Epic)
+
+---
+
+### Phase 14: Documentation & Tooling ⬜ (Not Started)
+**Status:** Not Started
+**Goal:** Complete documentation and VS Code extension
 
 #### Tasks
 - ⬜ Comprehensive user manual
 - ⬜ API documentation
-- ⬜ Example projects
-- ⬜ VS Code extension (syntax highlighting)
-- ⬜ Version 1.0 release
+- ⬜ Tutorial projects
+- ⬜ VS Code extension (#47)
+- ⬜ Migration guides (ca65, ASAR)
+
+**GitHub Issues:** #46, #47 (Epics)
+
+---
+
+### Phase 15: Release ⬜ (Not Started)
+**Status:** Not Started
+**Goal:** Version 1.0 release
+
+#### Tasks
+- ⬜ Performance optimization
+- ⬜ Final testing with real projects
+- ⬜ Package for distribution (NuGet, standalone)
+- ⬜ Release notes and changelog
+- ⬜ Version 1.0.0 tag
 
 ---
 

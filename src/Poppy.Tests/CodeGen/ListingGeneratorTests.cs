@@ -45,7 +45,7 @@ public class ListingGeneratorTests {
 		// arrange
 		var generator = new ListingGenerator();
 		generator.RegisterSource("test.pasm", "lda #$42\nsta $2000\nnop");
-		
+
 		// act
 		generator.AddEntry(0x8000, [0xa9, 0x42], new SourceLocation("test.pasm", 1, 1, 0));
 		generator.AddEntry(0x8002, [0x8d, 0x00, 0x20], new SourceLocation("test.pasm", 2, 1, 0));

@@ -17,6 +17,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	private readonly TargetArchitecture _target;
 	private readonly List<CodeError> _errors;
 	private readonly List<OutputSegment> _segments;
+	private readonly MacroExpander _macroExpander;
 	private OutputSegment? _currentSegment;
 	private long _currentAddress;
 
@@ -45,6 +46,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		_target = target;
 		_errors = [];
 		_segments = [];
+		_macroExpander = new MacroExpander(analyzer.MacroTable);
 		_currentAddress = 0;
 	}
 
@@ -262,19 +264,100 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	}
 
 	/// <inheritdoc />
-	public object? VisitMacroDefinition(MacroDefinitionNode node) => null;
+	public object? VisitMacroDefinition(MacroDefinitionNode node) {
+		// Macro definitions don't generate code, they're stored in the macro table
+		return null;
+	}
 
 	/// <inheritdoc />
-	public object? VisitMacroInvocation(MacroInvocationNode node) => null;
+	public object? VisitMacroInvocation(MacroInvocationNode node) {
+		// Expand the macro and generate code for each expanded statement
+		var expandedStatements = _macroExpander.Expand(node, node.Arguments);
+
+		// Report any expansion errors
+		foreach (var error in _macroExpander.Errors) {
+			_errors.Add(new CodeError(error.Message, error.Location));
+		}
+
+		// Generate code for each expanded statement
+		foreach (var statement in expandedStatements) {
+			statement.Accept(this);
+		}
+
+		return null;
+	}
 
 	/// <inheritdoc />
-	public object? VisitConditional(ConditionalNode node) => null;
+	public object? VisitConditional(ConditionalNode node) {
+		// Evaluate the condition
+		var conditionValue = _analyzer.EvaluateConditionalExpression(node.Condition);
+
+		// Determine which block to execute
+		if (conditionValue != 0) {
+			// Execute the then block
+			foreach (var statement in node.ThenBlock) {
+				statement.Accept(this);
+			}
+		} else {
+			// Try elseif branches
+			bool executed = false;
+			foreach (var (condition, block) in node.ElseIfBranches) {
+				var elseIfValue = _analyzer.EvaluateConditionalExpression(condition);
+				if (elseIfValue != 0) {
+					foreach (var statement in block) {
+						statement.Accept(this);
+					}
+					executed = true;
+					break;
+				}
+			}
+
+			// Execute else block if no conditions were true
+			if (!executed && node.ElseBlock is not null) {
+				foreach (var statement in node.ElseBlock) {
+					statement.Accept(this);
+				}
+			}
+		}
+
+		return null;
+	}
 
 	/// <inheritdoc />
-	public object? VisitRepeatBlock(RepeatBlockNode node) => null;
+	public object? VisitRepeatBlock(RepeatBlockNode node) {
+		// Evaluate the repeat count
+		var countValue = _analyzer.EvaluateExpression(node.Count);
+		if (!countValue.HasValue) {
+			_errors.Add(new CodeError(
+				"Cannot evaluate repeat count",
+				node.Location));
+			return null;
+		}
+
+		var count = (int)countValue.Value;
+		if (count < 0) {
+			_errors.Add(new CodeError(
+				$"Repeat count cannot be negative: {count}",
+				node.Location));
+			return null;
+		}
+
+		// Generate code for the body 'count' times
+		for (int i = 0; i < count; i++) {
+			foreach (var statement in node.Body) {
+				statement.Accept(this);
+			}
+		}
+
+		return null;
+	}
 
 	/// <inheritdoc />
-	public object? VisitEnumerationBlock(EnumerationBlockNode node) => null;
+	public object? VisitEnumerationBlock(EnumerationBlockNode node) {
+		// Enumeration blocks don't generate code, they define symbols
+		// which are already handled by the semantic analyzer
+		return null;
+	}
 
 	// ========================================================================
 	// Directive Handlers

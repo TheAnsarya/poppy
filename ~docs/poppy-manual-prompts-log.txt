@@ -31,6 +31,12 @@ use k&r braces! contune and accomplish a whole lot, updating issues and todo lis
 
 use k&r braces! update and close issues that are done, update all the other issues that have work done, make sure to add issues for all work if an issue doesn't exist, document anything and everything, update the syntax documentation (it references `*.asm` files not `*.pasm` files in the examples, and are those `.arch` directive cannon?); I don't like that macros don't have a prefix, fix that; continue with more work and go for a while, keep going, document everything!;
 
+-- switch from claude sonnet to claude opus
+
+-- try again
+
+use k&r braces! update issues, create sub issues for every remaining epic, and analyze the project and create more epics and sub issues to cover they rest of the roadmap, update the roadmap with the ability to compile and run the build pipeline for the projects from the `GameInfo` repository and update the `GameInfo` repos to use poppy (these are only issues/documentation/todo-lists, don't implement yet until we have a strong standalone assembler/compiler/build-tool); make sure the tests actually test if the code completes correctly, and results are match expected values, not just that it completes without an error; continue with more work and go for a while, keep going, document everything!;
+
 
 
 

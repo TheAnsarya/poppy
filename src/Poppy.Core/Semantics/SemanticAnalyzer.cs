@@ -455,21 +455,18 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 
 	/// <summary>
 	/// Evaluates a conditional expression, treating null (undefined symbol) as 0.
+	/// Used by code generator for conditional assembly.
 	/// </summary>
-	private long EvaluateConditionalExpression(ExpressionNode expr) {
-		// Special handling for identifier nodes in conditionals (.ifdef/.ifndef)
-		if (expr is IdentifierNode id) {
-			// For .ifdef: return 1 if defined, 0 if not
-			return _symbolTable.TryGetSymbol(id.Name, out var symbol) && symbol is not null ? 1 : 0;
-		}
-
+	public long EvaluateConditionalExpression(ExpressionNode expr) {
 		// Special handling for logical NOT of identifier (.ifndef)
+		// This must come before the general identifier handling
 		if (expr is UnaryExpressionNode { Operator: UnaryOperator.LogicalNot, Operand: IdentifierNode identifier }) {
 			// For .ifndef: return 1 if NOT defined, 0 if defined
 			return _symbolTable.TryGetSymbol(identifier.Name, out var symbol) && symbol is not null ? 0 : 1;
 		}
 
-		// For normal expressions, evaluate and treat null as 0
+		// For normal expressions (including bare identifiers), evaluate the value
+		// This handles both `.if SYMBOL` (evaluates symbol's value) and `.if expr`
 		return EvaluateExpression(expr) ?? 0;
 	}
 
