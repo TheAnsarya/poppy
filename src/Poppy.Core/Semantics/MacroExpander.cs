@@ -11,8 +11,7 @@ namespace Poppy.Core.Semantics;
 /// <summary>
 /// Handles macro expansion with parameter substitution and local label generation.
 /// </summary>
-public sealed class MacroExpander
-{
+public sealed class MacroExpander {
 	private readonly MacroTable _macroTable;
 	private readonly List<SemanticError> _errors = [];
 	private int _expansionCounter = 0;
@@ -31,8 +30,7 @@ public sealed class MacroExpander
 	/// Creates a new macro expander.
 	/// </summary>
 	/// <param name="macroTable">The macro table containing macro definitions.</param>
-	public MacroExpander(MacroTable macroTable)
-	{
+	public MacroExpander(MacroTable macroTable) {
 		_macroTable = macroTable;
 	}
 
@@ -42,12 +40,10 @@ public sealed class MacroExpander
 	/// <param name="invocation">The macro invocation node.</param>
 	/// <param name="arguments">The arguments passed to the macro.</param>
 	/// <returns>List of expanded statements, or empty list if macro not found or errors occurred.</returns>
-	public List<StatementNode> Expand(MacroInvocationNode invocation, IReadOnlyList<ExpressionNode> arguments)
-	{
+	public List<StatementNode> Expand(MacroInvocationNode invocation, IReadOnlyList<ExpressionNode> arguments) {
 		// Get macro definition
 		var macro = _macroTable.Get(invocation.Name);
-		if (macro == null)
-		{
+		if (macro == null) {
 			_errors.Add(new SemanticError(
 				$"Undefined macro '{invocation.Name}'",
 				invocation.Location));
@@ -59,16 +55,14 @@ public sealed class MacroExpander
 		var totalCount = macro.Parameters.Count;
 
 		// Validate argument count
-		if (arguments.Count < requiredCount)
-		{
+		if (arguments.Count < requiredCount) {
 			_errors.Add(new SemanticError(
 				$"Macro '{invocation.Name}' requires at least {requiredCount} argument(s), got {arguments.Count}",
 				invocation.Location));
 			return [];
 		}
 
-		if (arguments.Count > totalCount)
-		{
+		if (arguments.Count > totalCount) {
 			_errors.Add(new SemanticError(
 				$"Macro '{invocation.Name}' accepts at most {totalCount} argument(s), got {arguments.Count}",
 				invocation.Location));
@@ -77,25 +71,18 @@ public sealed class MacroExpander
 
 		// Create parameter substitution map, using defaults for missing arguments
 		var substitutions = new Dictionary<string, ExpressionNode>(StringComparer.OrdinalIgnoreCase);
-		for (int i = 0; i < macro.Parameters.Count; i++)
-		{
+		for (int i = 0; i < macro.Parameters.Count; i++) {
 			var param = macro.Parameters[i];
-			if (i < arguments.Count)
-			{
+			if (i < arguments.Count) {
 				// Use provided argument
 				substitutions[param.Name] = arguments[i];
-			}
-			else if (param.HasDefault)
-			{
+			} else if (param.HasDefault) {
 				// Use default value (parse from tokens)
 				var defaultExpr = ParseDefaultValue(param.DefaultValue!, invocation.Location);
-				if (defaultExpr != null)
-				{
+				if (defaultExpr != null) {
 					substitutions[param.Name] = defaultExpr;
 				}
-			}
-			else
-			{
+			} else {
 				// This should never happen because we validated required params above
 				_errors.Add(new SemanticError(
 					$"Missing required parameter '{param.Name}' for macro '{invocation.Name}'",
@@ -109,11 +96,9 @@ public sealed class MacroExpander
 
 		// Expand macro body
 		var expanded = new List<StatementNode>();
-		foreach (var statement in macro.Body)
-		{
+		foreach (var statement in macro.Body) {
 			var expandedStatement = ExpandStatement(statement, substitutions, macro.Name, expansionId);
-			if (expandedStatement != null)
-			{
+			if (expandedStatement != null) {
 				expanded.Add(expandedStatement);
 			}
 		}
@@ -124,17 +109,13 @@ public sealed class MacroExpander
 	/// <summary>
 	/// Parses a default parameter value from tokens.
 	/// </summary>
-	private ExpressionNode? ParseDefaultValue(IReadOnlyList<Token> tokens, SourceLocation errorLocation)
-	{
-		try
-		{
+	private ExpressionNode? ParseDefaultValue(IReadOnlyList<Token> tokens, SourceLocation errorLocation) {
+		try {
 			// Create a parser for just these tokens
 			var tokenList = tokens.ToList();
 			var parser = new Parser.Parser(tokenList);
 			return parser.ParseExpression();
-		}
-		catch (ParseException ex)
-		{
+		} catch (ParseException ex) {
 			_errors.Add(new SemanticError(
 				$"Invalid default parameter value: {ex.Message}",
 				errorLocation));
@@ -149,10 +130,8 @@ public sealed class MacroExpander
 		StatementNode statement,
 		Dictionary<string, ExpressionNode> substitutions,
 		string macroName,
-		int expansionId)
-	{
-		return statement switch
-		{
+		int expansionId) {
+		return statement switch {
 			InstructionNode instruction => ExpandInstruction(instruction, substitutions, macroName, expansionId),
 			LabelNode label => ExpandLabel(label, macroName, expansionId),
 			DirectiveNode directive => ExpandDirective(directive, substitutions, macroName, expansionId),
@@ -167,10 +146,8 @@ public sealed class MacroExpander
 		InstructionNode instruction,
 		Dictionary<string, ExpressionNode> substitutions,
 		string macroName,
-		int expansionId)
-	{
-		if (instruction.Operand == null)
-		{
+		int expansionId) {
+		if (instruction.Operand == null) {
 			return instruction;
 		}
 
@@ -187,11 +164,9 @@ public sealed class MacroExpander
 	/// <summary>
 	/// Expands a label, renaming local labels to be unique to this expansion.
 	/// </summary>
-	private LabelNode ExpandLabel(LabelNode label, string macroName, int expansionId)
-	{
+	private LabelNode ExpandLabel(LabelNode label, string macroName, int expansionId) {
 		// Local labels (@name) become macro_name@name_expansionId
-		if (label.Name.StartsWith('@'))
-		{
+		if (label.Name.StartsWith('@')) {
 			var uniqueName = $"{macroName}{label.Name}_{expansionId}";
 			return new LabelNode(label.Location, uniqueName);
 		}
@@ -207,8 +182,7 @@ public sealed class MacroExpander
 		DirectiveNode directive,
 		Dictionary<string, ExpressionNode> substitutions,
 		string macroName,
-		int expansionId)
-	{
+		int expansionId) {
 		var expandedArgs = directive.Arguments
 			.Select(arg => ExpandExpression(arg, substitutions, macroName, expansionId))
 			.ToList();
@@ -223,10 +197,8 @@ public sealed class MacroExpander
 		ExpressionNode expression,
 		Dictionary<string, ExpressionNode> substitutions,
 		string macroName,
-		int expansionId)
-	{
-		return expression switch
-		{
+		int expansionId) {
+		return expression switch {
 			// Identifier might be a parameter reference
 			IdentifierNode identifier => ExpandIdentifier(identifier, substitutions, macroName, expansionId),
 
@@ -255,17 +227,14 @@ public sealed class MacroExpander
 		IdentifierNode identifier,
 		Dictionary<string, ExpressionNode> substitutions,
 		string macroName,
-		int expansionId)
-	{
+		int expansionId) {
 		// Check if this identifier is a parameter
-		if (substitutions.TryGetValue(identifier.Name, out var substitution))
-		{
+		if (substitutions.TryGetValue(identifier.Name, out var substitution)) {
 			return substitution;
 		}
 
 		// Check if this is a local label reference (@name)
-		if (identifier.Name.StartsWith('@'))
-		{
+		if (identifier.Name.StartsWith('@')) {
 			var uniqueName = $"{macroName}{identifier.Name}_{expansionId}";
 			return new IdentifierNode(identifier.Location, uniqueName);
 		}
@@ -277,8 +246,7 @@ public sealed class MacroExpander
 	/// <summary>
 	/// Clears all errors.
 	/// </summary>
-	public void Clear()
-	{
+	public void Clear() {
 		_errors.Clear();
 		_expansionCounter = 0;
 	}

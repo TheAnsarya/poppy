@@ -32,6 +32,7 @@ public sealed class PreprocessorTests : IDisposable {
 		if (dir is not null && !Directory.Exists(dir)) {
 			Directory.CreateDirectory(dir);
 		}
+
 		File.WriteAllText(path, content);
 		return path;
 	}

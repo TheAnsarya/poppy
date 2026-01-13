@@ -9,11 +9,9 @@ using Poppy.Core.Semantics;
 
 namespace Poppy.Tests.Semantics;
 
-public class MacroExpansionTests
-{
+public class MacroExpansionTests {
 	[Fact]
-	public void SimpleMacroExpansion_NoParameters()
-	{
+	public void SimpleMacroExpansion_NoParameters() {
 		// arrange
 		var source = @"
 .macro nop3
@@ -52,8 +50,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_WithParameters()
-	{
+	public void MacroExpansion_WithParameters() {
 		// arrange
 		var source = @"
 .macro load_value, addr
@@ -93,8 +90,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_LocalLabelRenaming()
-	{
+	public void MacroExpansion_LocalLabelRenaming() {
 		// arrange
 		var source = @"
 .macro wait_loop
@@ -141,8 +137,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_UndefinedMacro_ReportsError()
-	{
+	public void MacroExpansion_UndefinedMacro_ReportsError() {
 		// arrange
 		var macroTable = new MacroTable();
 		var expander = new MacroExpander(macroTable);
@@ -162,8 +157,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_WrongArgumentCount_ReportsError()
-	{
+	public void MacroExpansion_WrongArgumentCount_ReportsError() {
 		// arrange
 		var source = @"
 .macro two_params, a, b
@@ -195,8 +189,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_ParameterInExpression()
-	{
+	public void MacroExpansion_ParameterInExpression() {
 		// arrange
 		var source = @"
 .macro add_offset, base, offset
@@ -240,8 +233,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_MultipleParameters()
-	{
+	public void MacroExpansion_MultipleParameters() {
 		// arrange
 		var source = @"
 .macro sprite_dma, addr, count, page
@@ -262,8 +254,7 @@ reset:
 		analyzer.Analyze(program);
 
 		// act
-		var args = new List<ExpressionNode>
-		{
+		var args = new List<ExpressionNode> {
 			new NumberLiteralNode(new SourceLocation("test.pasm", 10, 1, 0), 0x0200),
 			new NumberLiteralNode(new SourceLocation("test.pasm", 10, 8, 0), 64),
 			new NumberLiteralNode(new SourceLocation("test.pasm", 10, 12, 0), 2)
@@ -284,8 +275,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_NestedExpressions()
-	{
+	public void MacroExpansion_NestedExpressions() {
 		// arrange
 		var source = @"
 .macro complex, value
@@ -321,8 +311,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_DirectiveWithParameters()
-	{
+	public void MacroExpansion_DirectiveWithParameters() {
 		// arrange
 		var source = @"
 .macro define_bytes, value
@@ -357,8 +346,7 @@ reset:
 	}
 
 	[Fact]
-	public void MacroExpansion_ClearResetsState()
-	{
+	public void MacroExpansion_ClearResetsState() {
 		// arrange
 		var macroTable = new MacroTable();
 		var expander = new MacroExpander(macroTable);

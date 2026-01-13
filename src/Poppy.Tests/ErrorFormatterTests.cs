@@ -153,6 +153,7 @@ unknown";
 		for (int i = 0; i < 1000; i++) {
 			lines[i] = $"line {i + 1}";
 		}
+
 		formatter.RegisterSource("test.pasm", string.Join("\n", lines));
 
 		var location = new SourceLocation("test.pasm", 999, 1, 0);

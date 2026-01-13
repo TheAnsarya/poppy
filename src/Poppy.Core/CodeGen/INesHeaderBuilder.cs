@@ -7,45 +7,42 @@ namespace Poppy.Core.CodeGen;
 /// <summary>
 /// Builds iNES 1.0 and iNES 2.0 headers for NES ROMs
 /// </summary>
-public class INesHeaderBuilder
-{
-	private int _prgRomSize;		// in 16KB units
-	private int _chrRomSize;		// in 8KB units
-	private int _mapper;			// mapper number (0-4095)
-	private int _submapper;			// submapper number (0-15, iNES 2.0 only)
+public class INesHeaderBuilder {
+	private int _prgRomSize;        // in 16KB units
+	private int _chrRomSize;        // in 8KB units
+	private int _mapper;            // mapper number (0-4095)
+	private int _submapper;         // submapper number (0-15, iNES 2.0 only)
 	private bool _verticalMirroring;
 	private bool _batteryBacked;
 	private bool _trainer;
 	private bool _fourScreen;
-	private int _prgRamSize;		// in 8KB units (iNES 2.0: actual size)
-	private int _chrRamSize;		// in 8KB units (iNES 2.0: actual size)
-	private bool _pal;				// false = NTSC, true = PAL
-	private bool _ines2;			// true for iNES 2.0 format
+	private int _prgRamSize;        // in 8KB units (iNES 2.0: actual size)
+	private int _chrRamSize;        // in 8KB units (iNES 2.0: actual size)
+	private bool _pal;              // false = NTSC, true = PAL
+	private bool _ines2;            // true for iNES 2.0 format
 
 	/// <summary>
 	/// Create a new iNES header builder with default values
 	/// </summary>
-	public INesHeaderBuilder()
-	{
-		_prgRomSize = 2;			// default to 32KB PRG ROM
-		_chrRomSize = 1;			// default to 8KB CHR ROM
-		_mapper = 0;				// default to NROM
+	public INesHeaderBuilder() {
+		_prgRomSize = 2;            // default to 32KB PRG ROM
+		_chrRomSize = 1;            // default to 8KB CHR ROM
+		_mapper = 0;                // default to NROM
 		_submapper = 0;
 		_verticalMirroring = true;
 		_batteryBacked = false;
 		_trainer = false;
 		_fourScreen = false;
-		_prgRamSize = 1;			// default to 8KB PRG RAM
-		_chrRamSize = 0;			// default to no CHR RAM
-		_pal = false;				// default to NTSC
-		_ines2 = true;				// default to iNES 2.0
+		_prgRamSize = 1;            // default to 8KB PRG RAM
+		_chrRamSize = 0;            // default to no CHR RAM
+		_pal = false;               // default to NTSC
+		_ines2 = true;              // default to iNES 2.0
 	}
 
 	/// <summary>
 	/// Set PRG ROM size (in 16KB units for iNES 1.0, or actual bytes for iNES 2.0)
 	/// </summary>
-	public INesHeaderBuilder SetPrgRomSize(int size)
-	{
+	public INesHeaderBuilder SetPrgRomSize(int size) {
 		_prgRomSize = size;
 		return this;
 	}
@@ -53,8 +50,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set CHR ROM size (in 8KB units for iNES 1.0, or actual bytes for iNES 2.0)
 	/// </summary>
-	public INesHeaderBuilder SetChrRomSize(int size)
-	{
+	public INesHeaderBuilder SetChrRomSize(int size) {
 		_chrRomSize = size;
 		return this;
 	}
@@ -62,8 +58,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set mapper number (0-4095 for iNES 2.0, 0-255 for iNES 1.0)
 	/// </summary>
-	public INesHeaderBuilder SetMapper(int mapper)
-	{
+	public INesHeaderBuilder SetMapper(int mapper) {
 		_mapper = mapper;
 		return this;
 	}
@@ -71,8 +66,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set submapper number (0-15, iNES 2.0 only)
 	/// </summary>
-	public INesHeaderBuilder SetSubmapper(int submapper)
-	{
+	public INesHeaderBuilder SetSubmapper(int submapper) {
 		_submapper = submapper;
 		return this;
 	}
@@ -80,8 +74,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set mirroring mode
 	/// </summary>
-	public INesHeaderBuilder SetMirroring(bool vertical)
-	{
+	public INesHeaderBuilder SetMirroring(bool vertical) {
 		_verticalMirroring = vertical;
 		return this;
 	}
@@ -89,8 +82,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set four-screen VRAM mode
 	/// </summary>
-	public INesHeaderBuilder SetFourScreen(bool fourScreen)
-	{
+	public INesHeaderBuilder SetFourScreen(bool fourScreen) {
 		_fourScreen = fourScreen;
 		return this;
 	}
@@ -98,8 +90,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set battery-backed save RAM
 	/// </summary>
-	public INesHeaderBuilder SetBatteryBacked(bool battery)
-	{
+	public INesHeaderBuilder SetBatteryBacked(bool battery) {
 		_batteryBacked = battery;
 		return this;
 	}
@@ -107,8 +98,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set whether ROM has 512-byte trainer
 	/// </summary>
-	public INesHeaderBuilder SetTrainer(bool trainer)
-	{
+	public INesHeaderBuilder SetTrainer(bool trainer) {
 		_trainer = trainer;
 		return this;
 	}
@@ -116,8 +106,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set PRG RAM size (in 8KB units for iNES 1.0, or actual bytes for iNES 2.0)
 	/// </summary>
-	public INesHeaderBuilder SetPrgRamSize(int size)
-	{
+	public INesHeaderBuilder SetPrgRamSize(int size) {
 		_prgRamSize = size;
 		return this;
 	}
@@ -125,8 +114,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set CHR RAM size (in 8KB units for iNES 1.0, or actual bytes for iNES 2.0)
 	/// </summary>
-	public INesHeaderBuilder SetChrRamSize(int size)
-	{
+	public INesHeaderBuilder SetChrRamSize(int size) {
 		_chrRamSize = size;
 		return this;
 	}
@@ -134,8 +122,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set TV system (false = NTSC, true = PAL)
 	/// </summary>
-	public INesHeaderBuilder SetPal(bool pal)
-	{
+	public INesHeaderBuilder SetPal(bool pal) {
 		_pal = pal;
 		return this;
 	}
@@ -143,8 +130,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Set whether to use iNES 2.0 format (default: true)
 	/// </summary>
-	public INesHeaderBuilder SetINes2(bool ines2)
-	{
+	public INesHeaderBuilder SetINes2(bool ines2) {
 		_ines2 = ines2;
 		return this;
 	}
@@ -152,22 +138,18 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Build the 16-byte iNES header
 	/// </summary>
-	public byte[] Build()
-	{
+	public byte[] Build() {
 		var header = new byte[16];
 
 		// bytes 0-3: "NES" followed by MS-DOS EOF
-		header[0] = 0x4e;	// 'N'
-		header[1] = 0x45;	// 'E'
-		header[2] = 0x53;	// 'S'
-		header[3] = 0x1a;	// MS-DOS EOF
+		header[0] = 0x4e;   // 'N'
+		header[1] = 0x45;   // 'E'
+		header[2] = 0x53;   // 'S'
+		header[3] = 0x1a;   // MS-DOS EOF
 
-		if (_ines2)
-		{
+		if (_ines2) {
 			BuildINes2Header(header);
-		}
-		else
-		{
+		} else {
 			BuildINes1Header(header);
 		}
 
@@ -177,8 +159,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Build iNES 1.0 header
 	/// </summary>
-	private void BuildINes1Header(byte[] header)
-	{
+	private void BuildINes1Header(byte[] header) {
 		// byte 4: PRG ROM size in 16KB units
 		header[4] = (byte)_prgRomSize;
 
@@ -204,7 +185,7 @@ public class INesHeaderBuilder
 		//   1: PlayChoice-10
 		//   2-3: if equal to 2, flags 8-15 are in NES 2.0 format
 		//   4-7: upper nybble of mapper number
-		byte flags7 = (byte)((_mapper & 0xf0));
+		byte flags7 = (byte)(_mapper & 0xf0);
 		header[7] = flags7;
 
 		// byte 8: PRG RAM size in 8KB units (0 = infer 8KB for compatibility)
@@ -214,8 +195,7 @@ public class INesHeaderBuilder
 		header[9] = _pal ? (byte)1 : (byte)0;
 
 		// bytes 10-15: unused (should be zero)
-		for (int i = 10; i < 16; i++)
-		{
+		for (int i = 10; i < 16; i++) {
 			header[i] = 0;
 		}
 	}
@@ -223,8 +203,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Build iNES 2.0 header
 	/// </summary>
-	private void BuildINes2Header(byte[] header)
-	{
+	private void BuildINes2Header(byte[] header) {
 		// byte 4: LSB of PRG ROM size
 		header[4] = (byte)(_prgRomSize & 0xff);
 
@@ -245,8 +224,8 @@ public class INesHeaderBuilder
 		//   1: PlayChoice-10
 		//   2-3: NES 2.0 identifier (must be 2)
 		//   4-7: upper nybble of mapper number
-		byte flags7 = (byte)((_mapper & 0xf0));
-		flags7 |= 0x08;		// set bits 2-3 to 2 (iNES 2.0 identifier)
+		byte flags7 = (byte)(_mapper & 0xf0);
+		flags7 |= 0x08;     // set bits 2-3 to 2 (iNES 2.0 identifier)
 		header[7] = flags7;
 
 		// byte 8: mapper variant and high bits
@@ -288,8 +267,7 @@ public class INesHeaderBuilder
 	/// <summary>
 	/// Write the header to a binary writer
 	/// </summary>
-	public void WriteTo(BinaryWriter writer)
-	{
+	public void WriteTo(BinaryWriter writer) {
 		var header = Build();
 		writer.Write(header);
 	}

@@ -1,14 +1,12 @@
-using Xunit;
-using Poppy.Core.Semantics;
 using Poppy.Core.CodeGen;
+using Poppy.Core.Semantics;
+using Xunit;
 
 namespace Poppy.Tests.Integration;
 
-public class NesRomGenerationTests
-{
+public class NesRomGenerationTests {
 	[Fact]
-	public void Generate_WithINesHeader_PrependsHeaderToRom()
-	{
+	public void Generate_WithINesHeader_PrependsHeaderToRom() {
 		// arrange - minimal NES ROM with iNES header
 		var source = @"
 .nes
@@ -43,20 +41,19 @@ reset:
 		Assert.False(generator.HasErrors);
 
 		// Check iNES header (first 16 bytes)
-		Assert.Equal(0x4e, binary[0]);	// 'N'
-		Assert.Equal(0x45, binary[1]);	// 'E'
-		Assert.Equal(0x53, binary[2]);	// 'S'
-		Assert.Equal(0x1a, binary[3]);	// MS-DOS EOF
-		Assert.Equal(1, binary[4]);		// PRG ROM size
-		Assert.Equal(0, binary[5]);		// CHR ROM size
+		Assert.Equal(0x4e, binary[0]);  // 'N'
+		Assert.Equal(0x45, binary[1]);  // 'E'
+		Assert.Equal(0x53, binary[2]);  // 'S'
+		Assert.Equal(0x1a, binary[3]);  // MS-DOS EOF
+		Assert.Equal(1, binary[4]);     // PRG ROM size
+		Assert.Equal(0, binary[5]);     // CHR ROM size
 
 		// Check that code follows after header
 		Assert.True(binary.Length > 16);
 	}
 
 	[Fact]
-	public void Generate_WithoutINesHeader_GeneratesRawBinary()
-	{
+	public void Generate_WithoutINesHeader_GeneratesRawBinary() {
 		// arrange - NES code without iNES header directives
 		var source = @"
 .nes
@@ -83,12 +80,11 @@ reset:
 
 		// Should NOT have iNES header (first bytes should be machine code)
 		// lda #$00 = $a9 $00
-		Assert.NotEqual(0x4e, binary[0]);	// NOT 'N'
+		Assert.NotEqual(0x4e, binary[0]);   // NOT 'N'
 	}
 
 	[Fact]
-	public void Generate_CompleteNesRom_CreatesValidInesFile()
-	{
+	public void Generate_CompleteNesRom_CreatesValidInesFile() {
 		// arrange - more complete NES ROM
 		var source = @"
 .nes
@@ -142,22 +138,21 @@ nmi:
 		Assert.False(generator.HasErrors);
 
 		// Verify iNES header
-		Assert.Equal(0x4e, binary[0]);	// 'N'
-		Assert.Equal(0x45, binary[1]);	// 'E'
-		Assert.Equal(0x53, binary[2]);	// 'S'
-		Assert.Equal(0x1a, binary[3]);	// MS-DOS EOF
-		Assert.Equal(2, binary[4]);		// 32KB PRG ROM
-		Assert.Equal(1, binary[5]);		// 8KB CHR ROM
-		Assert.Equal(0x01, binary[6] & 0x01);	// vertical mirroring
+		Assert.Equal(0x4e, binary[0]);  // 'N'
+		Assert.Equal(0x45, binary[1]);  // 'E'
+		Assert.Equal(0x53, binary[2]);  // 'S'
+		Assert.Equal(0x1a, binary[3]);  // MS-DOS EOF
+		Assert.Equal(2, binary[4]);     // 32KB PRG ROM
+		Assert.Equal(1, binary[5]);     // 8KB CHR ROM
+		Assert.Equal(0x01, binary[6] & 0x01);   // vertical mirroring
 
 		// Verify binary size (header + PRG data)
 		// Note: This is the actual assembled size, not necessarily 32KB + header
-		Assert.True(binary.Length >= 16);	// at least has header
+		Assert.True(binary.Length >= 16);   // at least has header
 	}
 
 	[Fact]
-	public void Generate_SuperMarioBros3Style_CreatesCorrectHeader()
-	{
+	public void Generate_SuperMarioBros3Style_CreatesCorrectHeader() {
 		// arrange - SMB3-style header (MMC3, battery backup)
 		var source = @"
 .nes
@@ -187,9 +182,9 @@ nmi:
 		Assert.False(generator.HasErrors);
 
 		// Verify iNES 2.0 header
-		Assert.Equal(32, binary[4]);	// PRG ROM size
-		Assert.Equal(16, binary[5]);	// CHR ROM size
-		Assert.Equal(0x42, binary[6]);	// horizontal, battery, mapper 4 low
-		Assert.Equal(0x08, binary[7]);	// iNES 2.0 identifier
+		Assert.Equal(32, binary[4]);    // PRG ROM size
+		Assert.Equal(16, binary[5]);    // CHR ROM size
+		Assert.Equal(0x42, binary[6]);  // horizontal, battery, mapper 4 low
+		Assert.Equal(0x08, binary[7]);  // iNES 2.0 identifier
 	}
 }

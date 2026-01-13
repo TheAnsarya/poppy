@@ -62,8 +62,7 @@ internal static class Program {
 		string source;
 		try {
 			source = File.ReadAllText(inputFile);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			Console.Error.WriteLine($"Error reading input file: {ex.Message}");
 			return 1;
 		}
@@ -80,6 +79,7 @@ internal static class Program {
 			foreach (var error in preprocessor.Errors) {
 				Console.Error.WriteLine($"{error.Location.FilePath}:{error.Location.Line}:{error.Location.Column}: error: {error.Message}");
 			}
+
 			return 1;
 		}
 
@@ -89,6 +89,7 @@ internal static class Program {
 			foreach (var error in lexerErrors) {
 				Console.Error.WriteLine($"{error.Location.FilePath}:{error.Location.Line}:{error.Location.Column}: error: {error.Text}");
 			}
+
 			return 1;
 		}
 
@@ -101,8 +102,7 @@ internal static class Program {
 		ProgramNode program;
 		try {
 			program = parser.Parse();
-		}
-		catch (ParseException ex) {
+		} catch (ParseException ex) {
 			Console.Error.WriteLine($"{inputFile}:{ex.Location.Line}:{ex.Location.Column}: error: {ex.Message}");
 			return 1;
 		}
@@ -120,6 +120,7 @@ internal static class Program {
 			foreach (var error in analyzer.Errors) {
 				Console.Error.WriteLine($"{inputFile}:{error.Location.Line}:{error.Location.Column}: error: {error.Message}");
 			}
+
 			return 1;
 		}
 
@@ -135,6 +136,7 @@ internal static class Program {
 			foreach (var error in generator.Errors) {
 				Console.Error.WriteLine($"{inputFile}:{error.Location.Line}:{error.Location.Column}: error: {error.Message}");
 			}
+
 			return 1;
 		}
 
@@ -148,8 +150,7 @@ internal static class Program {
 		// Write output
 		try {
 			File.WriteAllBytes(outputFile, code);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			Console.Error.WriteLine($"Error writing output file: {ex.Message}");
 			return 1;
 		}
@@ -165,8 +166,7 @@ internal static class Program {
 				if (options.Verbose) {
 					Console.WriteLine($"  Listing: {options.ListingFile}");
 				}
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				Console.Error.WriteLine($"Error writing listing file: {ex.Message}");
 				return 1;
 			}
@@ -180,8 +180,7 @@ internal static class Program {
 				if (options.Verbose) {
 					Console.WriteLine($"  Symbols: {options.SymbolFile}");
 				}
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				Console.Error.WriteLine($"Error writing symbol file: {ex.Message}");
 				return 1;
 			}
@@ -195,8 +194,7 @@ internal static class Program {
 				if (options.Verbose) {
 					Console.WriteLine($"  Map: {options.MapFile}");
 				}
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				Console.Error.WriteLine($"Error writing map file: {ex.Message}");
 				return 1;
 			}
@@ -258,6 +256,7 @@ internal static class Program {
 					if (i + 1 < args.Length) {
 						options.OutputFile = args[++i];
 					}
+
 					break;
 
 				case "-l":
@@ -265,6 +264,7 @@ internal static class Program {
 					if (i + 1 < args.Length) {
 						options.ListingFile = args[++i];
 					}
+
 					break;
 
 				case "-s":
@@ -272,6 +272,7 @@ internal static class Program {
 					if (i + 1 < args.Length) {
 						options.SymbolFile = args[++i];
 					}
+
 					break;
 
 				case "-m":
@@ -279,6 +280,7 @@ internal static class Program {
 					if (i + 1 < args.Length) {
 						options.MapFile = args[++i];
 					}
+
 					break;
 
 				case "-t":
@@ -291,6 +293,7 @@ internal static class Program {
 							_ => options.Target
 						};
 					}
+
 					break;
 
 				case "-I":
@@ -298,6 +301,7 @@ internal static class Program {
 					if (i + 1 < args.Length) {
 						options.IncludePaths.Add(args[++i]);
 					}
+
 					break;
 
 				case "-a":
@@ -309,6 +313,7 @@ internal static class Program {
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
 					}
+
 					break;
 			}
 		}

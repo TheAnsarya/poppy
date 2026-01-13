@@ -139,8 +139,7 @@ public sealed class Preprocessor {
 		string includeSource;
 		try {
 			includeSource = File.ReadAllText(resolvedPath);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			_errors.Add(new PreprocessorError(
 				$"Error reading include file '{filename}': {ex.Message}",
 				filenameToken.Location));

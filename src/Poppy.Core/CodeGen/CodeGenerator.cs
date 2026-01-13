@@ -88,6 +88,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		foreach (var statement in node.Statements) {
 			statement.Accept(this);
 		}
+
 		return null;
 	}
 
@@ -155,9 +156,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 						$"Branch target out of range ({offset} bytes, must be -128 to +127)",
 						node.Location));
 				}
+
 				EmitByte((byte)(offset & 0xff));
-			}
-			else {
+			} else {
 				// Emit operand based on size
 				var operandSize = encoding.Size - 1;
 				EmitValue(operandValue.Value, operandSize, node.SizeSuffix);
@@ -236,7 +237,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				HandlePadDirective(node);
 				break;
 
-			// Other directives don't generate code
+				// Other directives don't generate code
 		}
 
 		return null;
@@ -262,6 +263,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		if (_analyzer.SymbolTable.TryGetSymbol(node.Name, out var symbol) && symbol?.Value.HasValue == true) {
 			return symbol.Value;
 		}
+
 		return null;
 	}
 
@@ -309,6 +311,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 					foreach (var statement in block) {
 						statement.Accept(this);
 					}
+
 					executed = true;
 					break;
 				}
@@ -393,13 +396,11 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				foreach (var c in strNode.Value) {
 					EmitByte((byte)c);
 				}
-			}
-			else {
+			} else {
 				var value = _analyzer.EvaluateExpression(arg);
 				if (value.HasValue) {
 					EmitByte((byte)(value.Value & 0xff));
-				}
-				else {
+				} else {
 					_errors.Add(new CodeError(
 						"Cannot evaluate .byte argument",
 						node.Location));
@@ -419,8 +420,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			var value = _analyzer.EvaluateExpression(arg);
 			if (value.HasValue) {
 				EmitWord((ushort)(value.Value & 0xffff));
-			}
-			else {
+			} else {
 				_errors.Add(new CodeError(
 					"Cannot evaluate .word argument",
 					node.Location));
@@ -441,8 +441,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			var value = _analyzer.EvaluateExpression(arg);
 			if (value.HasValue) {
 				EmitValue(value.Value, bytes, null);
-			}
-			else {
+			} else {
 				_errors.Add(new CodeError(
 					"Cannot evaluate .long argument",
 					node.Location));
@@ -508,8 +507,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		byte[] data;
 		try {
 			data = File.ReadAllBytes(fullPath);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			_errors.Add(new CodeError($"Error reading binary file: {ex.Message}", node.Location));
 			return;
 		}

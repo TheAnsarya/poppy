@@ -145,6 +145,7 @@ public sealed class Lexer {
 					_line++;
 					_column = 0;
 				}
+
 				Advance();
 			}
 		}
@@ -200,6 +201,7 @@ public sealed class Lexer {
 			if (Peek() == '\\' && PeekNext() == '"') {
 				Advance(); // skip backslash
 			}
+
 			Advance();
 		}
 
@@ -317,6 +319,7 @@ public sealed class Lexer {
 			while (IsIdentifierContinue(Peek())) {
 				Advance();
 			}
+
 			var text = _source[start.._position];
 			return MakeToken(TokenType.NamedAnonymousForward, text, location);
 		}
@@ -340,6 +343,7 @@ public sealed class Lexer {
 			while (IsIdentifierContinue(Peek())) {
 				Advance();
 			}
+
 			var text = _source[start.._position];
 			return MakeToken(TokenType.NamedAnonymousBackward, text, location);
 		}
@@ -377,6 +381,7 @@ public sealed class Lexer {
 		} else {
 			_column++;
 		}
+
 		return c;
 	}
 
@@ -384,6 +389,7 @@ public sealed class Lexer {
 		if (IsAtEnd() || _source[_position] != expected) {
 			return false;
 		}
+
 		_position++;
 		_column++;
 		return true;

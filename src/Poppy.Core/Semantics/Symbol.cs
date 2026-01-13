@@ -95,7 +95,6 @@ public sealed class SymbolTable {
 	private readonly List<(long Address, SourceLocation Location)> _anonymousForward = [];
 	private readonly List<(long Address, SourceLocation Location)> _anonymousBackward = [];
 	private readonly Dictionary<string, List<(long Address, SourceLocation Location)>> _namedAnonymous = new(StringComparer.OrdinalIgnoreCase);
-	private string? _currentScope;
 
 	/// <summary>
 	/// Gets all symbols in the table.
@@ -110,10 +109,7 @@ public sealed class SymbolTable {
 	/// <summary>
 	/// Gets or sets the current scope (parent label for local labels).
 	/// </summary>
-	public string? CurrentScope {
-		get => _currentScope;
-		set => _currentScope = value;
-	}
+	public string? CurrentScope { get; set; }
 
 	/// <summary>
 	/// Defines a new symbol or returns an existing one.
@@ -145,14 +141,14 @@ public sealed class SymbolTable {
 			IsDefined = true,
 			Value = value,
 			DefinitionLocation = location,
-			ParentScope = IsLocalName(name) ? _currentScope : null
+			ParentScope = IsLocalName(name) ? CurrentScope : null
 		};
 
 		_symbols[fullName] = symbol;
 
 		// Update current scope for non-local labels
 		if (type == SymbolType.Label && !IsLocalName(name)) {
-			_currentScope = name;
+			CurrentScope = name;
 		}
 
 		return symbol;
@@ -175,7 +171,7 @@ public sealed class SymbolTable {
 		// Create forward reference
 		var symbol = new Symbol(fullName, SymbolType.Label) {
 			IsDefined = false,
-			ParentScope = IsLocalName(name) ? _currentScope : null
+			ParentScope = IsLocalName(name) ? CurrentScope : null
 		};
 		symbol.References.Add(location);
 
@@ -234,6 +230,7 @@ public sealed class SymbolTable {
 			if (count <= candidates.Count) {
 				return candidates[count - 1].Address;
 			}
+
 			_errors.Add(new SemanticError($"Cannot find anonymous forward label (+ x{count})", location));
 			return null;
 		} else {
@@ -242,6 +239,7 @@ public sealed class SymbolTable {
 			if (count <= candidates.Count) {
 				return candidates[count - 1].Address;
 			}
+
 			_errors.Add(new SemanticError($"Cannot find anonymous backward label (- x{count})", location));
 			return null;
 		}
@@ -256,11 +254,12 @@ public sealed class SymbolTable {
 	/// <param name="location">The source location.</param>
 	public void DefineNamedAnonymousLabel(string name, long address, SourceLocation location) {
 		// Get or create the list for this name (scope by current parent scope)
-		var scopedName = _currentScope is not null ? $"{_currentScope}:{name}" : name;
+		var scopedName = CurrentScope is not null ? $"{CurrentScope}:{name}" : name;
 		if (!_namedAnonymous.TryGetValue(scopedName, out var list)) {
 			list = [];
 			_namedAnonymous[scopedName] = list;
 		}
+
 		list.Add((address, location));
 	}
 
@@ -279,7 +278,7 @@ public sealed class SymbolTable {
 		var baseName = name[1..];
 		// Construct the lookup name with the forward prefix (labels are always defined with +)
 		var lookupName = $"+{baseName}";
-		var scopedName = _currentScope is not null ? $"{_currentScope}:{lookupName}" : lookupName;
+		var scopedName = CurrentScope is not null ? $"{CurrentScope}:{lookupName}" : lookupName;
 
 		if (!_namedAnonymous.TryGetValue(scopedName, out var list) || list.Count == 0) {
 			_errors.Add(new SemanticError($"Cannot find named anonymous label '{name}'", location));
@@ -292,6 +291,7 @@ public sealed class SymbolTable {
 			if (candidates.Count > 0) {
 				return candidates[0].Address;
 			}
+
 			_errors.Add(new SemanticError($"Cannot find named anonymous forward label '{name}'", location));
 			return null;
 		} else {
@@ -300,6 +300,7 @@ public sealed class SymbolTable {
 			if (candidates.Count > 0) {
 				return candidates[^1].Address;
 			}
+
 			_errors.Add(new SemanticError($"Cannot find named anonymous backward label '{name}'", location));
 			return null;
 		}
@@ -318,9 +319,10 @@ public sealed class SymbolTable {
 	/// Gets the full name for a symbol (handling local labels).
 	/// </summary>
 	private string GetFullName(string name) {
-		if (IsLocalName(name) && _currentScope is not null) {
-			return $"{_currentScope}{name}";
+		if (IsLocalName(name) && CurrentScope is not null) {
+			return $"{CurrentScope}{name}";
 		}
+
 		return name;
 	}
 

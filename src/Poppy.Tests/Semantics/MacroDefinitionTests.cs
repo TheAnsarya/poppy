@@ -1,13 +1,11 @@
-using Xunit;
 using Poppy.Core.Semantics;
+using Xunit;
 
 namespace Poppy.Tests.Semantics;
 
-public class MacroDefinitionTests
-{
+public class MacroDefinitionTests {
 	[Fact]
-	public void BasicMacroDefinition_StoresCorrectly()
-	{
+	public void BasicMacroDefinition_StoresCorrectly() {
 		// arrange
 		var source = @"
 .macro test_macro
@@ -33,8 +31,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void MacroWithParameters_StoresParameters()
-	{
+	public void MacroWithParameters_StoresParameters() {
 		// arrange
 		var source = @"
 .macro sprite_dma, addr, count
@@ -62,8 +59,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void EmptyMacro_AllowedAndStored()
-	{
+	public void EmptyMacro_AllowedAndStored() {
 		// arrange
 		var source = @"
 .macro empty
@@ -84,8 +80,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void DuplicateMacroName_ReportsError()
-	{
+	public void DuplicateMacroName_ReportsError() {
 		// arrange
 		var source = @"
 .macro test
@@ -111,8 +106,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void MacroNameConflictWithOpcode_ReportsError()
-	{
+	public void MacroNameConflictWithOpcode_ReportsError() {
 		// arrange
 		var source = @"
 .macro lda
@@ -134,8 +128,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void MacroNameConflictWithDirective_ReportsError()
-	{
+	public void MacroNameConflictWithDirective_ReportsError() {
 		// arrange
 		var source = @"
 .macro org
@@ -157,8 +150,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void DuplicateParameterName_ReportsError()
-	{
+	public void DuplicateParameterName_ReportsError() {
 		// arrange
 		var source = @"
 .macro bad, param, param
@@ -180,8 +172,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void MacroWithManyParameters_AllStored()
-	{
+	public void MacroWithManyParameters_AllStored() {
 		// arrange
 		var source = @"
 .macro complex, p1, p2, p3, p4, p5
@@ -211,8 +202,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void MultipleMacros_AllStored()
-	{
+	public void MultipleMacros_AllStored() {
 		// arrange
 		var source = @"
 .macro macro1
@@ -245,8 +235,7 @@ public class MacroDefinitionTests
 	}
 
 	[Fact]
-	public void MacroTable_IsReservedWord_ChecksCorrectly()
-	{
+	public void MacroTable_IsReservedWord_ChecksCorrectly() {
 		// assert
 		Assert.True(MacroTable.IsReservedWord("lda"));
 		Assert.True(MacroTable.IsReservedWord("org"));

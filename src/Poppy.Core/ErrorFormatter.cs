@@ -29,6 +29,7 @@ public sealed class ErrorFormatter {
 		for (int i = 0; i < lines.Length; i++) {
 			lines[i] = lines[i].TrimEnd('\r');
 		}
+
 		_sourceCache[filePath] = lines;
 	}
 
@@ -113,8 +114,8 @@ public sealed class ErrorFormatter {
 		var sb = new StringBuilder();
 		var errorList = errors.ToList();
 
-		foreach (var error in errorList) {
-			sb.AppendLine(Format(error.Message, error.Location));
+		foreach (var (Message, Location) in errorList) {
+			sb.AppendLine(Format(Message, Location));
 			sb.AppendLine();
 		}
 

@@ -43,6 +43,37 @@ create `git-commit`s with descriptions in logical batches and git commit all fil
 
 continue;
 
+pick a random issue and work on it; continue;
+
+dangit, ***stop putting opening braces on their own line***, use K&R braces instead, format the whole project; pick another issue and implement it, maybe a couple of issues; continue;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

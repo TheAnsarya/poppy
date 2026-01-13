@@ -1,6 +1,6 @@
 using Poppy.Core.CodeGen;
-using Poppy.Core.Semantics;
 using Poppy.Core.Parser;
+using Poppy.Core.Semantics;
 
 namespace Poppy.Tests.Semantics;
 

@@ -28,8 +28,7 @@ public sealed class SymbolExporterTests {
 			Assert.Contains("$8000#reset#", content);
 			Assert.Contains("$8010#nmi#", content);
 			Assert.Contains("# FCEUX Symbol File", content);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) File.Delete(tempFile);
 		}
 	}
@@ -48,8 +47,7 @@ public sealed class SymbolExporterTests {
 
 			Assert.Contains("RAM:$0000:temp", content);
 			Assert.Contains("PRG:$8000:reset", content);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) File.Delete(tempFile);
 		}
 	}
@@ -69,8 +67,7 @@ public sealed class SymbolExporterTests {
 			Assert.Contains("00:8000 reset", content);
 			Assert.Contains("00:8010 nmi", content);
 			Assert.Contains("; Symbol File", content);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) File.Delete(tempFile);
 		}
 	}
@@ -89,8 +86,7 @@ public sealed class SymbolExporterTests {
 
 			Assert.Contains("reset", content);
 			Assert.DoesNotContain("test_macro", content);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) File.Delete(tempFile);
 		}
 	}
@@ -113,8 +109,7 @@ public sealed class SymbolExporterTests {
 			Assert.Contains("label_a", lines[0]);
 			Assert.Contains("label_b", lines[1]);
 			Assert.Contains("label_c", lines[2]);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) File.Delete(tempFile);
 		}
 	}

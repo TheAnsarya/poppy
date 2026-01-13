@@ -8,8 +8,7 @@ using Poppy.Core.Semantics;
 
 namespace Poppy.Tests.Semantics;
 
-public class ComparisonConditionalTests
-{
+public class ComparisonConditionalTests {
 	[Fact]
 	public void IfEq_EqualValues_ExecutesTrueBlock() {
 		// arrange

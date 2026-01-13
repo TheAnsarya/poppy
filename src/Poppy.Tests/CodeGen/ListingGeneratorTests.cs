@@ -193,8 +193,7 @@ public class ListingGeneratorTests {
 			var content = File.ReadAllText(tempFile);
 			Assert.Contains("$8000", content);
 			Assert.Contains("nop", content);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) {
 				File.Delete(tempFile);
 			}

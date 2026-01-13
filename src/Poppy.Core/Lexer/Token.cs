@@ -46,6 +46,7 @@ public sealed class Token {
 		if (NumericValue.HasValue) {
 			return $"Token({Type}, \"{Text}\", ${NumericValue.Value:x}, {Location})";
 		}
+
 		return $"Token({Type}, \"{Text}\", {Location})";
 	}
 }

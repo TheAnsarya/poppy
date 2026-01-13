@@ -1,8 +1,8 @@
 // Poppy Compiler - Symbol File Exporter
 // Copyright © 2026
 
-using Poppy.Core.Semantics;
 using System.Text;
+using Poppy.Core.Semantics;
 
 namespace Poppy.Core.CodeGen;
 

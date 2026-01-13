@@ -11,8 +11,7 @@ namespace Poppy.Core.Semantics;
 /// <summary>
 /// Represents a macro definition with parameters and body.
 /// </summary>
-public sealed class MacroDefinition
-{
+public sealed class MacroDefinition {
 	/// <summary>
 	/// The name of the macro.
 	/// </summary>
@@ -44,8 +43,7 @@ public sealed class MacroDefinition
 		string name,
 		IReadOnlyList<MacroParameter> parameters,
 		IReadOnlyList<StatementNode> body,
-		SourceLocation location)
-	{
+		SourceLocation location) {
 		Name = name;
 		Parameters = parameters;
 		Body = body;
@@ -56,8 +54,7 @@ public sealed class MacroDefinition
 /// <summary>
 /// Represents a macro parameter with optional default value.
 /// </summary>
-public sealed class MacroParameter
-{
+public sealed class MacroParameter {
 	/// <summary>
 	/// The parameter name.
 	/// </summary>
@@ -78,8 +75,7 @@ public sealed class MacroParameter
 	/// </summary>
 	/// <param name="name">The parameter name.</param>
 	/// <param name="defaultValue">Optional default value tokens.</param>
-	public MacroParameter(string name, IReadOnlyList<Token>? defaultValue = null)
-	{
+	public MacroParameter(string name, IReadOnlyList<Token>? defaultValue = null) {
 		Name = name;
 		DefaultValue = defaultValue;
 	}

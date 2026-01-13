@@ -34,6 +34,7 @@ public sealed class ListingGenerator {
 		for (int i = 0; i < lines.Length; i++) {
 			lines[i] = lines[i].TrimEnd('\r');
 		}
+
 		_sourceCache[filePath] = lines;
 	}
 
@@ -167,6 +168,7 @@ public sealed class ListingGenerator {
 		if (entry.Bytes.Length > 8) {
 			bytesStr += "...";
 		}
+
 		sb.Append($"{bytesStr,-24} ");
 
 		// Source column

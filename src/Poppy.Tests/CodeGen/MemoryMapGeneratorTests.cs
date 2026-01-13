@@ -196,8 +196,7 @@ public sealed class MemoryMapGeneratorTests {
 
 			Assert.Contains("; Poppy Assembler Memory Map", content);
 			Assert.Contains("$8000  test", content);
-		}
-		finally {
+		} finally {
 			if (File.Exists(tempFile)) File.Delete(tempFile);
 		}
 	}
@@ -256,6 +255,7 @@ public sealed class MemoryMapGeneratorTests {
 		for (int i = 0; i < size; i++) {
 			segment.Data.Add((byte)(i & 0xff));
 		}
+
 		return segment;
 	}
 }

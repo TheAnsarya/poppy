@@ -50,8 +50,7 @@ public sealed class Parser {
 				if (statement is not null) {
 					statements.Add(statement);
 				}
-			}
-			catch (ParseException ex) {
+			} catch (ParseException ex) {
 				_errors.Add(new ParseError(ex.Message, ex.Location));
 				Synchronize();
 			}
@@ -306,6 +305,7 @@ public sealed class Parser {
 			if (!indexToken.Text.Equals("x", StringComparison.OrdinalIgnoreCase)) {
 				throw new ParseException($"Expected 'X' for indexed indirect, got: {indexToken.Text}", indexToken.Location);
 			}
+
 			Expect(TokenType.RightParen, "Expected ')' after indexed indirect operand");
 
 			return (expr, AddressingMode.IndexedIndirect);
@@ -387,6 +387,7 @@ public sealed class Parser {
 		} else {
 			throw new ParseException("Expected macro name after .macro", CurrentToken.Location);
 		}
+
 		var name = nameToken.Text;
 
 		// Parse parameters with optional default values
@@ -412,9 +413,11 @@ public sealed class Parser {
 				while (!IsAtEndOfStatement() && !Check(TokenType.Comma)) {
 					defaultTokens.Add(Advance());
 				}
+
 				if (defaultTokens.Count == 0) {
 					throw new ParseException($"Expected default value after '=' for parameter '{paramName}'", CurrentToken.Location);
 				}
+
 				defaultValue = defaultTokens;
 			}
 
@@ -858,13 +861,11 @@ public sealed class Parser {
 				var location = Previous.Location;
 				var right = ParseComparison();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.Equal, right);
-			}
-			else if (Match(TokenType.BangEquals)) {
+			} else if (Match(TokenType.BangEquals)) {
 				var location = Previous.Location;
 				var right = ParseComparison();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.NotEqual, right);
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -880,23 +881,19 @@ public sealed class Parser {
 				var location = Previous.Location;
 				var right = ParseShift();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.LessThan, right);
-			}
-			else if (Match(TokenType.GreaterThan)) {
+			} else if (Match(TokenType.GreaterThan)) {
 				var location = Previous.Location;
 				var right = ParseShift();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.GreaterThan, right);
-			}
-			else if (Match(TokenType.LessEquals)) {
+			} else if (Match(TokenType.LessEquals)) {
 				var location = Previous.Location;
 				var right = ParseShift();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.LessOrEqual, right);
-			}
-			else if (Match(TokenType.GreaterEquals)) {
+			} else if (Match(TokenType.GreaterEquals)) {
 				var location = Previous.Location;
 				var right = ParseShift();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.GreaterOrEqual, right);
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -912,13 +909,11 @@ public sealed class Parser {
 				var location = Previous.Location;
 				var right = ParseAdditive();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.LeftShift, right);
-			}
-			else if (Match(TokenType.RightShift)) {
+			} else if (Match(TokenType.RightShift)) {
 				var location = Previous.Location;
 				var right = ParseAdditive();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.RightShift, right);
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -934,13 +929,11 @@ public sealed class Parser {
 				var location = Previous.Location;
 				var right = ParseMultiplicative();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.Add, right);
-			}
-			else if (Match(TokenType.Minus)) {
+			} else if (Match(TokenType.Minus)) {
 				var location = Previous.Location;
 				var right = ParseMultiplicative();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.Subtract, right);
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -956,18 +949,15 @@ public sealed class Parser {
 				var location = Previous.Location;
 				var right = ParseUnary();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.Multiply, right);
-			}
-			else if (Match(TokenType.Slash)) {
+			} else if (Match(TokenType.Slash)) {
 				var location = Previous.Location;
 				var right = ParseUnary();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.Divide, right);
-			}
-			else if (Match(TokenType.Percent)) {
+			} else if (Match(TokenType.Percent)) {
 				var location = Previous.Location;
 				var right = ParseUnary();
 				left = new BinaryExpressionNode(location, left, BinaryOperator.Modulo, right);
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -1056,7 +1046,7 @@ public sealed class Parser {
 		if (Match(TokenType.Hash)) {
 			var location = Previous.Location;
 			var value = ParsePrimary();  // Parse the expression after #
-			// Wrap in a unary expression to preserve the # prefix
+										 // Wrap in a unary expression to preserve the # prefix
 			return new UnaryExpressionNode(location, UnaryOperator.Immediate, value);
 		}
 
@@ -1093,6 +1083,7 @@ public sealed class Parser {
 				builder.Append(isForward ? '+' : '-');
 				Advance();
 			}
+
 			return new IdentifierNode(location, builder.ToString());
 		}
 
@@ -1133,6 +1124,7 @@ public sealed class Parser {
 		if (!IsAtEnd()) {
 			_current++;
 		}
+
 		return Previous;
 	}
 
@@ -1141,6 +1133,7 @@ public sealed class Parser {
 			Advance();
 			return true;
 		}
+
 		return false;
 	}
 
@@ -1148,6 +1141,7 @@ public sealed class Parser {
 		if (Check(type)) {
 			return Advance();
 		}
+
 		throw new ParseException($"{message}. Got: {CurrentToken.Type}", CurrentToken.Location);
 	}
 
@@ -1155,6 +1149,7 @@ public sealed class Parser {
 		if (!IsAtEndOfStatement()) {
 			ReportError($"Expected end of statement, got: {CurrentToken.Type}", CurrentToken.Location);
 		}
+
 		SkipNewlines();
 	}
 
@@ -1170,6 +1165,7 @@ public sealed class Parser {
 				Advance();
 				return;
 			}
+
 			Advance();
 		}
 	}
