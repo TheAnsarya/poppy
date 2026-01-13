@@ -1,0 +1,385 @@
+{
+	"NES Project Template": {
+		"prefix": "nes-project",
+		"body": [
+			"; NES Project - ${1:Game Title}",
+			"; Target: NES/Famicom (6502)",
+			"",
+			"; === iNES Header ===",
+			".ines",
+			".ines_prg_banks ${2:1}",
+			".ines_chr_banks ${3:1}",
+			".ines_mirroring ${4:0}",
+			".ines_mapper ${5:0}",
+			"",
+			"; === Constants ===",
+			".define PPU_CTRL \\$2000",
+			".define PPU_MASK \\$2001",
+			".define PPU_STATUS \\$2002",
+			".define PPU_SCROLL \\$2005",
+			".define PPU_ADDR \\$2006",
+			".define PPU_DATA \\$2007",
+			".define OAM_DMA \\$4014",
+			"",
+			"; === Vectors ===",
+			".org \\$fffa",
+			".dw nmi_handler",
+			".dw reset_handler",
+			".dw irq_handler",
+			"",
+			"; === Code ===",
+			".org \\$c000",
+			"",
+			"reset_handler:",
+			"\tsei",
+			"\tcld",
+			"\tldx #\\$ff",
+			"\ttxs",
+			"\t$0",
+			"\trts",
+			"",
+			"nmi_handler:",
+			"\trti",
+			"",
+			"irq_handler:",
+			"\trti",
+			"",
+			"; === CHR-ROM ===",
+			".org \\$0000",
+			".incbin \"graphics.chr\"",
+			""
+		],
+		"description": "Complete NES project template with iNES header"
+	},
+	"SNES Project Template": {
+		"prefix": "snes-project",
+		"body": [
+			"; SNES Project - ${1:Game Title}",
+			"; Target: Super Nintendo (65816)",
+			"",
+			"; === SNES Header ===",
+			".snes",
+			".snes_title \"${2:GAME TITLE}\"",
+			".snes_rom_layout ${3:0}",
+			".snes_rom_size ${4:256}",
+			".snes_region ${5:1}",
+			"",
+			"; === Constants ===",
+			".define INIDISP \\$2100",
+			".define NMITIMEN \\$4200",
+			".define VBLANK_NMI \\$80",
+			"",
+			"; === Code ===",
+			".org \\$8000",
+			"",
+			"reset:",
+			"\t.a16",
+			"\t.i16",
+			"\tsei",
+			"\tclc",
+			"\txce",
+			"\trep #\\$38",
+			"\t$0",
+			"\tjmp main_loop",
+			"",
+			"nmi:",
+			"\trti",
+			"",
+			"main_loop:",
+			"\twai",
+			"\tjmp main_loop",
+			"",
+			"; === Vectors ===",
+			".org \\$ffe4",
+			".dw 0, 0",
+			".dw 0, 0",
+			".dw 0, 0",
+			".dw 0, 0",
+			".dw 0, 0",
+			".dw nmi",
+			".dw reset",
+			".dw 0",
+			""
+		],
+		"description": "Complete SNES project template with header"
+	},
+	"Game Boy Project Template": {
+		"prefix": "gb-project",
+		"body": [
+			"; Game Boy Project - ${1:Game Title}",
+			"; Target: Game Boy (SM83)",
+			"",
+			"; === Game Boy Header ===",
+			".gb",
+			".gb_title \"${2:TITLE}\"",
+			".gb_cartridge_type ${3:0}",
+			".gb_rom_size ${4:32}",
+			".gb_ram_size ${5:0}",
+			"",
+			"; === Constants ===",
+			".define LCDC \\$ff40",
+			".define STAT \\$ff41",
+			".define LY \\$ff44",
+			".define IE \\$ffff",
+			".define IF \\$ff0f",
+			"",
+			"; === Code ===",
+			".org \\$0150",
+			"",
+			"start:",
+			"\tdi",
+			"\tld sp, \\$fffe",
+			"\t$0",
+			"\tjp main_loop",
+			"",
+			"vblank_handler:",
+			"\treti",
+			"",
+			"main_loop:",
+			"\thalt",
+			"\tjp main_loop",
+			"",
+			"; === Interrupt Vectors ===",
+			".org \\$0040",
+			".dw vblank_handler",
+			""
+		],
+		"description": "Complete Game Boy project template with header"
+	},
+	"Wait for VBlank (NES)": {
+		"prefix": "wait-vblank-nes",
+		"body": [
+			"wait_vblank:",
+			"\tbit PPU_STATUS",
+			":\tbit PPU_STATUS",
+			"\tbpl :-",
+			"\trts"
+		],
+		"description": "Wait for NES VBlank via PPU_STATUS polling"
+	},
+	"Wait for VBlank (GB)": {
+		"prefix": "wait-vblank-gb",
+		"body": [
+			"wait_vblank:",
+			"\tld a, [LY]",
+			"\tcp ${1:144}",
+			"\tjr nz, wait_vblank",
+			"\tret"
+		],
+		"description": "Wait for Game Boy VBlank by polling LY register"
+	},
+	"PPU Address Setup (NES)": {
+		"prefix": "ppu-addr",
+		"body": [
+			"\tlda #>${1:\\$2000}",
+			"\tsta PPU_ADDR",
+			"\tlda #<${1:\\$2000}",
+			"\tsta PPU_ADDR"
+		],
+		"description": "Set PPU address for NES VRAM access"
+	},
+	"DMA Transfer (NES)": {
+		"prefix": "dma-oam",
+		"body": [
+			"\tlda #>${1:oam_buffer}",
+			"\tsta OAM_DMA"
+		],
+		"description": "Trigger OAM DMA transfer on NES"
+	},
+	"Read Controller (NES)": {
+		"prefix": "read-controller-nes",
+		"body": [
+			"\tlda #\\$01",
+			"\tsta \\$4016",
+			"\tlda #\\$00",
+			"\tsta \\$4016",
+			"\tldx #\\$08",
+			":",
+			"\tlda \\$4016",
+			"\tlsr a",
+			"\trol ${1:controller1}",
+			"\tdex",
+			"\tbne :-"
+		],
+		"description": "Read NES controller input into memory"
+	},
+	"Read Joypad (GB)": {
+		"prefix": "read-joypad-gb",
+		"body": [
+			"\tld a, \\$20",
+			"\tld [\\$ff00], a",
+			"\tld a, [\\$ff00]",
+			"\tld a, [\\$ff00]",
+			"\tcpl",
+			"\tand \\$0f",
+			"\tswap a",
+			"\tld ${1:buttons}, a",
+			"\tld a, \\$10",
+			"\tld [\\$ff00], a",
+			"\tld a, [\\$ff00]",
+			"\tld a, [\\$ff00]",
+			"\tcpl",
+			"\tand \\$0f",
+			"\tor ${1:buttons}",
+			"\tld ${1:buttons}, a"
+		],
+		"description": "Read Game Boy joypad input"
+	},
+	"Copy to VRAM (SNES)": {
+		"prefix": "vram-copy-snes",
+		"body": [
+			"\tlda #\\$80",
+			"\tsta VMAIN",
+			"\tldx #${1:vram_dest}",
+			"\tstx VMADDL",
+			"\tldx #${2:source_addr}",
+			"\tldy #${3:length}",
+			":",
+			"\tlda $0000,x",
+			"\tsta VMDATAL",
+			"\tinx",
+			"\tdey",
+			"\tbne :-"
+		],
+		"description": "Copy data to SNES VRAM"
+	},
+	"Macro Definition": {
+		"prefix": "macro",
+		"body": [
+			".macro ${1:name} ${2:param1}, ${3:param2}",
+			"\t$0",
+			".endmacro"
+		],
+		"description": "Define a macro with parameters"
+	},
+	"Conditional Block": {
+		"prefix": "ifdef",
+		"body": [
+			".ifdef ${1:SYMBOL}",
+			"\t$0",
+			".endif"
+		],
+		"description": "Conditional assembly block"
+	},
+	"If-Else Block": {
+		"prefix": "if-else",
+		"body": [
+			".if ${1:condition}",
+			"\t$2",
+			".else",
+			"\t$3",
+			".endif",
+			"$0"
+		],
+		"description": "If-else conditional assembly"
+	},
+	"Scope Block": {
+		"prefix": "scope",
+		"body": [
+			".scope ${1:name}",
+			"\t$0",
+			".endscope"
+		],
+		"description": "Define a named scope"
+	},
+	"Repeat Block": {
+		"prefix": "repeat",
+		"body": [
+			".repeat ${1:count}",
+			"\t$0",
+			".endrep"
+		],
+		"description": "Repeat assembly block N times"
+	},
+	"Define Byte Array": {
+		"prefix": "db-array",
+		"body": [
+			".db ${1:value1}, ${2:value2}, ${3:value3}$0"
+		],
+		"description": "Define byte array"
+	},
+	"Define Word Array": {
+		"prefix": "dw-array",
+		"body": [
+			".dw ${1:value1}, ${2:value2}, ${3:value3}$0"
+		],
+		"description": "Define word (16-bit) array"
+	},
+	"Define String": {
+		"prefix": "ascii",
+		"body": [
+			".ascii \"${1:text}\"$0"
+		],
+		"description": "Define ASCII string"
+	},
+	"Reserve Space": {
+		"prefix": "ds",
+		"body": [
+			".ds ${1:size}$0"
+		],
+		"description": "Reserve space (define storage)"
+	},
+	"Include Binary File": {
+		"prefix": "incbin",
+		"body": [
+			".incbin \"${1:filename.bin}\"$0"
+		],
+		"description": "Include binary file"
+	},
+	"Include Source File": {
+		"prefix": "include",
+		"body": [
+			".include \"${1:filename.pasm}\"$0"
+		],
+		"description": "Include assembly source file"
+	},
+	"16-bit Addition (6502)": {
+		"prefix": "add16",
+		"body": [
+			"\tclc",
+			"\tlda ${1:low_byte}",
+			"\tadc ${2:value_low}",
+			"\tsta ${1:low_byte}",
+			"\tlda ${3:high_byte}",
+			"\tadc ${4:value_high}",
+			"\tsta ${3:high_byte}"
+		],
+		"description": "16-bit addition on 6502"
+	},
+	"16-bit Comparison (6502)": {
+		"prefix": "cmp16",
+		"body": [
+			"\tlda ${1:high_byte}",
+			"\tcmp ${2:value_high}",
+			"\tbne :+",
+			"\tlda ${3:low_byte}",
+			"\tcmp ${4:value_low}",
+			":"
+		],
+		"description": "16-bit comparison on 6502"
+	},
+	"Clear Memory Range": {
+		"prefix": "clear-mem",
+		"body": [
+			"\tlda #\\$00",
+			"\tldx #${1:size}",
+			":",
+			"\tsta ${2:address},x",
+			"\tdex",
+			"\tbne :-"
+		],
+		"description": "Clear memory range to zero"
+	},
+	"Copy Memory Block": {
+		"prefix": "memcpy",
+		"body": [
+			"\tldx #${1:size}",
+			":",
+			"\tlda ${2:source},x",
+			"\tsta ${3:dest},x",
+			"\tdex",
+			"\tbne :-"
+		],
+		"description": "Copy memory block"
+	}
+}

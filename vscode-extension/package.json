@@ -41,6 +41,12 @@
 				"path": "./syntaxes/pasm.tmLanguage.json"
 			}
 		],
+		"snippets": [
+			{
+				"language": "pasm",
+				"path": "./snippets/pasm.json"
+			}
+		],
 		"commands": [
 			{
 				"command": "poppy.build",
