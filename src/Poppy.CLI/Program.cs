@@ -42,8 +42,94 @@ internal static class Program {
 			return 1;
 		}
 
+		// Watch mode or single compilation
+		if (options.Watch) {
+			return WatchAndCompile(options);
+		}
+
 		// Compile the file
 		return Compile(options);
+	}
+
+	/// <summary>
+	/// Watches source files and recompiles on changes.
+	/// </summary>
+	private static int WatchAndCompile(CompilerOptions options) {
+		var inputFile = Path.GetFullPath(options.InputFile!);
+		var directory = Path.GetDirectoryName(inputFile) ?? ".";
+		var fileName = Path.GetFileName(inputFile);
+
+		// Check input file exists
+		if (!File.Exists(inputFile)) {
+			Console.Error.WriteLine($"Error: Input file not found: {inputFile}");
+			return 1;
+		}
+
+		Console.WriteLine($"{AppName} v{Version} - Watch Mode");
+		Console.WriteLine($"Watching: {inputFile}");
+		Console.WriteLine("Press Ctrl+C to stop.");
+		Console.WriteLine();
+
+		// Initial compilation
+		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+		var result = Compile(options);
+		stopwatch.Stop();
+		Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Compilation {(result == 0 ? "succeeded" : "failed")} ({stopwatch.ElapsedMilliseconds}ms)");
+		Console.WriteLine();
+
+		// Set up file watcher
+		using var watcher = new FileSystemWatcher(directory) {
+			Filter = "*.pasm",
+			NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
+			IncludeSubdirectories = true,
+			EnableRaisingEvents = true
+		};
+
+		// Also watch .inc files
+		using var incWatcher = new FileSystemWatcher(directory) {
+			Filter = "*.inc",
+			NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
+			IncludeSubdirectories = true,
+			EnableRaisingEvents = true
+		};
+
+		// Debounce timer
+		Timer? debounceTimer = null;
+		var lockObj = new object();
+
+		void OnFileChanged(object sender, FileSystemEventArgs e) {
+			lock (lockObj) {
+				debounceTimer?.Dispose();
+				debounceTimer = new Timer(_ => {
+					lock (lockObj) {
+						Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] File changed: {e.Name}");
+						stopwatch.Restart();
+						result = Compile(options);
+						stopwatch.Stop();
+						Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Compilation {(result == 0 ? "succeeded" : "failed")} ({stopwatch.ElapsedMilliseconds}ms)");
+						Console.WriteLine();
+					}
+				}, null, 200, Timeout.Infinite); // 200ms debounce
+			}
+		}
+
+		watcher.Changed += OnFileChanged;
+		watcher.Created += OnFileChanged;
+		incWatcher.Changed += OnFileChanged;
+		incWatcher.Created += OnFileChanged;
+
+		// Wait for Ctrl+C
+		var exitEvent = new ManualResetEvent(false);
+		Console.CancelKeyPress += (_, e) => {
+			e.Cancel = true;
+			exitEvent.Set();
+		};
+
+		exitEvent.WaitOne();
+		Console.WriteLine();
+		Console.WriteLine("Watch mode stopped.");
+
+		return 0;
 	}
 
 	/// <summary>
@@ -309,6 +395,11 @@ internal static class Program {
 					options.AutoGenerateLabels = true;
 					break;
 
+				case "-w":
+				case "--watch":
+					options.Watch = true;
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -338,6 +429,7 @@ internal static class Program {
 		Console.WriteLine("  -s, --symbols <file> Generate symbol file (.nl, .mlb, .sym)");
 		Console.WriteLine("  -m, --mapfile <file> Generate memory map file");
 		Console.WriteLine("  -a, --auto-labels    Auto-generate labels for JSR/JMP targets");
+		Console.WriteLine("  -w, --watch          Watch mode: recompile on file changes");
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
@@ -396,4 +488,7 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Auto-generate labels for JSR/JMP targets.</summary>
 	public bool AutoGenerateLabels { get; set; }
+
+	/// <summary>Watch mode for automatic recompilation.</summary>
+	public bool Watch { get; set; }
 }
