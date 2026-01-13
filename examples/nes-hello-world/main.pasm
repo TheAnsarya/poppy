@@ -219,7 +219,7 @@ hello_text:
 ; ============================================================================
 ; CHR-ROM Bank (Pattern Tables)
 ; ============================================================================
-; In a real project, you would .incbin a CHR file here
-; For this example, we'll leave it empty (would need actual graphics)
+; Include ASCII-aligned font tileset (8KB)
 .org $10000
-    .ds $2000               ; 8KB of CHR-ROM (placeholder)
+.include "include/font.chr"
+
