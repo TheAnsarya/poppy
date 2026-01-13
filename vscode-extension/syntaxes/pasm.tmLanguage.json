@@ -97,6 +97,18 @@
 					"match": "(?i)\\.(ines|snes|gb|gameboy|header)\\b"
 				},
 				{
+					"name": "keyword.control.directive.ines.pasm",
+					"match": "(?i)\\.(ines_prg_banks|ines_chr_banks|ines_mirroring|ines_battery|ines_trainer|ines_four_screen|ines_mapper|ines_submapper|ines_timing|ines_prg_ram|ines_chr_ram|ines_battery_prg_ram|ines_battery_chr_ram|ines_misc_roms|ines_default_expansion)\\b"
+				},
+				{
+					"name": "keyword.control.directive.snes.pasm",
+					"match": "(?i)\\.(snes_title|snes_rom_layout|snes_cartridge_type|snes_rom_size|snes_ram_size|snes_region|snes_developer_id|snes_version)\\b"
+				},
+				{
+					"name": "keyword.control.directive.gb.pasm",
+					"match": "(?i)\\.(gb_title|gb_cgb|gb_sgb|gb_cartridge_type|gb_rom_size|gb_ram_size|gb_region|gb_version)\\b"
+				},
+				{
 					"name": "keyword.control.directive.mode.pasm",
 					"match": "(?i)\\.(a8|a16|i8|i16|dp|abs|long|smart)\\b"
 				},
@@ -153,59 +165,94 @@
 		"instructions": {
 			"patterns": [
 				{
-					"comment": "6502/65816 Load/Store",
+					"comment": "6502/65816 Load/Store - all modes",
 					"name": "keyword.mnemonic.load-store.pasm",
 					"match": "(?i)\\b(lda|ldx|ldy|sta|stx|sty|stz)\\b"
 				},
 				{
-					"comment": "6502/65816 Transfer",
+					"comment": "6502/65816 Transfer - all accumulator/index/stack transfers",
 					"name": "keyword.mnemonic.transfer.pasm",
 					"match": "(?i)\\b(tax|tay|txa|tya|tsx|txs|tcd|tcs|tdc|tsc|txy|tyx)\\b"
 				},
 				{
-					"comment": "6502/65816 Stack",
+					"comment": "6502/65816 Stack - push/pull operations",
 					"name": "keyword.mnemonic.stack.pasm",
 					"match": "(?i)\\b(pha|php|pla|plp|phx|phy|plx|ply|phb|phd|phk|plb|pld|pea|pei|per)\\b"
 				},
 				{
-					"comment": "6502/65816 Arithmetic",
+					"comment": "6502/65816 Arithmetic - add/subtract/increment/decrement",
 					"name": "keyword.mnemonic.arithmetic.pasm",
 					"match": "(?i)\\b(adc|sbc|inc|dec|inx|iny|dex|dey|ina|dea)\\b"
 				},
 				{
-					"comment": "6502/65816 Logic",
+					"comment": "6502/65816 Logic - boolean operations and comparisons",
 					"name": "keyword.mnemonic.logic.pasm",
 					"match": "(?i)\\b(and|ora|eor|bit|cmp|cpx|cpy|trb|tsb)\\b"
 				},
 				{
-					"comment": "6502/65816 Shift/Rotate",
+					"comment": "6502/65816 Shift/Rotate - bitwise operations",
 					"name": "keyword.mnemonic.shift.pasm",
 					"match": "(?i)\\b(asl|lsr|rol|ror)\\b"
 				},
 				{
-					"comment": "6502/65816 Branch",
+					"comment": "6502/65816 Branch - conditional branches",
 					"name": "keyword.mnemonic.branch.pasm",
 					"match": "(?i)\\b(bcc|bcs|beq|bne|bmi|bpl|bvc|bvs|bra|brl)\\b"
 				},
 				{
-					"comment": "6502/65816 Jump/Call",
+					"comment": "6502/65816 Jump/Call - control flow",
 					"name": "keyword.mnemonic.jump.pasm",
 					"match": "(?i)\\b(jmp|jsr|jsl|jml|rts|rtl|rti|brk|cop)\\b"
 				},
 				{
-					"comment": "6502/65816 Flags",
+					"comment": "6502/65816 Flags - status register manipulation",
 					"name": "keyword.mnemonic.flags.pasm",
 					"match": "(?i)\\b(clc|cld|cli|clv|sec|sed|sei|rep|sep|xce)\\b"
 				},
 				{
-					"comment": "6502/65816 Misc",
+					"comment": "6502/65816 Misc - nop, wait, block transfer",
 					"name": "keyword.mnemonic.misc.pasm",
 					"match": "(?i)\\b(nop|wai|stp|wdm|xba|mvn|mvp)\\b"
 				},
 				{
-					"comment": "Game Boy (SM83) specific",
-					"name": "keyword.mnemonic.gameboy.pasm",
-					"match": "(?i)\\b(ld|push|pop|add|sub|adc|sbc|and|or|xor|cp|inc|dec|swap|daa|cpl|ccf|scf|halt|stop|di|ei|rlca|rla|rrca|rra|rlc|rl|rrc|rr|sla|sra|srl|bit|set|res|jp|jr|call|ret|reti|rst)\\b"
+					"comment": "Game Boy (SM83) 8-bit load/store",
+					"name": "keyword.mnemonic.gameboy.load.pasm",
+					"match": "(?i)\\b(ld|ldh|ldi|ldd)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) stack operations",
+					"name": "keyword.mnemonic.gameboy.stack.pasm",
+					"match": "(?i)\\b(push|pop)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) arithmetic",
+					"name": "keyword.mnemonic.gameboy.arithmetic.pasm",
+					"match": "(?i)\\b(add|adc|sub|sbc|inc|dec|daa|cpl)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) logic",
+					"name": "keyword.mnemonic.gameboy.logic.pasm",
+					"match": "(?i)\\b(and|or|xor|cp|ccf|scf)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) rotation/shift",
+					"name": "keyword.mnemonic.gameboy.rotate.pasm",
+					"match": "(?i)\\b(rlca|rla|rrca|rra|rlc|rl|rrc|rr|sla|sra|srl|swap)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) bit operations",
+					"name": "keyword.mnemonic.gameboy.bit.pasm",
+					"match": "(?i)\\b(bit|set|res)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) jump/call",
+					"name": "keyword.mnemonic.gameboy.jump.pasm",
+					"match": "(?i)\\b(jp|jr|call|ret|reti|rst)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) control",
+					"name": "keyword.mnemonic.gameboy.control.pasm",
+					"match": "(?i)\\b(halt|stop|di|ei|nop)\\b"
 				}
 			]
 		},
