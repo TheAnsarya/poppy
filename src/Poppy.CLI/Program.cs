@@ -186,6 +186,21 @@ internal static class Program {
 			}
 		}
 
+		// Write memory map file if requested
+		if (options.MapFile is not null) {
+			try {
+				var mapGenerator = new MemoryMapGenerator(generator.Segments, analyzer.SymbolTable, analyzer.Target);
+				mapGenerator.Export(options.MapFile);
+				if (options.Verbose) {
+					Console.WriteLine($"  Map: {options.MapFile}");
+				}
+			}
+			catch (Exception ex) {
+				Console.Error.WriteLine($"Error writing map file: {ex.Message}");
+				return 1;
+			}
+		}
+
 		Console.WriteLine($"Assembled {inputFile} -> {outputFile} ({code.Length} bytes)");
 		return 0;
 	}
@@ -258,6 +273,13 @@ internal static class Program {
 					}
 					break;
 
+				case "-m":
+				case "--mapfile":
+					if (i + 1 < args.Length) {
+						options.MapFile = args[++i];
+					}
+					break;
+
 				case "-t":
 				case "--target":
 					if (i + 1 < args.Length) {
@@ -303,6 +325,7 @@ internal static class Program {
 		Console.WriteLine("  -o, --output <file>  Output file (default: input.bin)");
 		Console.WriteLine("  -l, --listing <file> Generate listing file");
 		Console.WriteLine("  -s, --symbols <file> Generate symbol file (.nl, .mlb, .sym)");
+		Console.WriteLine("  -m, --mapfile <file> Generate memory map file");
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
@@ -340,6 +363,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Symbol file path.</summary>
 	public string? SymbolFile { get; set; }
+
+	/// <summary>Memory map file path.</summary>
+	public string? MapFile { get; set; }
 
 	/// <summary>Include search paths.</summary>
 	public List<string> IncludePaths { get; } = [];

@@ -58,7 +58,7 @@ public class IncbinDirectiveTests {
 	// - .incbin "file.bin"           ; Include entire file
 	// - .incbin "file.bin", 16       ; Skip first 16 bytes
 	// - .incbin "file.bin", 16, 256  ; Skip 16, include 256 bytes
-	// 
+	//
 	// The code in CodeGenerator.HandleIncbinDirective:
 	// - Handles offset and length parameters
 	// - Validates offset is within file bounds
