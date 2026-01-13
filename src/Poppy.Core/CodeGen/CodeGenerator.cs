@@ -80,6 +80,30 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
+		// Prepend SNES header if configured (for SNES/65816 target only)
+		if (_target == TargetArchitecture.WDC65816) {
+			var headerBuilder = _analyzer.GetSnesHeaderBuilder();
+			if (headerBuilder is not null) {
+				var header = headerBuilder.Build();
+				var output = new byte[header.Length + binary.Length];
+				Array.Copy(header, 0, output, 0, header.Length);
+				Array.Copy(binary, 0, output, header.Length, binary.Length);
+				return output;
+			}
+		}
+
+		// Prepend GB header if configured (for Game Boy target only)
+		if (_target == TargetArchitecture.SM83) {
+			var headerBuilder = _analyzer.GetGbHeaderBuilder();
+			if (headerBuilder is not null) {
+				var header = headerBuilder.Build();
+				var output = new byte[header.Length + binary.Length];
+				Array.Copy(header, 0, output, 0, header.Length);
+				Array.Copy(binary, 0, output, header.Length, binary.Length);
+				return output;
+			}
+		}
+
 		return binary;
 	}
 

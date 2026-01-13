@@ -37,6 +37,24 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private bool _inesPal;
 	private bool _useINes2 = true;      // default to iNES 2.0
 
+	// SNES header configuration
+	private string? _snesTitle;
+	private string? _snesRegion;
+	private int? _snesVersion;
+	private int? _snesRomSizeKb;
+	private int? _snesRamSizeKb;
+	private bool _snesFastRom;
+
+	// Game Boy header configuration
+	private string? _gbTitle;
+	private int? _gbCgbMode;
+	private bool _gbSgbEnabled;
+	private int? _gbCartridgeType;
+	private int? _gbRomSizeKb;
+	private int? _gbRamSizeKb;
+	private int? _gbRegion;
+	private int? _gbVersion;
+
 	// 65816 M/X flag tracking
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
 	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
@@ -98,6 +116,100 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		builder.SetFourScreen(_inesFourScreen);
 		builder.SetPal(_inesPal);
 		builder.SetINes2(_useINes2);
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Gets the SNES header builder with all configured settings, or null if not configured.
+	/// </summary>
+	public CodeGen.SnesHeaderBuilder? GetSnesHeaderBuilder() {
+		// Only create if at least one SNES directive was used or memory mapping is set
+		if (MemoryMapping == null && _snesTitle == null && _snesRegion == null &&
+			_snesVersion == null && _snesRomSizeKb == null && _snesRamSizeKb == null &&
+			!_snesFastRom) {
+			return null;
+		}
+
+		var builder = new CodeGen.SnesHeaderBuilder();
+
+		// Set mapping mode from MemoryMapping directive
+		if (MemoryMapping != null) {
+			var mode = MemoryMapping switch {
+				"lorom" => CodeGen.SnesMapMode.LoRom,
+				"hirom" => CodeGen.SnesMapMode.HiRom,
+				"exhirom" => CodeGen.SnesMapMode.ExHiRom,
+				_ => CodeGen.SnesMapMode.LoRom
+			};
+			builder.SetMapMode(mode);
+		}
+
+		if (_snesTitle != null) builder.SetTitle(_snesTitle);
+		if (_snesRomSizeKb != null) builder.SetRomSize(_snesRomSizeKb.Value);
+		if (_snesRamSizeKb != null) builder.SetRamSize(_snesRamSizeKb.Value);
+		if (_snesFastRom) builder.SetFastRom(true);
+
+		// Set region
+		if (_snesRegion != null) {
+			var region = _snesRegion.ToLowerInvariant() switch {
+				"japan" => CodeGen.SnesRegion.Japan,
+				"usa" => CodeGen.SnesRegion.NorthAmerica,
+				"europe" => CodeGen.SnesRegion.Europe,
+				_ => CodeGen.SnesRegion.Japan
+			};
+			builder.SetRegion(region);
+		}
+
+		if (_snesVersion != null) {
+			builder.SetVersion((byte)_snesVersion.Value);
+		}
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Gets a GB header builder if GB header directives were used.
+	/// </summary>
+	public CodeGen.GbHeaderBuilder? GetGbHeaderBuilder() {
+		// Only create if at least one GB directive was used
+		if (_gbTitle == null && _gbCgbMode == null && _gbCartridgeType == null &&
+			_gbRomSizeKb == null && _gbRamSizeKb == null && _gbRegion == null &&
+			_gbVersion == null && !_gbSgbEnabled) {
+			return null;
+		}
+
+		var builder = new CodeGen.GbHeaderBuilder();
+
+		if (_gbTitle != null) builder.SetTitle(_gbTitle);
+
+		if (_gbCgbMode != null) {
+			var mode = _gbCgbMode.Value switch {
+				0 => CodeGen.GbCgbMode.DmgOnly,
+				1 => CodeGen.GbCgbMode.CgbCompatible,
+				2 => CodeGen.GbCgbMode.CgbOnly,
+				_ => CodeGen.GbCgbMode.DmgOnly
+			};
+			builder.SetCgbMode(mode);
+		}
+
+		if (_gbSgbEnabled) builder.SetSgbEnabled(true);
+
+		if (_gbCartridgeType != null) {
+			// Map numeric type to enum
+			builder.SetCartridgeType((CodeGen.GbCartridgeType)_gbCartridgeType.Value);
+		}
+
+		if (_gbRomSizeKb != null) builder.SetRomSize(_gbRomSizeKb.Value);
+		if (_gbRamSizeKb != null) builder.SetRamSize(_gbRamSizeKb.Value);
+
+		if (_gbRegion != null) {
+			var region = _gbRegion.Value == 0 ? CodeGen.GbRegion.Japan : CodeGen.GbRegion.International;
+			builder.SetRegion(region);
+		}
+
+		if (_gbVersion != null) {
+			builder.SetVersion((byte)_gbVersion.Value);
+		}
 
 		return builder;
 	}
@@ -431,6 +543,28 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "ines_pal":
 			case "ines2":
 				HandleINesDirective(node);
+				break;
+
+			// SNES header directives
+			case "snes_title":
+			case "snes_region":
+			case "snes_version":
+			case "snes_rom_size":
+			case "snes_ram_size":
+			case "snes_fastrom":
+				HandleSnesDirective(node);
+				break;
+
+			// Game Boy header directives
+			case "gb_title":
+			case "gb_cgb":
+			case "gb_sgb":
+			case "gb_cartridge_type":
+			case "gb_rom_size":
+			case "gb_ram_size":
+			case "gb_region":
+			case "gb_version":
+				HandleGbDirective(node);
 				break;
 
 			// Assertions and diagnostics
@@ -1033,6 +1167,315 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		if (Target != TargetArchitecture.MOS6502) {
 			_errors.Add(new SemanticError(
 				$".{directiveName} directive is only valid for NES/6502 target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles SNES header directives (.snes_title, .snes_region, etc.).
+	/// </summary>
+	private void HandleSnesDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		var directiveName = node.Name.ToLowerInvariant();
+
+		// Get the value from the first argument (if any)
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			// Try to get as a string first (for title and region)
+			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				// Otherwise evaluate as numeric expression
+				value = EvaluateExpression(node.Arguments[0]);
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						$".{directiveName} directive requires a constant value",
+						node.Location));
+					return;
+				}
+			}
+		}
+
+		switch (directiveName) {
+			case "snes_title":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".snes_title directive requires a string value (up to 21 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 21) {
+					_errors.Add(new SemanticError(
+						$".snes_title is too long ({stringValue.Length} characters, maximum is 21)",
+						node.Location));
+					return;
+				}
+
+				_snesTitle = stringValue;
+				break;
+
+			case "snes_region":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".snes_region directive requires a region string (e.g., \"Japan\", \"USA\", \"Europe\")",
+						node.Location));
+					return;
+				}
+
+				// Validate region string
+				var validRegions = new[] { "Japan", "USA", "Europe", "Scandinavia", "France",
+					"Netherlands", "Spain", "Germany", "Italy", "China", "Korea", "Canada", "Brazil", "Australia" };
+				if (!validRegions.Contains(stringValue, StringComparer.OrdinalIgnoreCase)) {
+					_errors.Add(new SemanticError(
+						$".snes_region \"{stringValue}\" is not valid. Valid regions: {string.Join(", ", validRegions)}",
+						node.Location));
+					return;
+				}
+
+				_snesRegion = stringValue;
+				break;
+
+			case "snes_version":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".snes_version directive requires a version number (0-255)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 255) {
+					_errors.Add(new SemanticError(
+						$".snes_version must be 0-255 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_snesVersion = (int)value;
+				break;
+
+			case "snes_rom_size":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".snes_rom_size directive requires a ROM size in KB (power of 2, e.g., 256, 512, 1024)",
+						node.Location));
+					return;
+				}
+
+				// Validate it's a power of 2
+				if (value <= 0 || (value & (value - 1)) != 0) {
+					_errors.Add(new SemanticError(
+						$".snes_rom_size must be a power of 2 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_snesRomSizeKb = (int)value;
+				break;
+
+			case "snes_ram_size":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".snes_ram_size directive requires a RAM size in KB (0, 2, 8, or 32)",
+						node.Location));
+					return;
+				}
+
+				// Validate it's a valid SNES RAM size
+				var validRamSizes = new[] { 0, 2, 8, 32 };
+				if (!validRamSizes.Contains((int)value)) {
+					_errors.Add(new SemanticError(
+						$".snes_ram_size must be 0, 2, 8, or 32 KB (got {value})",
+						node.Location));
+					return;
+				}
+
+				_snesRamSizeKb = (int)value;
+				break;
+
+			case "snes_fastrom":
+				_snesFastRom = value is null || value != 0;
+				break;
+		}
+
+		// Ensure target is SNES/65816
+		if (Target != TargetArchitecture.WDC65816) {
+			_errors.Add(new SemanticError(
+				$".{directiveName} directive is only valid for SNES/65816 target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles Game Boy header directives (.gb_title, .gb_cgb, etc.).
+	/// </summary>
+	private void HandleGbDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		var directiveName = node.Name.ToLowerInvariant();
+
+		// Get the value from the first argument (if any)
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			// Try to get as a string first (for title)
+			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				// Otherwise evaluate as numeric expression
+				value = EvaluateExpression(node.Arguments[0]);
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						$".{directiveName} directive requires a constant value",
+						node.Location));
+					return;
+				}
+			}
+		}
+
+		switch (directiveName) {
+			case "gb_title":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".gb_title directive requires a string value (max 16 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 16) {
+					_errors.Add(new SemanticError(
+						$".gb_title is too long ({stringValue.Length} characters, maximum is 16)",
+						node.Location));
+					return;
+				}
+
+				_gbTitle = stringValue;
+				break;
+
+			case "gb_cgb":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gb_cgb directive requires a mode (0=DMG only, 1=CGB compatible, 2=CGB only)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 2) {
+					_errors.Add(new SemanticError(
+						$".gb_cgb mode must be 0, 1, or 2 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_gbCgbMode = (int)value;
+				break;
+
+			case "gb_sgb":
+				_gbSgbEnabled = value is null || value != 0;
+				break;
+
+			case "gb_cartridge_type":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gb_cartridge_type directive requires a cartridge type code",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 0x1e) {
+					_errors.Add(new SemanticError(
+						$".gb_cartridge_type must be 0-$1e (got ${value:x})",
+						node.Location));
+					return;
+				}
+
+				_gbCartridgeType = (int)value;
+				break;
+
+			case "gb_rom_size":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gb_rom_size directive requires a ROM size in KB (32, 64, 128, 256, etc.)",
+						node.Location));
+					return;
+				}
+
+				// Validate it's a power of 2 >= 32
+				if (value < 32 || (value & (value - 1)) != 0) {
+					_errors.Add(new SemanticError(
+						$".gb_rom_size must be a power of 2 >= 32 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_gbRomSizeKb = (int)value;
+				break;
+
+			case "gb_ram_size":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gb_ram_size directive requires a RAM size in KB (0, 2, 8, 32, 64, or 128)",
+						node.Location));
+					return;
+				}
+
+				// Validate it's a valid GB RAM size
+				var validRamSizes = new[] { 0, 2, 8, 32, 64, 128 };
+				if (!validRamSizes.Contains((int)value)) {
+					_errors.Add(new SemanticError(
+						$".gb_ram_size must be 0, 2, 8, 32, 64, or 128 KB (got {value})",
+						node.Location));
+					return;
+				}
+
+				_gbRamSizeKb = (int)value;
+				break;
+
+			case "gb_region":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gb_region directive requires a region code (0=Japan, 1=International)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 1) {
+					_errors.Add(new SemanticError(
+						$".gb_region must be 0 or 1 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_gbRegion = (int)value;
+				break;
+
+			case "gb_version":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gb_version directive requires a version number (0-255)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 255) {
+					_errors.Add(new SemanticError(
+						$".gb_version must be 0-255 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_gbVersion = (int)value;
+				break;
+		}
+
+		// Ensure target is Game Boy
+		if (Target != TargetArchitecture.SM83) {
+			_errors.Add(new SemanticError(
+				$".{directiveName} directive is only valid for Game Boy/SM83 target",
 				node.Location));
 		}
 	}
