@@ -32,7 +32,6 @@ public class MacroDefaultParametersTests {
 
 	[Fact]
 	public void MacroDefaultParameter_SingleParameter_UsesDefault() {
-		// arrange
 		var source = @"
 .macro load_default value=$42
 	lda #value
@@ -40,21 +39,16 @@ public class MacroDefaultParametersTests {
 
 @load_default
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
-		var tokens = lexer.Tokenize();
-		var parser = new Core.Parser.Parser(tokens);
-		var program = parser.Parse();
+		var (code, gen, analyzer) = Compile(source);
 
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
-		analyzer.Analyze(program);
-
-		// assert - should use default value $42
 		Assert.False(analyzer.HasErrors);
+		Assert.False(gen.HasErrors);
+		// LDA immediate with default value $42
+		Assert.Equal([0xa9, 0x42], code);
 	}
 
 	[Fact]
 	public void MacroDefaultParameter_SingleParameter_OverrideDefault() {
-		// arrange
 		var source = @"
 .macro load_default value=$42
 	lda #value
@@ -62,21 +56,16 @@ public class MacroDefaultParametersTests {
 
 @load_default $ff
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
-		var tokens = lexer.Tokenize();
-		var parser = new Core.Parser.Parser(tokens);
-		var program = parser.Parse();
+		var (code, gen, analyzer) = Compile(source);
 
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
-		analyzer.Analyze(program);
-
-		// assert - should use provided value $ff
 		Assert.False(analyzer.HasErrors);
+		Assert.False(gen.HasErrors);
+		// LDA immediate with overridden value $FF
+		Assert.Equal([0xa9, 0xff], code);
 	}
 
 	[Fact]
 	public void MacroDefaultParameter_MultipleDefaults_AllUsed() {
-		// arrange
 		var source = @"
 .macro init_sprite x=$00, y=$00, tile=$01
 	lda #x
@@ -89,21 +78,23 @@ public class MacroDefaultParametersTests {
 
 @init_sprite
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
-		var tokens = lexer.Tokenize();
-		var parser = new Core.Parser.Parser(tokens);
-		var program = parser.Parse();
+		var (code, gen, analyzer) = Compile(source);
 
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
-		analyzer.Analyze(program);
-
-		// assert - should use all default values
 		Assert.False(analyzer.HasErrors);
+		Assert.False(gen.HasErrors);
+		// LDA #$00, STA $0200, LDA #$00, STA $0201, LDA #$01, STA $0202
+		Assert.Equal([
+			0xa9, 0x00, // LDA #$00
+			0x8d, 0x00, 0x02, // STA $0200
+			0xa9, 0x00, // LDA #$00
+			0x8d, 0x01, 0x02, // STA $0201
+			0xa9, 0x01, // LDA #$01
+			0x8d, 0x02, 0x02  // STA $0202
+		], code);
 	}
 
 	[Fact]
 	public void MacroDefaultParameter_MultipleDefaults_PartialOverride() {
-		// arrange
 		var source = @"
 .macro init_sprite x=$00, y=$00, tile=$01
 	lda #x
@@ -116,21 +107,23 @@ public class MacroDefaultParametersTests {
 
 @init_sprite $10, $20
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
-		var tokens = lexer.Tokenize();
-		var parser = new Core.Parser.Parser(tokens);
-		var program = parser.Parse();
+		var (code, gen, analyzer) = Compile(source);
 
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
-		analyzer.Analyze(program);
-
-		// assert - should use provided values for x/y, default for tile
 		Assert.False(analyzer.HasErrors);
+		Assert.False(gen.HasErrors);
+		// LDA #$10, STA $0200, LDA #$20, STA $0201, LDA #$01, STA $0202
+		Assert.Equal([
+			0xa9, 0x10, // LDA #$10 (overridden)
+			0x8d, 0x00, 0x02, // STA $0200
+			0xa9, 0x20, // LDA #$20 (overridden)
+			0x8d, 0x01, 0x02, // STA $0201
+			0xa9, 0x01, // LDA #$01 (default)
+			0x8d, 0x02, 0x02  // STA $0202
+		], code);
 	}
 
 	[Fact]
 	public void MacroDefaultParameter_MixedRequiredAndOptional() {
-		// arrange
 		var source = @"
 sprite_buffer = $0200
 
@@ -145,16 +138,19 @@ sprite_buffer = $0200
 
 @sprite_dma sprite_buffer
 ";
-		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
-		var tokens = lexer.Tokenize();
-		var parser = new Core.Parser.Parser(tokens);
-		var program = parser.Parse();
+		var (code, gen, analyzer) = Compile(source);
 
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
-		analyzer.Analyze(program);
-
-		// assert - required param provided, optional params use defaults
 		Assert.False(analyzer.HasErrors);
+		Assert.False(gen.HasErrors);
+		// LDA #>$0200, STA $2003, LDA #<$0200, STA $2004, LDX #$40, LDY #$00
+		Assert.Equal([
+			0xa9, 0x02, // LDA #$02 (high byte of $0200)
+			0x8d, 0x03, 0x20, // STA $2003
+			0xa9, 0x00, // LDA #$00 (low byte of $0200)
+			0x8d, 0x04, 0x20, // STA $2004
+			0xa2, 0x40, // LDX #$40 (default)
+			0xa0, 0x00  // LDY #$00 (default)
+		], code);
 	}
 
 	[Fact]
