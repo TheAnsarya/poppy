@@ -53,6 +53,7 @@ pick several random issues and implement them; continue;
 
 add a documentation reference to `https://marketplace.visualstudio.com/items?itemName=RedCMD.tmlanguage-syntax-highlighter` did we use this? we should! (see comment #1 on issue #53); continue implementing issues, maybe 5 at a time;
 
+use yarn, not npm;
 
 
 
@@ -70,7 +71,7 @@ add a documentation reference to `https://marketplace.visualstudio.com/items?ite
 
 
 
-
+create code/project convertors to the the poppy format from xkas, asar, ophis, and ca65 and check if there are other other popular assemblers for these systems;
 
 
 

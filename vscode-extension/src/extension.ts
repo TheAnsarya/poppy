@@ -4,9 +4,21 @@
 
 import * as vscode from 'vscode';
 import { PoppyTaskProvider, createOutputChannel } from './taskProvider';
+import { PoppyDiagnosticsProvider } from './diagnostics';
+import { PoppySymbolProvider } from './symbolProvider';
+import { PoppyHoverProvider } from './hoverProvider';
+
+// Document selector for Poppy Assembly files
+const PASM_SELECTOR: vscode.DocumentSelector = { language: 'pasm', scheme: 'file' };
 
 // Output channel for Poppy build output
 let outputChannel: vscode.OutputChannel;
+
+// Diagnostics provider for real-time error checking
+let diagnosticsProvider: PoppyDiagnosticsProvider;
+
+// Symbol provider for go-to-definition
+let symbolProvider: PoppySymbolProvider;
 
 /**
  * Extension activation - called when the extension is first activated.
@@ -18,6 +30,25 @@ export function activate(context: vscode.ExtensionContext) {
 	outputChannel = createOutputChannel();
 	context.subscriptions.push(outputChannel);
 
+	// Create diagnostics provider
+	diagnosticsProvider = new PoppyDiagnosticsProvider(outputChannel);
+	context.subscriptions.push(diagnosticsProvider.collection);
+
+	// Create symbol provider for go-to-definition
+	symbolProvider = new PoppySymbolProvider();
+	context.subscriptions.push(
+		vscode.languages.registerDefinitionProvider(PASM_SELECTOR, symbolProvider)
+	);
+	context.subscriptions.push(
+		vscode.languages.registerDocumentSymbolProvider(PASM_SELECTOR, symbolProvider)
+	);
+
+	// Create hover provider
+	const hoverProvider = new PoppyHoverProvider();
+	context.subscriptions.push(
+		vscode.languages.registerHoverProvider(PASM_SELECTOR, hoverProvider)
+	);
+
 	// Register the task provider
 	const taskProvider = new PoppyTaskProvider(outputChannel);
 	const taskProviderDisposable = vscode.tasks.registerTaskProvider(
@@ -25,6 +56,37 @@ export function activate(context: vscode.ExtensionContext) {
 		taskProvider
 	);
 	context.subscriptions.push(taskProviderDisposable);
+
+	// Register document change listeners for diagnostics
+	context.subscriptions.push(
+		vscode.workspace.onDidOpenTextDocument(doc => {
+			diagnosticsProvider.validateDocument(doc);
+		})
+	);
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeTextDocument(e => {
+			diagnosticsProvider.validateDocument(e.document);
+			symbolProvider.invalidateCache(e.document.uri);
+		})
+	);
+	context.subscriptions.push(
+		vscode.workspace.onDidSaveTextDocument(doc => {
+			diagnosticsProvider.validateDocument(doc);
+		})
+	);
+	context.subscriptions.push(
+		vscode.workspace.onDidCloseTextDocument(doc => {
+			diagnosticsProvider.clearDiagnostics(doc.uri);
+			symbolProvider.invalidateCache(doc.uri);
+		})
+	);
+
+	// Validate all open documents on activation
+	vscode.workspace.textDocuments.forEach(doc => {
+		if (doc.languageId === 'pasm') {
+			diagnosticsProvider.validateDocument(doc);
+		}
+	});
 
 	// Register build current file command
 	const buildCommand = vscode.commands.registerCommand('poppy.build', async () => {
