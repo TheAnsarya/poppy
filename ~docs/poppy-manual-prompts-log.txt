@@ -55,6 +55,13 @@ add a documentation reference to `https://marketplace.visualstudio.com/items?ite
 
 use yarn, not npm;
 
+continue implementing issues, maybe 5 at a time; go for a while
+
+try again but limit your queries so we don't hit response length limits; continue previous work;
+
+--- rate limited, switch from claude opus to claude sonnet 4.5, try again;
+
+
 
 
 

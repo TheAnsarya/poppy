@@ -676,14 +676,42 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// Tries to get instruction encoding from the appropriate instruction set.
 	/// </summary>
 	private bool TryGetInstructionEncoding(string mnemonic, AddressingMode mode, out InstructionSet6502.InstructionEncoding encoding) {
-		// For now, only 6502 is implemented
+		// Select instruction set based on target architecture
+		if (_target == TargetArchitecture.SM83) {
+			if (InstructionSetSM83.TryGetEncoding(mnemonic, mode, out var sm83Encoding)) {
+				// Convert SM83 encoding to 6502 encoding format for compatibility
+				encoding = new InstructionSet6502.InstructionEncoding(sm83Encoding.Opcode, sm83Encoding.Size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		if (_target == TargetArchitecture.WDC65816) {
+			if (InstructionSet65816.TryGetEncoding(mnemonic, mode, out var enc65816)) {
+				encoding = new InstructionSet6502.InstructionEncoding(enc65816.Opcode, enc65816.Size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		// Default to 6502
 		return InstructionSet6502.TryGetEncoding(mnemonic, mode, out encoding);
 	}
 
 	/// <summary>
 	/// Checks if an instruction is a branch instruction.
 	/// </summary>
-	private static bool IsBranchInstruction(string mnemonic) {
+	private bool IsBranchInstruction(string mnemonic) {
+		if (_target == TargetArchitecture.SM83) {
+			return InstructionSetSM83.IsRelativeBranch(mnemonic);
+		}
+
+		if (_target == TargetArchitecture.WDC65816) {
+			return InstructionSet65816.IsBranchInstruction(mnemonic);
+		}
+
 		return mnemonic.ToLowerInvariant() switch {
 			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
 			_ => false

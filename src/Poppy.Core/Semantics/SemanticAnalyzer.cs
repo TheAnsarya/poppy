@@ -37,6 +37,10 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private bool _inesPal;
 	private bool _useINes2 = true;      // default to iNES 2.0
 
+	// 65816 M/X flag tracking
+	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
+	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
+
 	/// <summary>
 	/// Gets the symbol table.
 	/// </summary>
@@ -56,6 +60,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// Gets the NES mapper number.
 	/// </summary>
 	public int? NesMapper { get; private set; }
+
+	/// <summary>
+	/// Gets whether the accumulator is in 16-bit mode (65816 M flag clear).
+	/// </summary>
+	public bool AccumulatorIs16Bit => _accumulatorIs16Bit;
+
+	/// <summary>
+	/// Gets whether index registers are in 16-bit mode (65816 X flag clear).
+	/// </summary>
+	public bool IndexIs16Bit => _indexIs16Bit;
 
 	/// <summary>
 	/// Gets the iNES header builder with all configured settings, or null if not configured.
@@ -215,11 +229,43 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			TryAutoGenerateLabel(node);
 		}
 
+		// Track REP/SEP instructions for M/X flag state (65816)
+		if (Target == TargetArchitecture.WDC65816) {
+			TrackRepSep(node);
+		}
+
 		// Calculate instruction size
 		var size = GetInstructionSize(node);
 		CurrentAddress += size;
 
 		return null;
+	}
+
+	/// <summary>
+	/// Tracks REP/SEP instructions to update M/X flag state.
+	/// </summary>
+	private void TrackRepSep(InstructionNode node) {
+		var mnemonic = node.Mnemonic.ToLowerInvariant();
+		if (mnemonic is not ("rep" or "sep")) return;
+
+		// Try to evaluate the operand to get the flag bits
+		if (node.Operand is null) return;
+		var value = EvaluateExpression(node.Operand);
+		if (!value.HasValue) return;
+
+		var bits = (byte)value.Value;
+		bool affectsM = (bits & 0x20) != 0; // Bit 5 = M flag (accumulator size)
+		bool affectsX = (bits & 0x10) != 0; // Bit 4 = X flag (index size)
+
+		if (mnemonic == "rep") {
+			// REP clears bits -> 16-bit mode
+			if (affectsM) _accumulatorIs16Bit = true;
+			if (affectsX) _indexIs16Bit = true;
+		} else { // sep
+			// SEP sets bits -> 8-bit mode
+			if (affectsM) _accumulatorIs16Bit = false;
+			if (affectsX) _indexIs16Bit = false;
+		}
 	}
 
 	/// <summary>
@@ -347,6 +393,23 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "hirom":
 			case "exhirom":
 				HandleMemoryMapping(node);
+				break;
+
+			// 65816 register size directives
+			case "a8":
+				_accumulatorIs16Bit = false;
+				break;
+			case "a16":
+				_accumulatorIs16Bit = true;
+				break;
+			case "i8":
+				_indexIs16Bit = false;
+				break;
+			case "i16":
+				_indexIs16Bit = true;
+				break;
+			case "smart":
+				// Enable automatic M/X tracking from REP/SEP
 				break;
 
 			// NES mapper
@@ -1162,7 +1225,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		int size = 1;
 
 		// Add operand size based on addressing mode
-		size += GetOperandSize(node.AddressingMode, node.SizeSuffix);
+		size += GetOperandSize(node.AddressingMode, node.SizeSuffix, mnemonic);
 
 		return size;
 	}
@@ -1170,7 +1233,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <summary>
 	/// Gets the operand size for an addressing mode.
 	/// </summary>
-	private int GetOperandSize(AddressingMode mode, char? sizeSuffix) {
+	private int GetOperandSize(AddressingMode mode, char? sizeSuffix, string? mnemonic = null) {
 		// Size suffix overrides
 		if (sizeSuffix.HasValue) {
 			return sizeSuffix.Value switch {
@@ -1181,10 +1244,29 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			};
 		}
 
+		// For 65816 immediate mode, size depends on M/X flags and instruction
+		if (Target == TargetArchitecture.WDC65816 && mode == AddressingMode.Immediate && mnemonic != null) {
+			var lower = mnemonic.ToLowerInvariant();
+			// Index register instructions use X flag
+			if (lower is "ldx" or "ldy" or "cpx" or "cpy") {
+				return _indexIs16Bit ? 3 : 2; // Base 1 + immediate
+			}
+			// Accumulator instructions use M flag
+			if (lower is "lda" or "adc" or "sbc" or "cmp" or "and" or "ora" or "eor" or "bit") {
+				return _accumulatorIs16Bit ? 3 : 2;
+			}
+			// REP/SEP are always 8-bit immediate
+			if (lower is "rep" or "sep") {
+				return 2;
+			}
+			// Default to current register size
+			return _accumulatorIs16Bit ? 3 : 2;
+		}
+
 		return mode switch {
 			AddressingMode.Implied => 0,
 			AddressingMode.Accumulator => 0,
-			AddressingMode.Immediate => Target == TargetArchitecture.WDC65816 ? 2 : 1, // Depends on M/X flags
+			AddressingMode.Immediate => Target == TargetArchitecture.WDC65816 ? 2 : 1,
 			AddressingMode.ZeroPage => 1,
 			AddressingMode.ZeroPageX => 1,
 			AddressingMode.ZeroPageY => 1,
