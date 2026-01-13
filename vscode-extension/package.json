@@ -1,0 +1,80 @@
+{
+	"name": "poppy-assembly",
+	"displayName": "Poppy Assembly",
+	"description": "Language support for Poppy Assembly (.pasm) files",
+	"version": "0.1.0",
+	"publisher": "TheAnsarya",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/TheAnsarya/poppy"
+	},
+	"engines": {
+		"vscode": "^1.80.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"keywords": [
+		"assembly",
+		"6502",
+		"65816",
+		"nes",
+		"snes",
+		"gameboy",
+		"retro"
+	],
+	"activationEvents": [],
+	"main": "./out/extension.js",
+	"contributes": {
+		"languages": [
+			{
+				"id": "pasm",
+				"aliases": ["Poppy Assembly", "pasm"],
+				"extensions": [".pasm", ".inc"],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "pasm",
+				"scopeName": "source.pasm",
+				"path": "./syntaxes/pasm.tmLanguage.json"
+			}
+		],
+		"configuration": {
+			"title": "Poppy Assembly",
+			"properties": {
+				"poppy.compiler.path": {
+					"type": "string",
+					"default": "",
+					"description": "Path to the Poppy compiler executable"
+				},
+				"poppy.compiler.target": {
+					"type": "string",
+					"default": "nes",
+					"enum": ["nes", "snes", "gb"],
+					"description": "Default target architecture"
+				},
+				"poppy.diagnostics.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable real-time diagnostics"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"lint": "eslint src --ext ts"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"@types/vscode": "^1.80.0",
+		"@typescript-eslint/eslint-plugin": "^6.0.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"eslint": "^8.0.0",
+		"typescript": "^5.0.0"
+	}
+}

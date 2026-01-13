@@ -1,0 +1,271 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Poppy Assembly",
+	"scopeName": "source.pasm",
+	"fileTypes": ["pasm", "inc"],
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#strings" },
+		{ "include": "#directives" },
+		{ "include": "#macros" },
+		{ "include": "#labels" },
+		{ "include": "#instructions" },
+		{ "include": "#numbers" },
+		{ "include": "#operators" },
+		{ "include": "#registers" }
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.semicolon.pasm",
+					"match": ";.*$"
+				},
+				{
+					"name": "comment.block.pasm",
+					"begin": "/\\*",
+					"end": "\\*/"
+				},
+				{
+					"name": "comment.line.double-slash.pasm",
+					"match": "//.*$"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.pasm",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.pasm",
+							"match": "\\\\."
+						}
+					]
+				},
+				{
+					"name": "string.quoted.single.pasm",
+					"begin": "'",
+					"end": "'",
+					"patterns": [
+						{
+							"name": "constant.character.escape.pasm",
+							"match": "\\\\."
+						}
+					]
+				}
+			]
+		},
+		"directives": {
+			"patterns": [
+				{
+					"name": "keyword.control.directive.origin.pasm",
+					"match": "(?i)\\.(org|base|pc)\\b"
+				},
+				{
+					"name": "keyword.control.directive.data.pasm",
+					"match": "(?i)\\.(db|byte|dw|word|dl|long|dd|dword|ds|dsb|dsw|fill|res|ascii|asciiz|text)\\b"
+				},
+				{
+					"name": "keyword.control.directive.include.pasm",
+					"match": "(?i)\\.(include|incbin|incsrc)\\b"
+				},
+				{
+					"name": "keyword.control.directive.conditional.pasm",
+					"match": "(?i)\\.(if|ifdef|ifndef|else|elseif|elif|endif|assert)\\b"
+				},
+				{
+					"name": "keyword.control.directive.macro.pasm",
+					"match": "(?i)\\.(macro|endmacro|endm|define|undef|undefine)\\b"
+				},
+				{
+					"name": "keyword.control.directive.repeat.pasm",
+					"match": "(?i)\\.(repeat|endrep|endrepeat|rept|endr)\\b"
+				},
+				{
+					"name": "keyword.control.directive.scope.pasm",
+					"match": "(?i)\\.(scope|endscope|namespace|endnamespace|proc|endproc)\\b"
+				},
+				{
+					"name": "keyword.control.directive.segment.pasm",
+					"match": "(?i)\\.(segment|bank|section|endsection)\\b"
+				},
+				{
+					"name": "keyword.control.directive.output.pasm",
+					"match": "(?i)\\.(ines|snes|gb|gameboy|header)\\b"
+				},
+				{
+					"name": "keyword.control.directive.mode.pasm",
+					"match": "(?i)\\.(a8|a16|i8|i16|dp|abs|long|smart)\\b"
+				},
+				{
+					"name": "keyword.control.directive.misc.pasm",
+					"match": "(?i)\\.(enum|endenum|struct|endstruct|union|endunion|error|warning|message|print|align|pad)\\b"
+				}
+			]
+		},
+		"macros": {
+			"patterns": [
+				{
+					"name": "entity.name.function.macro.pasm",
+					"match": "(?i)%[a-z_][a-z0-9_]*\\b"
+				},
+				{
+					"name": "variable.parameter.macro.pasm",
+					"match": "(?i)\\\\[a-z_][a-z0-9_]*\\b"
+				},
+				{
+					"name": "variable.parameter.macro.numbered.pasm",
+					"match": "\\\\[0-9]+"
+				}
+			]
+		},
+		"labels": {
+			"patterns": [
+				{
+					"name": "entity.name.function.label.global.pasm",
+					"match": "^[a-zA-Z_][a-zA-Z0-9_]*:"
+				},
+				{
+					"name": "entity.name.function.label.local.pasm",
+					"match": "^\\.[a-zA-Z_][a-zA-Z0-9_]*:"
+				},
+				{
+					"name": "entity.name.function.label.anonymous.pasm",
+					"match": "^[+-]+:"
+				},
+				{
+					"name": "entity.name.function.label.unnamed.pasm",
+					"match": "^:"
+				},
+				{
+					"name": "constant.other.label.reference.forward.pasm",
+					"match": "\\+{1,}"
+				},
+				{
+					"name": "constant.other.label.reference.backward.pasm",
+					"match": "-{1,}"
+				}
+			]
+		},
+		"instructions": {
+			"patterns": [
+				{
+					"comment": "6502/65816 Load/Store",
+					"name": "keyword.mnemonic.load-store.pasm",
+					"match": "(?i)\\b(lda|ldx|ldy|sta|stx|sty|stz)\\b"
+				},
+				{
+					"comment": "6502/65816 Transfer",
+					"name": "keyword.mnemonic.transfer.pasm",
+					"match": "(?i)\\b(tax|tay|txa|tya|tsx|txs|tcd|tcs|tdc|tsc|txy|tyx)\\b"
+				},
+				{
+					"comment": "6502/65816 Stack",
+					"name": "keyword.mnemonic.stack.pasm",
+					"match": "(?i)\\b(pha|php|pla|plp|phx|phy|plx|ply|phb|phd|phk|plb|pld|pea|pei|per)\\b"
+				},
+				{
+					"comment": "6502/65816 Arithmetic",
+					"name": "keyword.mnemonic.arithmetic.pasm",
+					"match": "(?i)\\b(adc|sbc|inc|dec|inx|iny|dex|dey|ina|dea)\\b"
+				},
+				{
+					"comment": "6502/65816 Logic",
+					"name": "keyword.mnemonic.logic.pasm",
+					"match": "(?i)\\b(and|ora|eor|bit|cmp|cpx|cpy|trb|tsb)\\b"
+				},
+				{
+					"comment": "6502/65816 Shift/Rotate",
+					"name": "keyword.mnemonic.shift.pasm",
+					"match": "(?i)\\b(asl|lsr|rol|ror)\\b"
+				},
+				{
+					"comment": "6502/65816 Branch",
+					"name": "keyword.mnemonic.branch.pasm",
+					"match": "(?i)\\b(bcc|bcs|beq|bne|bmi|bpl|bvc|bvs|bra|brl)\\b"
+				},
+				{
+					"comment": "6502/65816 Jump/Call",
+					"name": "keyword.mnemonic.jump.pasm",
+					"match": "(?i)\\b(jmp|jsr|jsl|jml|rts|rtl|rti|brk|cop)\\b"
+				},
+				{
+					"comment": "6502/65816 Flags",
+					"name": "keyword.mnemonic.flags.pasm",
+					"match": "(?i)\\b(clc|cld|cli|clv|sec|sed|sei|rep|sep|xce)\\b"
+				},
+				{
+					"comment": "6502/65816 Misc",
+					"name": "keyword.mnemonic.misc.pasm",
+					"match": "(?i)\\b(nop|wai|stp|wdm|xba|mvn|mvp)\\b"
+				},
+				{
+					"comment": "Game Boy (SM83) specific",
+					"name": "keyword.mnemonic.gameboy.pasm",
+					"match": "(?i)\\b(ld|push|pop|add|sub|adc|sbc|and|or|xor|cp|inc|dec|swap|daa|cpl|ccf|scf|halt|stop|di|ei|rlca|rla|rrca|rra|rlc|rl|rrc|rr|sla|sra|srl|bit|set|res|jp|jr|call|ret|reti|rst)\\b"
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.hex.dollar.pasm",
+					"match": "\\$[0-9a-fA-F]+"
+				},
+				{
+					"name": "constant.numeric.hex.0x.pasm",
+					"match": "0x[0-9a-fA-F]+"
+				},
+				{
+					"name": "constant.numeric.binary.pasm",
+					"match": "%[01]+"
+				},
+				{
+					"name": "constant.numeric.binary.0b.pasm",
+					"match": "0b[01]+"
+				},
+				{
+					"name": "constant.numeric.decimal.pasm",
+					"match": "\\b[0-9]+\\b"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "keyword.operator.immediate.pasm",
+					"match": "#"
+				},
+				{
+					"name": "keyword.operator.arithmetic.pasm",
+					"match": "[+\\-*/<>|&^~!]"
+				},
+				{
+					"name": "keyword.operator.byte-select.pasm",
+					"match": "[<>^]"
+				},
+				{
+					"name": "keyword.operator.assignment.pasm",
+					"match": "="
+				}
+			]
+		},
+		"registers": {
+			"patterns": [
+				{
+					"comment": "6502/65816 registers",
+					"name": "variable.language.register.pasm",
+					"match": "(?i)\\b(a|x|y|s|sp|dp|db|pbr|dbr)\\b"
+				},
+				{
+					"comment": "Game Boy registers",
+					"name": "variable.language.register.gameboy.pasm",
+					"match": "(?i)\\b(af|bc|de|hl|sp|pc|b|c|d|e|h|l|\\[hl\\]|\\[bc\\]|\\[de\\]|\\[c\\])\\b"
+				}
+			]
+		}
+	}
+}

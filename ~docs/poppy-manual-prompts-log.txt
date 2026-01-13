@@ -1,0 +1,87 @@
+
+git commit with descriptions
+
+--- Run `~init.txt` prompts;
+
+during research, save all URLs and resources to a `docs/resources.md` file; continue working, updating logs, docs, etc;
+
+continue working the github issues and todolists (and making more) and work for a long time;
+
+always use the most modern versions of languages and libraries and modern practices, so don't use dotnet 8, use dotnet 10 and c#14, etc; continue and work for a long time; do the "next steps"; update github issues and todo lists and documentation and update chat and session logs; go go go;
+
+use k&r braces, so the operning brace is on the previous lines, not its own line; fix all code, reformat with the right rulews, k&r, tabs, lowercase, etc; make a ton of github issues and epics and sub issues, update plans, and todo-lists, and documentation and update session/chat logs; make sure to make issues and research all the advanced asm code stuff like labels, includes, advanced includes (using asset files) routinue names from jumps, comments, directives (like this file is NES, SNES LoRAM, etc.); continue working issues and todos and create a complete "how to use" manual for the compiler and build pipeline; continue and continue for a long time working on issues; make the project file like the `GameInfo` per game project file that includes assets etc, and code and so allows for a full build, so the compiler should use the disassembly code organized by functionality/section and maybe kick off asset conversion scripts, but can also have no assets or and continue and work issues;
+
+create actual github issues from the `md` files that list the `gthib issues` and the `github issues enhanced`; and then work on those issues; for a long time; continue;
+
+create `git-commit`s with descriptions in logical batches and git commit all files, connecting every git commit to a github issue, update documentation of commits to work features; create actual github issues from the `md` files that list the `github issues` and the `github issues enhanced` add all of them, then create subissues and todolists and plan all of the work needed; and then work on those issues; for a long time; continue;
+
+update the github issues and todo-lists, create new issues and todos, every piece of work and every commit should be associated with an issue; keep working on `poppy` the compiler and all her extensive comprehensive documentation and issues and project file format; continue;
+
+plan and update roadmap and create documentation and create a bunch of github issues for all the work that's about to occur and todo-lists and plan and commit and issue up! then work on those issues; and create a bunch of sub-issues in the github issues and update all plans and todo lists ad documentation and then implement all that work; write that code and file format docs and implement and doc everything for a while;
+
+the assembly code files used with `poppy` should be named `*.pasm` instead of `*.asm` to indicate that they are using our disassembly file formatting; continue working all those files; continue working issues; go go go;  write that code and file format docs and implement and doc everything for a while; continue and work issues;
+
+continue working issues;
+
+--- try again
+
+continue!;
+
+use k&r braces! contune and accomplish a whole lot, updating issues and todo lists and chat/session logs and documentation, go for a while to reach our goal of a custom comprehensive assembler that fits our work flow in GameInfo so we can replace the other compilers for our projects;
+
+use k&r braces! update and close issues that are done, update all the other issues that have work done, make sure to add issues for all work if an issue doesn't exist, document anything and everything, update the syntax documentation (it references `*.asm` files not `*.pasm` files in the examples, and are those `.arch` directive cannon?); I don't like that macros don't have a prefix, fix that; continue with more work and go for a while, keep going, document everything!;
+
+-- switch from claude sonnet to claude opus
+
+-- try again
+
+use k&r braces! update issues, create sub issues for every remaining epic, and analyze the project and create more epics and sub issues to cover they rest of the roadmap, update the roadmap with the ability to compile and run the build pipeline for the projects from the `GameInfo` repository and update the `GameInfo` repos to use poppy (these are only issues/documentation/todo-lists, don't implement yet until we have a strong standalone assembler/compiler/build-tool); make sure the tests actually test if the code completes correctly, and results are match expected values, not just that it completes without an error; continue with more work and go for a while, keep going, document everything!;
+
+-- try again
+
+create `git-commit`s with descriptions in logical batches and git commit all files, connecting every git commit to a github issue, update documentation of commits to work features; continue with more work and go for a while, keep going, document everything!;
+
+continue;
+
+pick a random issue and work on it; continue;
+
+dangit, ***stop putting opening braces on their own line***, use K&R braces instead, format the whole project; pick another issue and implement it, maybe a couple of issues; continue;
+
+pick several random issues and implement them; continue;
+
+pick several random issues and implement them; continue;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

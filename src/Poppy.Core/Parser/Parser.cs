@@ -1,0 +1,1225 @@
+// ============================================================================
+// Parser.cs - Assembly Source Parser
+// Poppy Compiler - Multi-system Assembly Compiler
+// ============================================================================
+
+using Poppy.Core.Lexer;
+using Poppy.Core.Semantics;
+
+namespace Poppy.Core.Parser;
+
+/// <summary>
+/// Parses a stream of tokens into an Abstract Syntax Tree (AST).
+/// </summary>
+public sealed class Parser {
+	private readonly List<Token> _tokens;
+	private readonly List<ParseError> _errors;
+	private int _current;
+
+	/// <summary>
+	/// Gets the list of parse errors encountered.
+	/// </summary>
+	public IReadOnlyList<ParseError> Errors => _errors;
+
+	/// <summary>
+	/// Gets whether parsing encountered any errors.
+	/// </summary>
+	public bool HasErrors => _errors.Count > 0;
+
+	/// <summary>
+	/// Creates a new parser for the given tokens.
+	/// </summary>
+	public Parser(List<Token> tokens) {
+		_tokens = tokens;
+		_errors = [];
+		_current = 0;
+	}
+
+	/// <summary>
+	/// Parses the tokens into a program AST.
+	/// </summary>
+	public ProgramNode Parse() {
+		var statements = new List<StatementNode>();
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			try {
+				var statement = ParseStatement();
+				if (statement is not null) {
+					statements.Add(statement);
+				}
+			} catch (ParseException ex) {
+				_errors.Add(new ParseError(ex.Message, ex.Location));
+				Synchronize();
+			}
+		}
+
+		var location = _tokens.Count > 0 ? _tokens[0].Location : new SourceLocation("", 1, 1, 0);
+		return new ProgramNode(location, statements);
+	}
+
+	// ========================================================================
+	// Statement Parsing
+	// ========================================================================
+
+	private StatementNode? ParseStatement() {
+		// Skip comments
+		if (Check(TokenType.Comment)) {
+			Advance();
+			return null;
+		}
+
+		// Directive (starts with .)
+		if (Check(TokenType.Directive)) {
+			return ParseDirective();
+		}
+
+		// Label or instruction
+		if (Check(TokenType.Identifier)) {
+			return ParseLabelOrIdentifier();
+		}
+
+		// Mnemonic instruction
+		if (Check(TokenType.Mnemonic)) {
+			return ParseInstruction();
+		}
+
+		// Anonymous label forward (+)
+		if (Check(TokenType.Plus)) {
+			return ParseAnonymousLabel(isForward: true);
+		}
+
+		// Anonymous label backward (-)
+		if (Check(TokenType.Minus)) {
+			return ParseAnonymousLabel(isForward: false);
+		}
+
+		// Named anonymous label forward (+name)
+		if (Check(TokenType.NamedAnonymousForward)) {
+			return ParseNamedAnonymousLabel(isForward: true);
+		}
+
+		// Named anonymous label backward (-name)
+		if (Check(TokenType.NamedAnonymousBackward)) {
+			return ParseNamedAnonymousLabel(isForward: false);
+		}
+
+		// Skip unexpected tokens
+		var token = Advance();
+		ReportError($"Unexpected token: {token.Type}", token.Location);
+		return null;
+	}
+
+	private StatementNode ParseDirective() {
+		var token = Advance();
+		var directiveName = token.Text[1..]; // Remove leading .
+
+		// Check for macro definition
+		if (directiveName.Equals("macro", StringComparison.OrdinalIgnoreCase)) {
+			return ParseMacroDefinition(token.Location);
+		}
+
+		// Check for conditional assembly
+		if (directiveName.Equals("if", StringComparison.OrdinalIgnoreCase)) {
+			return ParseConditional(token.Location);
+		}
+
+		// Check for symbol conditionals
+		if (directiveName.Equals("ifdef", StringComparison.OrdinalIgnoreCase)) {
+			return ParseSymbolConditional(token.Location, false); // ifdef = check if defined
+		}
+
+		if (directiveName.Equals("ifndef", StringComparison.OrdinalIgnoreCase)) {
+			return ParseSymbolConditional(token.Location, true); // ifndef = check if NOT defined
+		}
+
+		// Check for comparison conditionals
+		if (directiveName.Equals("ifeq", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.Equal);
+		}
+
+		if (directiveName.Equals("ifne", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.NotEqual);
+		}
+
+		if (directiveName.Equals("ifgt", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.GreaterThan);
+		}
+
+		if (directiveName.Equals("iflt", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.LessThan);
+		}
+
+		if (directiveName.Equals("ifge", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.GreaterOrEqual);
+		}
+
+		if (directiveName.Equals("ifle", StringComparison.OrdinalIgnoreCase)) {
+			return ParseComparisonConditional(token.Location, BinaryOperator.LessOrEqual);
+		}
+
+		// Check for repeat block
+		if (directiveName.Equals("rept", StringComparison.OrdinalIgnoreCase)) {
+			return ParseRepeatBlock(token.Location);
+		}
+
+		// Check for enumeration block
+		if (directiveName.Equals("enum", StringComparison.OrdinalIgnoreCase)) {
+			return ParseEnumerationBlock(token.Location);
+		}
+
+		// Parse directive arguments
+		var arguments = new List<ExpressionNode>();
+
+		// Parse first argument if present
+		if (!IsAtEndOfStatement()) {
+			arguments.Add(ParseExpression());
+
+			// Parse additional comma-separated arguments
+			while (Match(TokenType.Comma)) {
+				arguments.Add(ParseExpression());
+			}
+		}
+
+		ExpectEndOfStatement();
+		return new DirectiveNode(token.Location, directiveName, arguments);
+	}
+
+	private StatementNode ParseLabelOrIdentifier() {
+		var token = Advance();
+		var isLocal = token.Text.StartsWith('@');
+
+		// If followed by colon, it's a label definition
+		if (Check(TokenType.Colon)) {
+			Advance(); // consume colon
+			return new LabelNode(token.Location, token.Text, isLocal);
+		}
+
+		// If followed by equals, it's an assignment (EQU-style)
+		if (Check(TokenType.Equals)) {
+			Advance(); // consume equals
+			var value = ParseExpression();
+			ExpectEndOfStatement();
+			return new DirectiveNode(token.Location, "equ", [new IdentifierNode(token.Location, token.Text), value]);
+		}
+
+		// Macro invocations MUST start with @
+		if (!isLocal) {
+			throw new ParseException(
+				$"Unexpected identifier '{token.Text}'. Did you mean '@{token.Text}' for a macro invocation?",
+				token.Location);
+		}
+
+		// It's a macro invocation (starts with @ and not followed by colon)
+		var macroName = token.Text[1..]; // Remove @ prefix
+		var arguments = new List<ExpressionNode>();
+
+		if (!IsAtEndOfStatement()) {
+			arguments.Add(ParseExpression());
+
+			// Parse additional comma-separated arguments
+			while (Match(TokenType.Comma)) {
+				arguments.Add(ParseExpression());
+			}
+		}
+
+		ExpectEndOfStatement();
+		return new MacroInvocationNode(token.Location, macroName, arguments);
+	}
+
+	private StatementNode ParseInstruction() {
+		var token = Advance();
+		var mnemonic = token.Text;
+		char? sizeSuffix = null;
+
+		// Check for size suffix (e.g., lda.b)
+		if (mnemonic.Length > 2 && mnemonic[^2] == '.') {
+			sizeSuffix = char.ToLowerInvariant(mnemonic[^1]);
+			mnemonic = mnemonic[..^2];
+		}
+
+		// Implied addressing (no operand)
+		if (IsAtEndOfStatement()) {
+			return new InstructionNode(token.Location, mnemonic, sizeSuffix, null, AddressingMode.Implied);
+		}
+
+		// Parse operand and determine addressing mode
+		var (operand, addressingMode) = ParseOperand();
+
+		ExpectEndOfStatement();
+		return new InstructionNode(token.Location, mnemonic, sizeSuffix, operand, addressingMode);
+	}
+
+	private (ExpressionNode? Operand, AddressingMode Mode) ParseOperand() {
+		// Accumulator addressing (A or a)
+		if (Check(TokenType.Identifier) && CurrentToken.Text.Equals("a", StringComparison.OrdinalIgnoreCase)) {
+			Advance();
+			return (null, AddressingMode.Accumulator);
+		}
+
+		// Immediate addressing (#)
+		if (Match(TokenType.Hash)) {
+			var expr = ParseExpression();
+			return (expr, AddressingMode.Immediate);
+		}
+
+		// Indirect addressing (parentheses or brackets)
+		if (Check(TokenType.LeftParen)) {
+			return ParseIndirectOperand();
+		}
+
+		if (Check(TokenType.LeftBracket)) {
+			return ParseBracketOperand();
+		}
+
+		// Direct/absolute addressing with possible indexing
+		var operand = ParseExpression();
+
+		// Check for indexing
+		if (Match(TokenType.Comma)) {
+			var indexToken = Advance();
+			var indexReg = indexToken.Text.ToLowerInvariant();
+
+			return indexReg switch {
+				"x" => (operand, AddressingMode.AbsoluteX),
+				"y" => (operand, AddressingMode.AbsoluteY),
+				"s" => (operand, AddressingMode.StackRelative),
+				_ => throw new ParseException($"Invalid index register: {indexToken.Text}", indexToken.Location)
+			};
+		}
+
+		// Plain absolute/zero page addressing (determined later by value)
+		return (operand, AddressingMode.Absolute);
+	}
+
+	private (ExpressionNode Operand, AddressingMode Mode) ParseIndirectOperand() {
+		Advance(); // consume (
+
+		var expr = ParseExpression();
+
+		// ($00,x) - Indexed Indirect
+		if (Match(TokenType.Comma)) {
+			var indexToken = Advance();
+			if (!indexToken.Text.Equals("x", StringComparison.OrdinalIgnoreCase)) {
+				throw new ParseException($"Expected 'X' for indexed indirect, got: {indexToken.Text}", indexToken.Location);
+			}
+
+			Expect(TokenType.RightParen, "Expected ')' after indexed indirect operand");
+
+			return (expr, AddressingMode.IndexedIndirect);
+		}
+
+		Expect(TokenType.RightParen, "Expected ')' after indirect operand");
+
+		// ($00),y - Indirect Indexed
+		if (Match(TokenType.Comma)) {
+			var indexToken = Advance();
+			if (!indexToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase)) {
+				throw new ParseException($"Expected 'Y' for indirect indexed, got: {indexToken.Text}", indexToken.Location);
+			}
+
+			return (expr, AddressingMode.IndirectIndexed);
+		}
+
+		// Plain indirect (JMP ($fffc))
+		return (expr, AddressingMode.Indirect);
+	}
+
+	private (ExpressionNode Operand, AddressingMode Mode) ParseBracketOperand() {
+		Advance(); // consume [
+
+		var expr = ParseExpression();
+		Expect(TokenType.RightBracket, "Expected ']' after bracket operand");
+
+		// [$00],y - Indirect Long Indexed
+		if (Match(TokenType.Comma)) {
+			var indexToken = Advance();
+			if (!indexToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase)) {
+				throw new ParseException($"Expected 'Y' for indirect long indexed, got: {indexToken.Text}", indexToken.Location);
+			}
+
+			return (expr, AddressingMode.DirectPageIndirectLongY);
+		}
+
+		// Plain indirect long
+		return (expr, AddressingMode.DirectPageIndirectLong);
+	}
+
+	private StatementNode ParseAnonymousLabel(bool isForward) {
+		var token = Advance();
+
+		// Check if it's a label definition (followed by colon)
+		if (Check(TokenType.Colon)) {
+			Advance();
+			return new LabelNode(token.Location, isForward ? "+" : "-");
+		}
+
+		// Otherwise, treat as an instruction operand (branch target)
+		ReportError("Anonymous labels as statement must be followed by ':'", token.Location);
+		return new LabelNode(token.Location, isForward ? "+" : "-");
+	}
+
+	private StatementNode ParseNamedAnonymousLabel(bool isForward) {
+		var token = Advance();
+
+		// Check if it's a label definition (followed by colon)
+		if (Check(TokenType.Colon)) {
+			Advance();
+			// Store the name with the +/- prefix
+			return new LabelNode(token.Location, token.Text);
+		}
+
+		// Otherwise, treat as an instruction operand (branch target)
+		ReportError("Named anonymous labels as statement must be followed by ':'", token.Location);
+		return new LabelNode(token.Location, token.Text);
+	}
+
+	private MacroDefinitionNode ParseMacroDefinition(SourceLocation location) {
+		// Parse macro name (allow identifiers or mnemonics - validation happens in semantic analysis)
+		Token nameToken;
+		if (Check(TokenType.Identifier)) {
+			nameToken = Advance();
+		} else if (Check(TokenType.Mnemonic)) {
+			// Allow mnemonics as macro names (will be validated as reserved words later)
+			nameToken = Advance();
+		} else {
+			throw new ParseException("Expected macro name after .macro", CurrentToken.Location);
+		}
+
+		var name = nameToken.Text;
+
+		// Parse parameters with optional default values
+		// Support flexible syntax:
+		//   .macro name param1 param2 param3              (space-separated)
+		//   .macro name, param1, param2, param3           (comma-separated)
+		//   .macro name param1, param2, param3            (mixed)
+		//   .macro name param1=$00, param2, param3=$ff    (with defaults)
+		var parameters = new List<MacroParameter>();
+
+		// Skip optional comma after macro name
+		Match(TokenType.Comma);
+
+		// Parse parameters separated by spaces and/or commas
+		while (Check(TokenType.Identifier)) {
+			var paramName = Advance().Text;
+			IReadOnlyList<Token>? defaultValue = null;
+
+			// Check for default value (param=value)
+			if (Match(TokenType.Equals)) {
+				// Parse default value tokens until comma or end of statement
+				var defaultTokens = new List<Token>();
+				while (!IsAtEndOfStatement() && !Check(TokenType.Comma)) {
+					defaultTokens.Add(Advance());
+				}
+
+				if (defaultTokens.Count == 0) {
+					throw new ParseException($"Expected default value after '=' for parameter '{paramName}'", CurrentToken.Location);
+				}
+
+				defaultValue = defaultTokens;
+			}
+
+			parameters.Add(new MacroParameter(paramName, defaultValue));
+
+			// Optional comma between parameters
+			Match(TokenType.Comma);
+		}
+
+		ExpectEndOfStatement();
+
+		// Parse body until .endmacro
+		var body = new List<StatementNode>();
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .endmacro
+			if (Check(TokenType.Directive) && CurrentToken.Text.Equals(".endmacro", StringComparison.OrdinalIgnoreCase)) {
+				Advance();
+				break;
+			}
+
+			var statement = ParseStatement();
+			if (statement is not null) {
+				body.Add(statement);
+			}
+		}
+
+		return new MacroDefinitionNode(location, name, parameters, body);
+	}
+
+	private ConditionalNode ParseConditional(SourceLocation location) {
+		// Parse the .if condition
+		var condition = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Parse the then block
+		var thenBlock = new List<StatementNode>();
+		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode>? elseBlock = null;
+		bool hasElse = false;
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .elseif, .else, or .endif
+			if (Check(TokenType.Directive)) {
+				var directiveName = CurrentToken.Text[1..].ToLowerInvariant();
+
+				if (directiveName == "endif") {
+					Advance();
+					return new ConditionalNode(location, condition, thenBlock, elseIfBranches, elseBlock);
+				} else if (directiveName == "elseif") {
+					if (hasElse) {
+						throw new ParseException(".elseif cannot appear after .else", CurrentToken.Location);
+					}
+
+					Advance();
+					var elseIfCondition = ParseExpression();
+					ExpectEndOfStatement();
+
+					var elseIfBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif" || nextDirective == "elseif" || nextDirective == "else") {
+								break;
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseIfBlock.Add(statement);
+						}
+					}
+
+					elseIfBranches.Add((elseIfCondition, elseIfBlock));
+				} else if (directiveName == "else") {
+					if (hasElse) {
+						throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+					}
+
+					hasElse = true;
+					Advance();
+					ExpectEndOfStatement();
+
+					elseBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif") {
+								break;
+							} else if (nextDirective == "elseif") {
+								throw new ParseException(".elseif cannot appear after .else", CurrentToken.Location);
+							} else if (nextDirective == "else") {
+								throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseBlock.Add(statement);
+						}
+					}
+				} else {
+					// Regular directive inside the then block
+					var statement = ParseStatement();
+					if (statement is not null) {
+						thenBlock.Add(statement);
+					}
+				}
+			} else {
+				// Regular statement inside the then block
+				var statement = ParseStatement();
+				if (statement is not null) {
+					thenBlock.Add(statement);
+				}
+			}
+		}
+
+		throw new ParseException("Expected .endif to close .if block", location);
+	}
+
+	private ConditionalNode ParseSymbolConditional(SourceLocation location, bool negate) {
+		// Parse the symbol name
+		if (!Check(TokenType.Identifier)) {
+			throw new ParseException($"Expected symbol name after .{(negate ? "ifndef" : "ifdef")}", CurrentToken.Location);
+		}
+
+		var symbolToken = Advance();
+		var symbolName = symbolToken.Text;
+		ExpectEndOfStatement();
+
+		// Create condition: for ifdef, just the identifier; for ifndef, wrap in logical NOT
+		ExpressionNode condition;
+		if (negate) {
+			// .ifndef - check if symbol is NOT defined
+			condition = new UnaryExpressionNode(
+				symbolToken.Location,
+				UnaryOperator.LogicalNot,
+				new IdentifierNode(symbolToken.Location, symbolName));
+		} else {
+			// .ifdef - check if symbol is defined
+			condition = new IdentifierNode(symbolToken.Location, symbolName);
+		}
+
+		// Parse the then block (reuse conditional parsing logic)
+		var thenBlock = new List<StatementNode>();
+		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode>? elseBlock = null;
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			if (Check(TokenType.Directive)) {
+				var directiveName = CurrentToken.Text[1..].ToLowerInvariant();
+
+				if (directiveName == "endif") {
+					Advance();
+					return new ConditionalNode(location, condition, thenBlock, elseIfBranches, elseBlock);
+				} else if (directiveName == "else") {
+					Advance();
+					ExpectEndOfStatement();
+
+					elseBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif") {
+								break;
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseBlock.Add(statement);
+						}
+					}
+				} else {
+					// Regular directive inside the then block
+					var statement = ParseStatement();
+					if (statement is not null) {
+						thenBlock.Add(statement);
+					}
+				}
+			} else {
+				// Regular statement inside the then block
+				var statement = ParseStatement();
+				if (statement is not null) {
+					thenBlock.Add(statement);
+				}
+			}
+		}
+
+		throw new ParseException($"Expected .endif to close .{(negate ? "ifndef" : "ifdef")} block", location);
+	}
+
+	private ConditionalNode ParseComparisonConditional(SourceLocation location, BinaryOperator comparisonOp) {
+		// Parse first operand
+		var left = ParseExpression();
+
+		// Expect comma separator
+		if (!Match(TokenType.Comma)) {
+			throw new ParseException($"Expected comma after first operand in comparison conditional", CurrentToken.Location);
+		}
+
+		// Parse second operand
+		var right = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Create comparison expression
+		var condition = new BinaryExpressionNode(location, left, comparisonOp, right);
+
+		// Parse the then block
+		var thenBlock = new List<StatementNode>();
+		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode>? elseBlock = null;
+		bool hasElse = false;
+
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			if (Check(TokenType.Directive)) {
+				var directiveName = CurrentToken.Text[1..].ToLowerInvariant();
+
+				if (directiveName == "endif") {
+					Advance();
+					return new ConditionalNode(location, condition, thenBlock, elseIfBranches, elseBlock);
+				} else if (directiveName == "else") {
+					if (hasElse) {
+						throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+					}
+
+					hasElse = true;
+					Advance();
+					ExpectEndOfStatement();
+
+					elseBlock = new List<StatementNode>();
+					while (!IsAtEnd()) {
+						SkipNewlines();
+						if (IsAtEnd()) break;
+
+						if (Check(TokenType.Directive)) {
+							var nextDirective = CurrentToken.Text[1..].ToLowerInvariant();
+							if (nextDirective == "endif") {
+								break;
+							} else if (nextDirective == "else") {
+								throw new ParseException("Multiple .else blocks in conditional", CurrentToken.Location);
+							}
+						}
+
+						var statement = ParseStatement();
+						if (statement is not null) {
+							elseBlock.Add(statement);
+						}
+					}
+				} else {
+					// Regular directive inside the then block
+					var statement = ParseStatement();
+					if (statement is not null) {
+						thenBlock.Add(statement);
+					}
+				}
+			} else {
+				// Regular statement inside the then block
+				var statement = ParseStatement();
+				if (statement is not null) {
+					thenBlock.Add(statement);
+				}
+			}
+		}
+
+		throw new ParseException("Expected .endif to close comparison conditional block", location);
+	}
+
+	private RepeatBlockNode ParseRepeatBlock(SourceLocation location) {
+		// Parse the repeat count expression
+		var count = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Parse the body until .endr
+		var body = new List<StatementNode>();
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .endr
+			if (Check(TokenType.Directive) && CurrentToken.Text.Equals(".endr", StringComparison.OrdinalIgnoreCase)) {
+				Advance();
+				return new RepeatBlockNode(location, count, body);
+			}
+
+			var statement = ParseStatement();
+			if (statement is not null) {
+				body.Add(statement);
+			}
+		}
+
+		throw new ParseException("Expected .endr to close .rept block", location);
+	}
+
+	private EnumerationBlockNode ParseEnumerationBlock(SourceLocation location) {
+		// Parse the starting value expression
+		var startValue = ParseExpression();
+		ExpectEndOfStatement();
+
+		// Parse enumeration members until .ende
+		var members = new List<EnumerationMember>();
+		while (!IsAtEnd()) {
+			SkipNewlines();
+			if (IsAtEnd()) break;
+
+			// Check for .ende
+			if (Check(TokenType.Directive) && CurrentToken.Text.Equals(".ende", StringComparison.OrdinalIgnoreCase)) {
+				Advance();
+				return new EnumerationBlockNode(location, startValue, members);
+			}
+
+			// Parse member: IDENTIFIER [= value] [.db/.dw/.dl]
+			if (!Check(TokenType.Identifier)) {
+				throw new ParseException("Expected identifier in enumeration block", CurrentToken.Location);
+			}
+
+			var nameToken = Advance();
+			var name = nameToken.Text;
+			ExpressionNode? value = null;
+			string? sizeDirective = null;
+
+			// Check for explicit value assignment
+			if (Match(TokenType.Equals)) {
+				value = ParseExpression();
+			}
+
+			// Check for size directive
+			if (Check(TokenType.Directive)) {
+				var directive = CurrentToken.Text.ToLowerInvariant();
+				if (directive == ".db" || directive == ".dw" || directive == ".dl") {
+					sizeDirective = directive;
+					Advance();
+				}
+			}
+
+			members.Add(new EnumerationMember(name, value, sizeDirective));
+			ExpectEndOfStatement();
+		}
+
+		throw new ParseException("Expected .ende to close .enum block", location);
+	}
+
+	// ========================================================================
+	// Expression Parsing (Precedence Climbing)
+	// ========================================================================
+
+	/// <summary>
+	/// Parses an expression from the current token stream.
+	/// This is exposed publicly to allow parsing default parameter values.
+	/// </summary>
+	/// <returns>The parsed expression node.</returns>
+	public ExpressionNode ParseExpression() {
+		return ParseLogicalOr();
+	}
+
+	private ExpressionNode ParseLogicalOr() {
+		var left = ParseLogicalAnd();
+
+		while (Match(TokenType.PipePipe)) {
+			var location = Previous.Location;
+			var right = ParseLogicalAnd();
+			left = new BinaryExpressionNode(location, left, BinaryOperator.LogicalOr, right);
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseLogicalAnd() {
+		var left = ParseBitwiseOr();
+
+		while (Match(TokenType.AmpersandAmpersand)) {
+			var location = Previous.Location;
+			var right = ParseBitwiseOr();
+			left = new BinaryExpressionNode(location, left, BinaryOperator.LogicalAnd, right);
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseBitwiseOr() {
+		var left = ParseBitwiseXor();
+
+		while (Match(TokenType.Pipe)) {
+			var location = Previous.Location;
+			var right = ParseBitwiseXor();
+			left = new BinaryExpressionNode(location, left, BinaryOperator.BitwiseOr, right);
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseBitwiseXor() {
+		var left = ParseBitwiseAnd();
+
+		while (Match(TokenType.Caret)) {
+			var location = Previous.Location;
+			var right = ParseBitwiseAnd();
+			left = new BinaryExpressionNode(location, left, BinaryOperator.BitwiseXor, right);
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseBitwiseAnd() {
+		var left = ParseEquality();
+
+		while (Match(TokenType.Ampersand)) {
+			var location = Previous.Location;
+			var right = ParseEquality();
+			left = new BinaryExpressionNode(location, left, BinaryOperator.BitwiseAnd, right);
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseEquality() {
+		var left = ParseComparison();
+
+		while (true) {
+			if (Match(TokenType.EqualsEquals)) {
+				var location = Previous.Location;
+				var right = ParseComparison();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.Equal, right);
+			} else if (Match(TokenType.BangEquals)) {
+				var location = Previous.Location;
+				var right = ParseComparison();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.NotEqual, right);
+			} else {
+				break;
+			}
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseComparison() {
+		var left = ParseShift();
+
+		while (true) {
+			if (Match(TokenType.LessThan)) {
+				var location = Previous.Location;
+				var right = ParseShift();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.LessThan, right);
+			} else if (Match(TokenType.GreaterThan)) {
+				var location = Previous.Location;
+				var right = ParseShift();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.GreaterThan, right);
+			} else if (Match(TokenType.LessEquals)) {
+				var location = Previous.Location;
+				var right = ParseShift();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.LessOrEqual, right);
+			} else if (Match(TokenType.GreaterEquals)) {
+				var location = Previous.Location;
+				var right = ParseShift();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.GreaterOrEqual, right);
+			} else {
+				break;
+			}
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseShift() {
+		var left = ParseAdditive();
+
+		while (true) {
+			if (Match(TokenType.LeftShift)) {
+				var location = Previous.Location;
+				var right = ParseAdditive();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.LeftShift, right);
+			} else if (Match(TokenType.RightShift)) {
+				var location = Previous.Location;
+				var right = ParseAdditive();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.RightShift, right);
+			} else {
+				break;
+			}
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseAdditive() {
+		var left = ParseMultiplicative();
+
+		while (true) {
+			if (Match(TokenType.Plus)) {
+				var location = Previous.Location;
+				var right = ParseMultiplicative();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.Add, right);
+			} else if (Match(TokenType.Minus)) {
+				var location = Previous.Location;
+				var right = ParseMultiplicative();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.Subtract, right);
+			} else {
+				break;
+			}
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseMultiplicative() {
+		var left = ParseUnary();
+
+		while (true) {
+			if (Match(TokenType.Star)) {
+				var location = Previous.Location;
+				var right = ParseUnary();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.Multiply, right);
+			} else if (Match(TokenType.Slash)) {
+				var location = Previous.Location;
+				var right = ParseUnary();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.Divide, right);
+			} else if (Match(TokenType.Percent)) {
+				var location = Previous.Location;
+				var right = ParseUnary();
+				left = new BinaryExpressionNode(location, left, BinaryOperator.Modulo, right);
+			} else {
+				break;
+			}
+		}
+
+		return left;
+	}
+
+	private ExpressionNode ParseUnary() {
+		// Check for anonymous label reference first
+		// Anonymous labels (+ or -) are used when NOT followed by a primary expression start
+		if (Check(TokenType.Plus) || Check(TokenType.Minus)) {
+			bool isPlus = Check(TokenType.Plus);
+			// Look ahead to see what follows
+			int lookahead = _current + 1;
+			bool hasPrimary = lookahead < _tokens.Count &&
+				IsPrimaryExpressionStart(_tokens[lookahead].Type);
+
+			// If not followed by a primary expression, treat as anonymous label
+			if (!hasPrimary) {
+				return ParsePrimary(); // This will handle anonymous labels
+			}
+		}
+
+		// Negation (-)
+		if (Match(TokenType.Minus)) {
+			var location = Previous.Location;
+			var operand = ParseUnary();
+			return new UnaryExpressionNode(location, UnaryOperator.Negate, operand);
+		}
+
+		// Bitwise NOT (~)
+		if (Match(TokenType.Tilde)) {
+			var location = Previous.Location;
+			var operand = ParseUnary();
+			return new UnaryExpressionNode(location, UnaryOperator.BitwiseNot, operand);
+		}
+
+		// Logical NOT (!)
+		if (Match(TokenType.Bang)) {
+			var location = Previous.Location;
+			var operand = ParseUnary();
+			return new UnaryExpressionNode(location, UnaryOperator.LogicalNot, operand);
+		}
+
+		// Low byte (<)
+		if (Match(TokenType.LessThan)) {
+			var location = Previous.Location;
+			var operand = ParseUnary();
+			return new UnaryExpressionNode(location, UnaryOperator.LowByte, operand);
+		}
+
+		// High byte (>)
+		if (Match(TokenType.GreaterThan)) {
+			var location = Previous.Location;
+			var operand = ParseUnary();
+			return new UnaryExpressionNode(location, UnaryOperator.HighByte, operand);
+		}
+
+		// Bank byte (^) - 65816 specific
+		if (Match(TokenType.Caret)) {
+			var location = Previous.Location;
+			var operand = ParseUnary();
+			return new UnaryExpressionNode(location, UnaryOperator.BankByte, operand);
+		}
+
+		return ParsePrimary();
+	}
+
+	/// <summary>
+	/// Checks if a token type can start a primary expression.
+	/// </summary>
+	private static bool IsPrimaryExpressionStart(TokenType type) {
+		return type switch {
+			TokenType.Number => true,
+			TokenType.String => true,
+			TokenType.Identifier => true,
+			TokenType.Mnemonic => true,
+			TokenType.Star => true,
+			TokenType.LeftParen => true,
+			_ => false
+		};
+	}
+
+	private ExpressionNode ParsePrimary() {
+		// Immediate value (#)
+		if (Match(TokenType.Hash)) {
+			var location = Previous.Location;
+			var value = ParsePrimary();  // Parse the expression after #
+										 // Wrap in a unary expression to preserve the # prefix
+			return new UnaryExpressionNode(location, UnaryOperator.Immediate, value);
+		}
+
+		// Number literal
+		if (Check(TokenType.Number)) {
+			var token = Advance();
+			return new NumberLiteralNode(token.Location, token.NumericValue ?? 0);
+		}
+
+		// String literal
+		if (Check(TokenType.String)) {
+			var token = Advance();
+			return new StringLiteralNode(token.Location, token.Text);
+		}
+
+		// Identifier
+		if (Check(TokenType.Identifier) || Check(TokenType.Mnemonic)) {
+			var token = Advance();
+			return new IdentifierNode(token.Location, token.Text);
+		}
+
+		// Current address (*)
+		if (Match(TokenType.Star)) {
+			return new IdentifierNode(Previous.Location, "*");
+		}
+
+		// Anonymous label reference (+ or -)
+		// Handles +, ++, +++, ... and -, --, ---, ...
+		if (Check(TokenType.Plus) || Check(TokenType.Minus)) {
+			var location = CurrentToken.Location;
+			bool isForward = Check(TokenType.Plus);
+			var builder = new System.Text.StringBuilder();
+			while (Check(TokenType.Plus) == isForward && (Check(TokenType.Plus) || Check(TokenType.Minus))) {
+				builder.Append(isForward ? '+' : '-');
+				Advance();
+			}
+
+			return new IdentifierNode(location, builder.ToString());
+		}
+
+		// Named anonymous label reference (+name or -name)
+		if (Check(TokenType.NamedAnonymousForward) || Check(TokenType.NamedAnonymousBackward)) {
+			var token = Advance();
+			return new IdentifierNode(token.Location, token.Text);
+		}
+
+		// Grouped expression
+		if (Match(TokenType.LeftParen)) {
+			var expr = ParseExpression();
+			Expect(TokenType.RightParen, "Expected ')' after grouped expression");
+			return expr;
+		}
+
+		throw new ParseException($"Expected expression, got: {CurrentToken.Type}", CurrentToken.Location);
+	}
+
+	// ========================================================================
+	// Helper Methods
+	// ========================================================================
+
+	private bool IsAtEnd() =>
+		_current >= _tokens.Count || _tokens[_current].Type == TokenType.EndOfFile;
+
+	private bool IsAtEndOfStatement() =>
+		IsAtEnd() || Check(TokenType.Newline) || Check(TokenType.Comment);
+
+	private Token CurrentToken => _tokens[_current];
+
+	private Token Previous => _tokens[_current - 1];
+
+	private bool Check(TokenType type) =>
+		!IsAtEnd() && _tokens[_current].Type == type;
+
+	private Token Advance() {
+		if (!IsAtEnd()) {
+			_current++;
+		}
+
+		return Previous;
+	}
+
+	private bool Match(TokenType type) {
+		if (Check(type)) {
+			Advance();
+			return true;
+		}
+
+		return false;
+	}
+
+	private Token Expect(TokenType type, string message) {
+		if (Check(type)) {
+			return Advance();
+		}
+
+		throw new ParseException($"{message}. Got: {CurrentToken.Type}", CurrentToken.Location);
+	}
+
+	private void ExpectEndOfStatement() {
+		if (!IsAtEndOfStatement()) {
+			ReportError($"Expected end of statement, got: {CurrentToken.Type}", CurrentToken.Location);
+		}
+
+		SkipNewlines();
+	}
+
+	private void SkipNewlines() {
+		while (Check(TokenType.Newline) || Check(TokenType.Comment)) {
+			Advance();
+		}
+	}
+
+	private void Synchronize() {
+		while (!IsAtEnd()) {
+			if (Check(TokenType.Newline)) {
+				Advance();
+				return;
+			}
+
+			Advance();
+		}
+	}
+
+	private void ReportError(string message, SourceLocation location) {
+		_errors.Add(new ParseError(message, location));
+	}
+}
+
+/// <summary>
+/// Represents a parse error.
+/// </summary>
+public sealed class ParseError {
+	/// <summary>
+	/// The error message.
+	/// </summary>
+	public string Message { get; }
+
+	/// <summary>
+	/// The source location where the error occurred.
+	/// </summary>
+	public SourceLocation Location { get; }
+
+	/// <summary>
+	/// Creates a new parse error.
+	/// </summary>
+	/// <param name="message">The error message.</param>
+	/// <param name="location">The source location where the error occurred.</param>
+	public ParseError(string message, SourceLocation location) {
+		Message = message;
+		Location = location;
+	}
+
+	/// <inheritdoc />
+	public override string ToString() =>
+		$"{Location}: error: {Message}";
+}
+
+/// <summary>
+/// Exception thrown during parsing for error recovery.
+/// </summary>
+public class ParseException : Exception {
+	/// <summary>
+	/// The source location where the error occurred.
+	/// </summary>
+	public SourceLocation Location { get; }
+
+	/// <summary>
+	/// Creates a new parse exception.
+	/// </summary>
+	/// <param name="message">The error message.</param>
+	/// <param name="location">The source location.</param>
+	public ParseException(string message, SourceLocation location)
+		: base(message) {
+		Location = location;
+	}
+}
