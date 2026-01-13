@@ -113,6 +113,7 @@ internal static class Program {
 
 		// Semantic analysis
 		var analyzer = new SemanticAnalyzer(options.Target);
+		analyzer.AutoGenerateRoutineLabels = options.AutoGenerateLabels;
 		analyzer.Analyze(program);
 
 		if (analyzer.HasErrors) {
@@ -299,6 +300,11 @@ internal static class Program {
 					}
 					break;
 
+				case "-a":
+				case "--auto-labels":
+					options.AutoGenerateLabels = true;
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -326,6 +332,7 @@ internal static class Program {
 		Console.WriteLine("  -l, --listing <file> Generate listing file");
 		Console.WriteLine("  -s, --symbols <file> Generate symbol file (.nl, .mlb, .sym)");
 		Console.WriteLine("  -m, --mapfile <file> Generate memory map file");
+		Console.WriteLine("  -a, --auto-labels    Auto-generate labels for JSR/JMP targets");
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
@@ -381,4 +388,7 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Enable verbose output.</summary>
 	public bool Verbose { get; set; }
+
+	/// <summary>Auto-generate labels for JSR/JMP targets.</summary>
+	public bool AutoGenerateLabels { get; set; }
 }
