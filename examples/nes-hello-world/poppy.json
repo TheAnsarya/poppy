@@ -1,0 +1,16 @@
+{
+	"name": "HelloWorld",
+	"version": "1.0.0",
+	"target": "nes",
+	"output": "hello.nes",
+	"main": "main.pasm",
+	"includes": [
+		"include/"
+	],
+	"defines": {
+		"DEBUG": 0
+	},
+	"listing": "hello.lst",
+	"symbols": "hello.sym",
+	"mapfile": "hello.map"
+}
