@@ -37,8 +37,11 @@ use k&r braces! update and close issues that are done, update all the other issu
 
 use k&r braces! update issues, create sub issues for every remaining epic, and analyze the project and create more epics and sub issues to cover they rest of the roadmap, update the roadmap with the ability to compile and run the build pipeline for the projects from the `GameInfo` repository and update the `GameInfo` repos to use poppy (these are only issues/documentation/todo-lists, don't implement yet until we have a strong standalone assembler/compiler/build-tool); make sure the tests actually test if the code completes correctly, and results are match expected values, not just that it completes without an error; continue with more work and go for a while, keep going, document everything!;
 
+-- try again
 
+create `git-commit`s with descriptions in logical batches and git commit all files, connecting every git commit to a github issue, update documentation of commits to work features; continue with more work and go for a while, keep going, document everything!;
 
+continue;
 
 
 
