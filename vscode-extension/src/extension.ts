@@ -7,6 +7,7 @@ import { PoppyTaskProvider, createOutputChannel } from './taskProvider';
 import { PoppyDiagnosticsProvider } from './diagnostics';
 import { PoppySymbolProvider } from './symbolProvider';
 import { PoppyHoverProvider } from './hoverProvider';
+import { PoppyCompletionProvider } from './completionProvider';
 
 // Document selector for Poppy Assembly files
 const PASM_SELECTOR: vscode.DocumentSelector = { language: 'pasm', scheme: 'file' };
@@ -47,6 +48,18 @@ export function activate(context: vscode.ExtensionContext) {
 	const hoverProvider = new PoppyHoverProvider();
 	context.subscriptions.push(
 		vscode.languages.registerHoverProvider(PASM_SELECTOR, hoverProvider)
+	);
+
+	// Create completion provider
+	const completionProvider = new PoppyCompletionProvider();
+	context.subscriptions.push(
+		vscode.languages.registerCompletionItemProvider(
+			PASM_SELECTOR,
+			completionProvider,
+			'.', // Trigger on dot for directives
+			'#', // Trigger on # for immediate mode
+			'$'  // Trigger on $ for hex values
+		)
 	);
 
 	// Register the task provider
