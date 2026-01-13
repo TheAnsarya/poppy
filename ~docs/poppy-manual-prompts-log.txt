@@ -47,6 +47,7 @@ pick a random issue and work on it; continue;
 
 dangit, ***stop putting opening braces on their own line***, use K&R braces instead, format the whole project; pick another issue and implement it, maybe a couple of issues; continue;
 
+pick several random issues and implement them; continue;
 
 
 
