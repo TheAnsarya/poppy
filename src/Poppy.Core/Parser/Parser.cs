@@ -97,6 +97,16 @@ public sealed class Parser {
 			return ParseAnonymousLabel(isForward: false);
 		}
 
+		// Named anonymous label forward (+name)
+		if (Check(TokenType.NamedAnonymousForward)) {
+			return ParseNamedAnonymousLabel(isForward: true);
+		}
+
+		// Named anonymous label backward (-name)
+		if (Check(TokenType.NamedAnonymousBackward)) {
+			return ParseNamedAnonymousLabel(isForward: false);
+		}
+
 		// Skip unexpected tokens
 		var token = Advance();
 		ReportError($"Unexpected token: {token.Type}", token.Location);
@@ -349,6 +359,21 @@ public sealed class Parser {
 		// Otherwise, treat as an instruction operand (branch target)
 		ReportError("Anonymous labels as statement must be followed by ':'", token.Location);
 		return new LabelNode(token.Location, isForward ? "+" : "-");
+	}
+
+	private StatementNode ParseNamedAnonymousLabel(bool isForward) {
+		var token = Advance();
+
+		// Check if it's a label definition (followed by colon)
+		if (Check(TokenType.Colon)) {
+			Advance();
+			// Store the name with the +/- prefix
+			return new LabelNode(token.Location, token.Text);
+		}
+
+		// Otherwise, treat as an instruction operand (branch target)
+		ReportError("Named anonymous labels as statement must be followed by ':'", token.Location);
+		return new LabelNode(token.Location, token.Text);
 	}
 
 	private MacroDefinitionNode ParseMacroDefinition(SourceLocation location) {
@@ -1069,6 +1094,12 @@ public sealed class Parser {
 				Advance();
 			}
 			return new IdentifierNode(location, builder.ToString());
+		}
+
+		// Named anonymous label reference (+name or -name)
+		if (Check(TokenType.NamedAnonymousForward) || Check(TokenType.NamedAnonymousBackward)) {
+			var token = Advance();
+			return new IdentifierNode(token.Location, token.Text);
 		}
 
 		// Grouped expression

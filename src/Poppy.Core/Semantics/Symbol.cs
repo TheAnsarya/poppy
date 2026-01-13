@@ -94,6 +94,7 @@ public sealed class SymbolTable {
 	private readonly List<SemanticError> _errors = [];
 	private readonly List<(long Address, SourceLocation Location)> _anonymousForward = [];
 	private readonly List<(long Address, SourceLocation Location)> _anonymousBackward = [];
+	private readonly Dictionary<string, List<(long Address, SourceLocation Location)>> _namedAnonymous = new(StringComparer.OrdinalIgnoreCase);
 	private string? _currentScope;
 
 	/// <summary>
@@ -247,11 +248,70 @@ public sealed class SymbolTable {
 	}
 
 	/// <summary>
+	/// Defines a named anonymous label at the current address.
+	/// Named anonymous labels use +name or -name syntax.
+	/// </summary>
+	/// <param name="name">The label name including prefix (e.g., "+loop" or "-loop").</param>
+	/// <param name="address">The address of the label.</param>
+	/// <param name="location">The source location.</param>
+	public void DefineNamedAnonymousLabel(string name, long address, SourceLocation location) {
+		// Get or create the list for this name (scope by current parent scope)
+		var scopedName = _currentScope is not null ? $"{_currentScope}:{name}" : name;
+		if (!_namedAnonymous.TryGetValue(scopedName, out var list)) {
+			list = [];
+			_namedAnonymous[scopedName] = list;
+		}
+		list.Add((address, location));
+	}
+
+	/// <summary>
+	/// Resolves a named anonymous label reference.
+	/// For +name: finds the next occurrence after the current address.
+	/// For -name: finds the previous occurrence at or before the current address.
+	/// </summary>
+	/// <param name="name">The label reference (e.g., "+loop" or "-loop").</param>
+	/// <param name="currentAddress">The current address for resolving relative references.</param>
+	/// <param name="location">The source location of the reference.</param>
+	/// <returns>The address of the named anonymous label, or null if not found.</returns>
+	public long? ResolveNamedAnonymousLabel(string name, long currentAddress, SourceLocation location) {
+		bool isForward = name.StartsWith('+');
+		// Get the base name without prefix
+		var baseName = name[1..];
+		// Construct the lookup name with the forward prefix (labels are always defined with +)
+		var lookupName = $"+{baseName}";
+		var scopedName = _currentScope is not null ? $"{_currentScope}:{lookupName}" : lookupName;
+
+		if (!_namedAnonymous.TryGetValue(scopedName, out var list) || list.Count == 0) {
+			_errors.Add(new SemanticError($"Cannot find named anonymous label '{name}'", location));
+			return null;
+		}
+
+		if (isForward) {
+			// Find the first label after the current address
+			var candidates = list.Where(l => l.Address > currentAddress).ToList();
+			if (candidates.Count > 0) {
+				return candidates[0].Address;
+			}
+			_errors.Add(new SemanticError($"Cannot find named anonymous forward label '{name}'", location));
+			return null;
+		} else {
+			// Find the last label at or before the current address
+			var candidates = list.Where(l => l.Address <= currentAddress).ToList();
+			if (candidates.Count > 0) {
+				return candidates[^1].Address;
+			}
+			_errors.Add(new SemanticError($"Cannot find named anonymous backward label '{name}'", location));
+			return null;
+		}
+	}
+
+	/// <summary>
 	/// Clears anonymous labels (for multi-pass compilation).
 	/// </summary>
 	public void ClearAnonymousLabels() {
 		_anonymousForward.Clear();
 		_anonymousBackward.Clear();
+		_namedAnonymous.Clear();
 	}
 
 	/// <summary>

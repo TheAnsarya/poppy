@@ -113,6 +113,8 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		long? operandValue = null;
 
 		if (node.Operand is not null) {
+			// Sync the analyzer's current address for anonymous label resolution
+			_analyzer.CurrentAddress = _currentAddress;
 			operandValue = _analyzer.EvaluateExpression(node.Operand);
 
 			// Optimize Absolute to ZeroPage if value fits and instruction supports it

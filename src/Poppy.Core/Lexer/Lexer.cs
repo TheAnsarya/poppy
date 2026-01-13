@@ -268,10 +268,8 @@ public sealed class Lexer {
 
 	private Token ScanOperator(SourceLocation location, char c) {
 		return c switch {
-			'+' => Match('+') ? MakeToken(TokenType.AnonymousForward, "++", location)
-				   : MakeToken(TokenType.Plus, "+", location),
-			'-' => Match('-') ? MakeToken(TokenType.AnonymousBackward, "--", location)
-				   : MakeToken(TokenType.Minus, "-", location),
+			'+' => ScanPlusOrNamedAnonymous(location),
+			'-' => ScanMinusOrNamedAnonymous(location),
 			'*' => MakeToken(TokenType.Star, "*", location),
 			'/' => MakeToken(TokenType.Slash, "/", location),
 			'&' => Match('&') ? MakeToken(TokenType.AmpersandAmpersand, "&&", location)
@@ -302,6 +300,52 @@ public sealed class Lexer {
 			'%' => MakeToken(TokenType.Percent, "%", location),
 			_ => MakeToken(TokenType.Error, $"Unexpected character: '{c}'", location),
 		};
+	}
+
+	/// <summary>
+	/// Scans a + operator, anonymous forward label (++), or named anonymous forward label (+name).
+	/// </summary>
+	private Token ScanPlusOrNamedAnonymous(SourceLocation location) {
+		// Check for ++ (anonymous forward)
+		if (Match('+')) {
+			return MakeToken(TokenType.AnonymousForward, "++", location);
+		}
+
+		// Check for +name (named anonymous forward)
+		if (IsIdentifierStart(Peek())) {
+			var start = _position - 1; // include the +
+			while (IsIdentifierContinue(Peek())) {
+				Advance();
+			}
+			var text = _source[start.._position];
+			return MakeToken(TokenType.NamedAnonymousForward, text, location);
+		}
+
+		// Just a plus operator
+		return MakeToken(TokenType.Plus, "+", location);
+	}
+
+	/// <summary>
+	/// Scans a - operator, anonymous backward label (--), or named anonymous backward label (-name).
+	/// </summary>
+	private Token ScanMinusOrNamedAnonymous(SourceLocation location) {
+		// Check for -- (anonymous backward)
+		if (Match('-')) {
+			return MakeToken(TokenType.AnonymousBackward, "--", location);
+		}
+
+		// Check for -name (named anonymous backward)
+		if (IsIdentifierStart(Peek())) {
+			var start = _position - 1; // include the -
+			while (IsIdentifierContinue(Peek())) {
+				Advance();
+			}
+			var text = _source[start.._position];
+			return MakeToken(TokenType.NamedAnonymousBackward, text, location);
+		}
+
+		// Just a minus operator
+		return MakeToken(TokenType.Minus, "-", location);
 	}
 
 	// ========================================================================

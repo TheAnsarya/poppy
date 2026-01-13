@@ -171,6 +171,12 @@ public enum TokenType {
 	/// <summary>Anonymous backward label (-)</summary>
 	AnonymousBackward,
 
+	/// <summary>Named anonymous forward label (+name)</summary>
+	NamedAnonymousForward,
+
+	/// <summary>Named anonymous backward label (-name)</summary>
+	NamedAnonymousBackward,
+
 	/// <summary>Invalid/error token</summary>
 	Error,
 }

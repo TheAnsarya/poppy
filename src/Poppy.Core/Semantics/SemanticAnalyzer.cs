@@ -109,9 +109,12 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	public MacroTable MacroTable => _macroTable;
 
 	/// <summary>
-	/// Gets the current address counter.
+	/// Gets or sets the current address counter.
 	/// </summary>
-	public long CurrentAddress => _currentAddress;
+	public long CurrentAddress {
+		get => _currentAddress;
+		set => _currentAddress = value;
+	}
 
 	/// <summary>
 	/// Creates a new semantic analyzer.
@@ -167,6 +170,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			if (IsAnonymousLabelName(node.Name)) {
 				bool isForward = node.Name[0] == '+';
 				_symbolTable.DefineAnonymousLabel(isForward, _currentAddress, node.Location);
+			} else if (IsNamedAnonymousLabelName(node.Name)) {
+				// Named anonymous labels (+name)
+				_symbolTable.DefineNamedAnonymousLabel(node.Name, _currentAddress, node.Location);
 			} else {
 				_symbolTable.Define(
 					node.Name,
@@ -186,6 +192,17 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		char first = name[0];
 		if (first != '+' && first != '-') return false;
 		return name.All(c => c == first);
+	}
+
+	/// <summary>
+	/// Checks if a name represents a named anonymous label (+name or -name).
+	/// </summary>
+	private static bool IsNamedAnonymousLabelName(string name) {
+		if (string.IsNullOrEmpty(name) || name.Length < 2) return false;
+		char first = name[0];
+		if (first != '+' && first != '-') return false;
+		// Must have identifier characters after the prefix
+		return char.IsLetter(name[1]) || name[1] == '_';
 	}
 
 	/// <inheritdoc />
@@ -361,6 +378,15 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				bool isForward = node.Name[0] == '+';
 				int count = node.Name.Length;
 				var address = _symbolTable.ResolveAnonymousLabel(isForward, count, _currentAddress, node.Location);
+				return address;
+			}
+			return null;
+		}
+
+		// Handle named anonymous label references (+name or -name) only in pass 2
+		if (IsNamedAnonymousLabelName(node.Name)) {
+			if (_pass == 2) {
+				var address = _symbolTable.ResolveNamedAnonymousLabel(node.Name, _currentAddress, node.Location);
 				return address;
 			}
 			return null;
@@ -968,6 +994,18 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		// Special identifiers
 		if (node.Name == "*" || node.Name == "$") {
 			return _currentAddress;
+		}
+
+		// Anonymous label references (+ or -)
+		if (IsAnonymousLabelName(node.Name)) {
+			bool isForward = node.Name[0] == '+';
+			int count = node.Name.Length;
+			return _symbolTable.ResolveAnonymousLabel(isForward, count, _currentAddress, node.Location);
+		}
+
+		// Named anonymous label references (+name or -name)
+		if (IsNamedAnonymousLabelName(node.Name)) {
+			return _symbolTable.ResolveNamedAnonymousLabel(node.Name, _currentAddress, node.Location);
 		}
 
 		if (_symbolTable.TryGetSymbol(node.Name, out var symbol) && symbol?.Value.HasValue == true) {
