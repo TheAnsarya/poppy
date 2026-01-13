@@ -1,0 +1,15 @@
+# Build artifacts
+build/
+*.o
+*.rom
+*.bin
+
+# Editor files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
