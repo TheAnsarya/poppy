@@ -41,6 +41,60 @@
 				"path": "./syntaxes/pasm.tmLanguage.json"
 			}
 		],
+		"commands": [
+			{
+				"command": "poppy.build",
+				"title": "Poppy: Build Current File"
+			},
+			{
+				"command": "poppy.buildProject",
+				"title": "Poppy: Build Project"
+			}
+		],
+		"taskDefinitions": [
+			{
+				"type": "poppy",
+				"required": ["task"],
+				"properties": {
+					"task": {
+						"type": "string",
+						"description": "The Poppy task: 'build' or 'build-project'"
+					},
+					"file": {
+						"type": "string",
+						"description": "The file to build (for 'build' task)"
+					},
+					"projectFile": {
+						"type": "string",
+						"description": "Path to poppy.json (for 'build-project' task)"
+					},
+					"target": {
+						"type": "string",
+						"enum": ["nes", "snes", "gb"],
+						"description": "Target architecture"
+					},
+					"output": {
+						"type": "string",
+						"description": "Output file path"
+					}
+				}
+			}
+		],
+		"problemMatchers": [
+			{
+				"name": "poppy",
+				"owner": "poppy",
+				"fileLocation": ["relative", "${workspaceFolder}"],
+				"pattern": {
+					"regexp": "^(.+)\\((\\d+)(?:,(\\d+))?\\):\\s+(error|warning):\\s+(.+)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			}
+		],
 		"configuration": {
 			"title": "Poppy Assembly",
 			"properties": {

@@ -33,6 +33,15 @@ Language support for Poppy Assembly (.pasm) files targeting NES, SNES, and Game 
 2. Run `npm install`
 3. Press F5 to launch Extension Development Host
 
+### Editing the TextMate Grammar
+
+For authoring and debugging the TextMate grammar (`syntaxes/pasm.tmLanguage.json`), we recommend installing the [TmLanguage Syntax Highlighter](https://marketplace.visualstudio.com/items?itemName=RedCMD.tmlanguage-syntax-highlighter) extension by RedCMD. It provides:
+
+- Syntax highlighting for `.tmLanguage.json` files
+- Scope inspection tools
+- Real-time grammar validation
+- Helpful diagnostics for pattern issues
+
 ## Supported File Extensions
 
 - `.pasm` - Poppy Assembly source files
