@@ -12,5 +12,20 @@
 	},
 	"listing": "hello.lst",
 	"symbols": "hello.sym",
-	"mapfile": "hello.map"
+	"mapfile": "hello.map",
+	"configurations": {
+		"debug": {
+			"output": "bin/debug/hello.nes",
+			"listing": "bin/debug/hello.lst",
+			"symbols": "bin/debug/hello.sym",
+			"defines": {
+				"DEBUG": 1
+			}
+		},
+		"release": {
+			"output": "bin/release/hello.nes",
+			"symbols": "bin/release/hello.sym"
+		}
+	},
+	"defaultConfiguration": "debug"
 }

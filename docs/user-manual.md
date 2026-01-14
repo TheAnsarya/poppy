@@ -13,15 +13,16 @@
 2. [Installation](#installation)
 3. [Quick Start](#quick-start)
 4. [Command-Line Usage](#command-line-usage)
-5. [Assembly Syntax](#assembly-syntax)
-6. [Directives Reference](#directives-reference)
-7. [Addressing Modes](#addressing-modes)
-8. [Expressions](#expressions)
-9. [Labels and Symbols](#labels-and-symbols)
-10. [Target Architectures](#target-architectures)
-11. [Output Formats](#output-formats)
-12. [Examples](#examples)
-13. [Troubleshooting](#troubleshooting)
+5. [Project Files](#project-files)
+6. [Assembly Syntax](#assembly-syntax)
+7. [Directives Reference](#directives-reference)
+8. [Addressing Modes](#addressing-modes)
+9. [Expressions](#expressions)
+10. [Labels and Symbols](#labels-and-symbols)
+11. [Target Architectures](#target-architectures)
+12. [Output Formats](#output-formats)
+13. [Examples](#examples)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -158,6 +159,7 @@ xxd hello.bin | head -20
 
 ```
 poppy [options] <input.pasm>
+poppy --project [path] [options]
 ```
 
 ### Options
@@ -166,8 +168,13 @@ poppy [options] <input.pasm>
 |--------|-----------|-------------|
 | `-o FILE` | `--output FILE` | Output file path |
 | `-l FILE` | `--listing FILE` | Generate listing file |
+| `-s FILE` | `--symbols FILE` | Generate symbol file |
+| `-m FILE` | `--map FILE` | Generate memory map file |
 | `-t ARCH` | `--target ARCH` | Target architecture (6502, 65816, sm83) |
+| `-p [PATH]` | `--project [PATH]` | Build from project file |
+| `-c NAME` | `--config NAME` | Build configuration (debug, release, etc.) |
 | `-V` | `--verbose` | Verbose output |
+| `-w` | `--watch` | Watch mode (auto-recompile on changes) |
 | `-h` | `--help` | Show help |
 | `--version` | | Show version |
 
@@ -182,11 +189,146 @@ poppy -t 65816 -o game.sfc main.pasm
 
 # Generate all files with verbose output
 poppy -V -l game.lst -o game.nes main.pasm
+
+# Build from project file (current directory)
+poppy --project
+
+# Build from specific project directory
+poppy --project ./my-game
+
+# Build with release configuration
+poppy --project -c release
+
+# Build and watch for changes
+poppy --project -w
 ```
+
+### Project Mode
+
+Project mode (`--project` or `-p`) builds from a `poppy.json` project file instead of a single source file. This enables:
+
+- **Multiple source files** with organized include paths
+- **Build configurations** (debug, release, etc.)
+- **Consistent settings** across team members
+- **Output organization** into build directories
+
+See [Project Files](#project-files) for detailed project configuration.
 
 ---
 
-## 5. Assembly Syntax {#assembly-syntax}
+## 5. Project Files {#project-files}
+
+Project files (`poppy.json`) define build settings for multi-file projects.
+
+### Basic Project File
+
+```json
+{
+    "name": "MyGame",
+    "version": "1.0.0",
+    "target": "nes",
+    "main": "main.pasm",
+    "output": "game.nes"
+}
+```
+
+### Complete Project Structure
+
+```json
+{
+    "name": "HelloWorld",
+    "version": "1.0.0",
+    "target": "nes",
+    "main": "main.pasm",
+    "output": "hello.nes",
+    "includes": [
+        "include/"
+    ],
+    "defines": {
+        "DEBUG": 0
+    },
+    "listing": "hello.lst",
+    "symbols": "hello.sym",
+    "mapfile": "hello.map"
+}
+```
+
+### Project Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | string | Project name (required) |
+| `version` | string | Project version |
+| `target` | string | Target system: `nes`, `snes`, `gb` |
+| `main` | string | Main source file |
+| `output` | string | Output ROM file |
+| `sources` | array | Source file patterns (if no main) |
+| `includes` | array | Include search directories |
+| `defines` | object | Preprocessor definitions |
+| `listing` | string | Listing output file |
+| `symbols` | string | Symbol file output |
+| `mapfile` | string | Memory map output |
+| `autolabels` | boolean | Auto-generate labels for jumps |
+
+### Build Configurations
+
+Configurations allow different build settings for debug vs release builds:
+
+```json
+{
+    "name": "MyGame",
+    "target": "nes",
+    "main": "main.pasm",
+    "output": "game.nes",
+    "defines": {
+        "DEBUG": 0
+    },
+    "configurations": {
+        "debug": {
+            "output": "bin/debug/game.nes",
+            "listing": "bin/debug/game.lst",
+            "symbols": "bin/debug/game.sym",
+            "defines": {
+                "DEBUG": 1
+            }
+        },
+        "release": {
+            "output": "bin/release/game.nes",
+            "symbols": "bin/release/game.sym"
+        }
+    },
+    "defaultConfiguration": "debug"
+}
+```
+
+### Configuration Properties
+
+| Property | Description |
+|----------|-------------|
+| `output` | Output file for this configuration |
+| `listing` | Listing file for this configuration |
+| `symbols` | Symbol file for this configuration |
+| `mapfile` | Map file for this configuration |
+| `defines` | Additional defines (merged with base) |
+
+### Building with Configurations
+
+```bash
+# Build default configuration (debug)
+poppy --project
+
+# Build specific configuration
+poppy --project -c release
+
+# Build with verbose output
+poppy --project -c debug --verbose
+```
+
+Configuration settings override base project settings. Defines are merged, with configuration values taking precedence.
+
+---
+
+## 6. Assembly Syntax {#assembly-syntax}
 
 ### Basic Structure
 
@@ -229,7 +371,7 @@ CONSTANT = $2000
 
 ---
 
-## 6. Directives Reference {#directives-reference}
+## 7. Directives Reference {#directives-reference}
 
 ### Origin Directive
 
@@ -304,7 +446,7 @@ SCREEN_WIDTH = 256
 
 ---
 
-## 7. Addressing Modes {#addressing-modes}
+## 8. Addressing Modes {#addressing-modes}
 
 ### 6502 Addressing Modes
 
@@ -346,7 +488,7 @@ lda.l $000000   ; Force 24-bit (65816 long)
 
 ---
 
-## 8. Expressions {#expressions}
+## 9. Expressions {#expressions}
 
 ### Arithmetic Operators
 
@@ -415,7 +557,7 @@ end:
 
 ---
 
-## 9. Labels and Symbols {#labels-and-symbols}
+## 10. Labels and Symbols {#labels-and-symbols}
 
 ### Global Labels
 
@@ -457,7 +599,7 @@ routine2:
 
 ---
 
-## 10. Target Architectures {#target-architectures}
+## 11. Target Architectures {#target-architectures}
 
 ### 6502 (NES)
 
@@ -497,7 +639,7 @@ Features:
 
 ---
 
-## 11. Output Formats {#output-formats}
+## 12. Output Formats {#output-formats}
 
 ### Raw Binary (Default)
 
@@ -552,7 +694,7 @@ Output format:
 
 ---
 
-## 12. Examples {#examples}
+## 13. Examples {#examples}
 
 ### Simple Loop
 
@@ -734,7 +876,7 @@ update_sprites:
 
 ---
 
-## 13. Troubleshooting {#troubleshooting}
+## 14. Troubleshooting {#troubleshooting}
 
 ### Common Errors
 

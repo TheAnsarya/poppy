@@ -184,9 +184,14 @@ internal static class Program {
 
 		var projectDir = Path.GetDirectoryName(Path.GetFullPath(projectFile)) ?? ".";
 
+		// Get effective configuration (merges base with config-specific settings)
+		var configName = options.Configuration ?? project.DefaultConfiguration;
+		var config = project.GetEffectiveConfiguration(configName);
+
 		if (options.Verbose) {
 			Console.WriteLine($"🌸 Building project: {project.Name}");
 			Console.WriteLine($"   Target: {project.Target}");
+			Console.WriteLine($"   Configuration: {configName}");
 			Console.WriteLine($"   Directory: {projectDir}");
 		}
 
@@ -228,20 +233,26 @@ internal static class Program {
 		// Add project directory as include path
 		includePaths.Add(projectDir);
 
+		// Use config-based paths (falling back to project defaults)
+		var outputPath = config.Output ?? project.Output ?? $"{project.Name}.bin";
+		var symbolsPath = config.Symbols ?? project.Symbols;
+		var listingPath = config.Listing ?? project.Listing;
+		var mapFilePath = config.MapFile ?? project.MapFile;
+
 		// Build with project settings
 		var compileOptions = new CompilerOptions {
 			InputFile = mainFile,
-			OutputFile = options.OutputFile ?? (project.Output is not null
-				? (Path.IsPathRooted(project.Output) ? project.Output : Path.Combine(projectDir, project.Output))
+			OutputFile = options.OutputFile ?? (outputPath is not null
+				? (Path.IsPathRooted(outputPath) ? outputPath : Path.Combine(projectDir, outputPath))
 				: Path.Combine(projectDir, $"{project.Name}.bin")),
-			SymbolFile = options.SymbolFile ?? (project.Symbols is not null
-				? (Path.IsPathRooted(project.Symbols) ? project.Symbols : Path.Combine(projectDir, project.Symbols))
+			SymbolFile = options.SymbolFile ?? (symbolsPath is not null
+				? (Path.IsPathRooted(symbolsPath) ? symbolsPath : Path.Combine(projectDir, symbolsPath))
 				: null),
-			ListingFile = options.ListingFile ?? (project.Listing is not null
-				? (Path.IsPathRooted(project.Listing) ? project.Listing : Path.Combine(projectDir, project.Listing))
+			ListingFile = options.ListingFile ?? (listingPath is not null
+				? (Path.IsPathRooted(listingPath) ? listingPath : Path.Combine(projectDir, listingPath))
 				: null),
-			MapFile = options.MapFile ?? (project.MapFile is not null
-				? (Path.IsPathRooted(project.MapFile) ? project.MapFile : Path.Combine(projectDir, project.MapFile))
+			MapFile = options.MapFile ?? (mapFilePath is not null
+				? (Path.IsPathRooted(mapFilePath) ? mapFilePath : Path.Combine(projectDir, mapFilePath))
 				: null),
 			Target = project.TargetArchitecture,
 			Verbose = options.Verbose,
@@ -543,6 +554,14 @@ internal static class Program {
 
 					break;
 
+				case "-c":
+				case "--config":
+					if (i + 1 < args.Length) {
+						options.Configuration = args[++i];
+					}
+
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -562,7 +581,7 @@ internal static class Program {
 		Console.WriteLine($"🌸 {AppName} v{Version}");
 		Console.WriteLine();
 		Console.WriteLine("Usage: poppy [options] <input.pasm>");
-		Console.WriteLine("       poppy --project [path]");
+		Console.WriteLine("       poppy --project [path] [--config <name>]");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -576,6 +595,7 @@ internal static class Program {
 		Console.WriteLine("  -w, --watch          Watch mode: recompile on file changes");
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -p, --project [path] Build from project file (poppy.json)");
+		Console.WriteLine("  -c, --config <name>  Build configuration (debug, release, etc.)");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
 		Console.WriteLine("                         65816, snes   - WDC 65816");
@@ -587,6 +607,7 @@ internal static class Program {
 		Console.WriteLine("  poppy -t snes -l game.lst game.pasm");
 		Console.WriteLine("  poppy --project                    Build from ./poppy.json");
 		Console.WriteLine("  poppy --project path/to/game       Build from project directory");
+		Console.WriteLine("  poppy --project -c release         Build release configuration");
 	}
 
 	/// <summary>
@@ -620,6 +641,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Project file or directory path.</summary>
 	public string? ProjectPath { get; set; }
+
+	/// <summary>Build configuration name (debug, release, etc.).</summary>
+	public string? Configuration { get; set; }
 
 	/// <summary>Include search paths.</summary>
 	public List<string> IncludePaths { get; } = [];

@@ -351,6 +351,206 @@ public class ProjectFileTests : IDisposable {
 		Assert.Equal(TargetArchitecture.SM83, pSM83.TargetArchitecture);
 	}
 
+	#region Build Configuration Tests
+
+	[Fact]
+	public void DefaultConfiguration_IsDebug() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+
+		// Assert
+		Assert.Equal("debug", project.DefaultConfiguration);
+	}
+
+	[Fact]
+	public void Configurations_Empty_ByDefault() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+
+		// Assert
+		Assert.Empty(project.Configurations);
+	}
+
+	[Fact]
+	public void GetEffectiveConfiguration_NoConfigs_ReturnsBaseSettings() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+		project.Output = "base.nes";
+		project.Symbols = "base.sym";
+
+		// Act
+		var config = project.GetEffectiveConfiguration("debug");
+
+		// Assert
+		Assert.NotNull(config);
+		Assert.Equal("base.nes", config.Output);
+		Assert.Equal("base.sym", config.Symbols);
+	}
+
+	[Fact]
+	public void GetEffectiveConfiguration_WithConfig_ReturnsConfigValues() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+		project.Configurations["debug"] = new BuildConfiguration {
+			Output = "bin/debug/test.nes",
+			Symbols = "bin/debug/test.sym",
+			Listing = "bin/debug/test.lst"
+		};
+
+		// Act
+		var config = project.GetEffectiveConfiguration("debug");
+
+		// Assert
+		Assert.Equal("bin/debug/test.nes", config.Output);
+		Assert.Equal("bin/debug/test.sym", config.Symbols);
+		Assert.Equal("bin/debug/test.lst", config.Listing);
+	}
+
+	[Fact]
+	public void GetEffectiveConfiguration_NonexistentConfig_ReturnsBaseSettings() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+		project.Output = "base.nes";
+		project.Configurations["debug"] = new BuildConfiguration {
+			Output = "bin/debug/test.nes"
+		};
+
+		// Act
+		var config = project.GetEffectiveConfiguration("release");
+
+		// Assert
+		Assert.NotNull(config);
+		Assert.Equal("base.nes", config.Output);  // Falls back to base settings
+	}
+
+	[Fact]
+	public void GetEffectiveConfiguration_ConfigOverridesBase() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+		project.Output = "base.nes";
+		project.Configurations["debug"] = new BuildConfiguration {
+			Output = "bin/debug/test.nes"
+		};
+
+		// Act
+		var config = project.GetEffectiveConfiguration("debug");
+
+		// Assert
+		Assert.Equal("bin/debug/test.nes", config.Output);
+	}
+
+	[Fact]
+	public void BuildConfiguration_Defines_Preserved() {
+		// Arrange
+		var config = new BuildConfiguration();
+		config.Defines["DEBUG"] = 1;
+		config.Defines["VERSION"] = 10;
+
+		// Assert
+		Assert.Equal(2, config.Defines.Count);
+		Assert.Equal(1, config.Defines["DEBUG"]);
+		Assert.Equal(10, config.Defines["VERSION"]);
+	}
+
+	[Fact]
+	public void Load_WithConfigurations_ParsesCorrectly() {
+		// Arrange
+		var json = """
+		{
+			"name": "ConfigTest",
+			"target": "nes",
+			"main": "main.pasm",
+			"configurations": {
+				"debug": {
+					"output": "bin/debug/game.nes",
+					"symbols": "bin/debug/game.sym",
+					"listing": "bin/debug/game.lst",
+					"defines": {
+						"DEBUG": 1
+					}
+				},
+				"release": {
+					"output": "bin/release/game.nes",
+					"symbols": "bin/release/game.sym"
+				}
+			},
+			"defaultConfiguration": "release"
+		}
+		""";
+		var filePath = Path.Combine(_tempDir, "configs.json");
+		File.WriteAllText(filePath, json);
+
+		// Act
+		var project = ProjectFile.Load(filePath);
+
+		// Assert
+		Assert.Equal("release", project.DefaultConfiguration);
+		Assert.Equal(2, project.Configurations.Count);
+
+		var debug = project.Configurations["debug"];
+		Assert.Equal("bin/debug/game.nes", debug.Output);
+		Assert.Equal("bin/debug/game.sym", debug.Symbols);
+		Assert.Equal("bin/debug/game.lst", debug.Listing);
+		Assert.Single(debug.Defines);
+		Assert.Equal(1, debug.Defines["DEBUG"]);
+
+		var release = project.Configurations["release"];
+		Assert.Equal("bin/release/game.nes", release.Output);
+		Assert.Equal("bin/release/game.sym", release.Symbols);
+		Assert.Null(release.Listing);
+	}
+
+	[Fact]
+	public void SaveAndLoad_WithConfigurations_RoundTrip() {
+		// Arrange
+		var project = ProjectFile.Create("ConfigGame", "snes");
+		project.Main = "main.pasm";
+		project.DefaultConfiguration = "release";
+		project.Configurations["debug"] = new BuildConfiguration {
+			Output = "debug/game.sfc",
+			Listing = "debug/game.lst"
+		};
+		project.Configurations["debug"].Defines["DEBUG"] = 1;
+		project.Configurations["release"] = new BuildConfiguration {
+			Output = "release/game.sfc"
+		};
+		var filePath = Path.Combine(_tempDir, "config_roundtrip.json");
+
+		// Act
+		project.Save(filePath);
+		var loaded = ProjectFile.Load(filePath);
+
+		// Assert
+		Assert.Equal("release", loaded.DefaultConfiguration);
+		Assert.Equal(2, loaded.Configurations.Count);
+		Assert.Equal("debug/game.sfc", loaded.Configurations["debug"].Output);
+		Assert.Equal("debug/game.lst", loaded.Configurations["debug"].Listing);
+		Assert.Equal(1, loaded.Configurations["debug"].Defines["DEBUG"]);
+		Assert.Equal("release/game.sfc", loaded.Configurations["release"].Output);
+	}
+
+	[Fact]
+	public void GetEffectiveConfiguration_MergesDefines() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "nes");
+		project.Defines["BASE"] = 100;
+		project.Defines["DEBUG"] = 0;
+		project.Configurations["debug"] = new BuildConfiguration();
+		project.Configurations["debug"].Defines["DEBUG"] = 1;
+		project.Configurations["debug"].Defines["EXTRA"] = 50;
+
+		// Act
+		var config = project.GetEffectiveConfiguration("debug");
+
+		// Assert
+		Assert.Equal(3, config.Defines.Count);
+		Assert.Equal(100, config.Defines["BASE"]);  // From base
+		Assert.Equal(1, config.Defines["DEBUG"]);   // Overridden by config
+		Assert.Equal(50, config.Defines["EXTRA"]);  // Added by config
+	}
+
+	#endregion
+
 	public void Dispose() {
 		try {
 			if (Directory.Exists(_tempDir)) {

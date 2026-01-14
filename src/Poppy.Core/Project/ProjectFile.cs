@@ -86,6 +86,18 @@ public sealed class ProjectFile {
 	public bool AutoLabels { get; set; }
 
 	/// <summary>
+	/// Build configurations (debug, release, etc.).
+	/// </summary>
+	[JsonPropertyName("configurations")]
+	public Dictionary<string, BuildConfiguration> Configurations { get; set; } = [];
+
+	/// <summary>
+	/// Default configuration name to use when none specified.
+	/// </summary>
+	[JsonPropertyName("defaultConfiguration")]
+	public string DefaultConfiguration { get; set; } = "debug";
+
+	/// <summary>
 	/// Gets the target architecture enum from the string.
 	/// </summary>
 	[JsonIgnore]
@@ -169,4 +181,84 @@ public sealed class ProjectFile {
 	private static bool IsValidTarget(string? target) {
 		return target?.ToLowerInvariant() is "nes" or "6502" or "snes" or "65816" or "gb" or "gameboy" or "sm83";
 	}
+
+	/// <summary>
+	/// Gets the effective configuration, merging base settings with config overrides.
+	/// </summary>
+	/// <param name="configName">Name of the configuration (e.g., "debug", "release").</param>
+	/// <returns>Merged configuration settings.</returns>
+	public BuildConfiguration GetEffectiveConfiguration(string? configName) {
+		// Use default config if none specified
+		configName ??= DefaultConfiguration;
+
+		// Start with base project settings
+		var effective = new BuildConfiguration {
+			Output = Output,
+			Symbols = Symbols,
+			Listing = Listing,
+			MapFile = MapFile,
+			Defines = new Dictionary<string, long>(Defines)
+		};
+
+		// Merge in config-specific settings if they exist
+		if (Configurations.TryGetValue(configName, out var config)) {
+			if (config.Output is not null) {
+				effective.Output = config.Output;
+			}
+
+			if (config.Symbols is not null) {
+				effective.Symbols = config.Symbols;
+			}
+
+			if (config.Listing is not null) {
+				effective.Listing = config.Listing;
+			}
+
+			if (config.MapFile is not null) {
+				effective.MapFile = config.MapFile;
+			}
+
+			// Merge defines (config defines override base defines)
+			foreach (var define in config.Defines) {
+				effective.Defines[define.Key] = define.Value;
+			}
+		}
+
+		return effective;
+	}
+}
+
+/// <summary>
+/// Represents a build configuration (debug, release, etc.).
+/// </summary>
+public sealed class BuildConfiguration {
+	/// <summary>
+	/// Output file path override.
+	/// </summary>
+	[JsonPropertyName("output")]
+	public string? Output { get; set; }
+
+	/// <summary>
+	/// Symbol file output path override.
+	/// </summary>
+	[JsonPropertyName("symbols")]
+	public string? Symbols { get; set; }
+
+	/// <summary>
+	/// Listing file output path override.
+	/// </summary>
+	[JsonPropertyName("listing")]
+	public string? Listing { get; set; }
+
+	/// <summary>
+	/// Memory map file output path override.
+	/// </summary>
+	[JsonPropertyName("mapfile")]
+	public string? MapFile { get; set; }
+
+	/// <summary>
+	/// Additional preprocessor definitions for this config.
+	/// </summary>
+	[JsonPropertyName("defines")]
+	public Dictionary<string, long> Defines { get; set; } = [];
 }
