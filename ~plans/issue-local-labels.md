@@ -18,6 +18,7 @@ other_global:
 ```
 
 ## Acceptance Criteria
+
 - [ ] Support @local syntax for local labels
 - [ ] Scope local labels to nearest preceding global label
 - [ ] Allow same local label name in different scopes
@@ -26,6 +27,7 @@ other_global:
 - [ ] Unit tests for local label resolution
 
 ## Implementation Notes
+
 - Track current global label scope in parser
 - Store local labels with scope prefix internally
 - Resolve local references within current scope

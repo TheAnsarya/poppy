@@ -61,6 +61,7 @@ store_val $2000, $10
 ```
 
 ### Key Differences
+
 - Parameters listed after macro name with commas
 - Parameter references use `\param` instead of bare name
 - Invocation uses `%` prefix instead of calling like a function
@@ -136,7 +137,7 @@ MyFunction:
 ## Segments and Memory Layout
 
 ### ca65 Approach (Linker Config)
-```
+```text
 # memory.cfg
 MEMORY {
     ZP:     start = $00,    size = $100, type = rw;

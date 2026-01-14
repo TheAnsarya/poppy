@@ -20,6 +20,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 **Complexity:** High
 
 #### 1.1 Macro Definitions
+
 - `.macro` directive to begin macro definition
 - `.endmacro` (or `.endm`) to end macro definition
 - Macro name validation (no conflicts with opcodes/labels)
@@ -28,6 +29,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 - Parameter count validation
 
 #### 1.2 Macro Expansion
+
 - Macro invocation by name
 - Argument passing and substitution
 - Local label generation within macros
@@ -36,6 +38,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 - Macro-local symbols
 
 #### 1.3 Advanced Macro Features
+
 - Default parameter values
 - Variadic parameters (variable argument count)
 - String concatenation in macros
@@ -47,6 +50,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 **Complexity:** Medium
 
 #### 2.1 Basic Conditionals
+
 - `.if <expr>` - conditional block
 - `.else` - else block
 - `.elseif <expr>` - else-if chain
@@ -54,12 +58,14 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 - Expression evaluation at assembly time
 
 #### 2.2 Symbol Conditionals
+
 - `.ifdef <symbol>` - if symbol defined
 - `.ifndef <symbol>` - if symbol not defined
 - `.ifexist <symbol>` - alias for ifdef
 - Nested conditionals
 
 #### 2.3 Comparison Conditionals
+
 - `.ifeq <val1>, <val2>` - if equal
 - `.ifne <val1>, <val2>` - if not equal
 - `.ifgt <val1>, <val2>` - if greater than
@@ -161,6 +167,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 ## 🧪 Test Coverage Goals
 
 ### Macro Tests (30 tests)
+
 - Basic macro definition and invocation
 - Macros with 0, 1, 3, 5+ parameters
 - Macro with default parameters
@@ -173,6 +180,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 - Macros with instruction sequences
 
 ### Conditional Tests (20 tests)
+
 - Basic if/else/endif
 - Nested conditionals (3 levels deep)
 - ifdef/ifndef with defined/undefined symbols
@@ -183,6 +191,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 - Conditionals around includes
 
 ### Repeat Tests (5 tests)
+
 - Basic repeat block
 - Nested repeats
 - Repeat with counter variable
@@ -190,6 +199,7 @@ Phase 2 adds macro and conditional assembly capabilities to Poppy, enabling code
 - Large repeat count
 
 ### Enumeration Tests (5 tests)
+
 - Basic enum block
 - Enum with custom start
 - Enum with gaps
@@ -270,16 +280,19 @@ STATE_GAMEOVER
 ## 🔀 Integration Points
 
 ### Preprocessor Integration
+
 - Macros processed after includes
 - Conditional directives processed in preprocessor pass
 - Macro expansion happens before semantic analysis
 
 ### Symbol Table Integration
+
 - Macro-local labels tracked separately
 - Macro parameters shadow global symbols within macro scope
 - Enum values added to symbol table
 
 ### Error Reporting
+
 - Track macro invocation stack for error messages
 - Report macro definition location for errors
 - Show expanded code context in errors
@@ -304,22 +317,26 @@ STATE_GAMEOVER
 ## 📚 Reference Implementation Research
 
 ### ASAR (SNES Assembler)
+
 - Macro syntax: `macro name(params)` ... `endmacro`
 - Parameter substitution with `<param>`
 - Local labels with `?` prefix
 
 ### ca65 (6502/65816 Assembler)
+
 - `.macro` and `.endmacro`
 - Parameters accessed by position or name
 - `.local` for macro-local labels
 - `.exitmacro` for early exit
 
 ### Ophis (6502 Assembler)
+
 - `.macro` directive
 - Simple parameter substitution
 - No nested macros
 
 ### Poppy Design Decisions
+
 - Use `.macro/.endmacro` (explicit, clear)
 - Named parameters (readable, maintainable)
 - Auto-generate unique local labels with `@@` prefix
@@ -331,6 +348,7 @@ STATE_GAMEOVER
 ## 🎯 Success Criteria
 
 Phase 2 will be complete when:
+
 - ✅ Macro definitions can be parsed
 - ✅ Macros can be invoked with arguments
 - ✅ Macro parameters are substituted correctly
@@ -353,5 +371,5 @@ Phase 2 will be complete when:
 
 ---
 
-*Plan created: January 11, 2026*
-*Target completion: January 2026*
+_Plan created: January 11, 2026_
+_Target completion: January 2026_

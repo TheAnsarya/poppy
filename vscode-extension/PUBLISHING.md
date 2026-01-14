@@ -16,10 +16,11 @@ vsce --version
 ```
 
 ### Publisher Account
-1. Create Microsoft account (if needed): https://account.microsoft.com
-2. Create Azure DevOps organization: https://dev.azure.com
+
+1. Create Microsoft account (if needed): <https://account.microsoft.com>
+2. Create Azure DevOps organization: <https://dev.azure.com>
 3. Create Personal Access Token (PAT):
-   - Go to https://dev.azure.com
+   - Go to <https://dev.azure.com>
    - User Settings → Personal Access Tokens → New Token
    - Organization: **All accessible organizations**
    - Scopes: **Marketplace → Manage**
@@ -32,6 +33,7 @@ vsce --version
 ### 1. Pre-Package Checklist
 
 Ensure all requirements are met:
+
 - [ ] `package.json` version number updated
 - [ ] `CHANGELOG.md` updated with new features
 - [ ] All TypeScript code compiles without errors
@@ -69,6 +71,7 @@ vsce package
 ```
 
 **Common Issues:**
+
 - **Missing README**: Ensure README.md exists and has content
 - **Missing LICENSE**: Add LICENSE or MIT file
 - **Missing icon**: Either add icon or remove from package.json
@@ -122,7 +125,7 @@ vsce publish 1.0.0
 
 ### 3. Verify Publication
 
-1. Visit https://marketplace.visualstudio.com/manage/publishers/TheAnsarya
+1. Visit <https://marketplace.visualstudio.com/manage/publishers/TheAnsarya>
 2. Check extension appears in your list
 3. Verify all metadata is correct
 4. Test installation from marketplace:
@@ -135,12 +138,14 @@ vsce publish 1.0.0
 ## 📝 Version Management
 
 ### Semantic Versioning
-Follow semver (https://semver.org/):
+Follow semver (<https://semver.org/>):
+
 - **MAJOR** (1.0.0): Breaking changes
 - **MINOR** (0.1.0): New features (backward compatible)
 - **PATCH** (0.0.1): Bug fixes (backward compatible)
 
 ### Update Checklist
+
 1. Update version in `package.json`
 2. Update `CHANGELOG.md` with changes
 3. Create git tag for release:
@@ -200,23 +205,28 @@ git push origin main --tags
 ## 🛠️ Troubleshooting
 
 ### "Missing publisher name"
+
 - Ensure `publisher` field in package.json
 - Must match your marketplace publisher ID
 
 ### "Invalid icon path"
+
 - Remove icon field from package.json, or
 - Add icon file and reference correct path
 
 ### "Missing LICENSE"
+
 - Add LICENSE file, or
 - Add `"license": "MIT"` to package.json
 
 ### "Package too large"
+
 - Check .vscodeignore excludes node_modules
 - Exclude test files and source .ts files
 - Keep only compiled .js in package
 
 ### "Authentication failed"
+
 - Regenerate Personal Access Token
 - Ensure token has Marketplace → Manage scope
 - Use `vsce logout` then `vsce login` again
@@ -226,7 +236,8 @@ git push origin main --tags
 ## 📊 Analytics
 
 ### View Extension Stats
-1. Go to https://marketplace.visualstudio.com/manage/publishers/TheAnsarya
+
+1. Go to <https://marketplace.visualstudio.com/manage/publishers/TheAnsarya>
 2. Click on extension name
 3. View:
    - Install count
@@ -239,6 +250,7 @@ git push origin main --tags
 ## 🎯 Best Practices
 
 ### Before Publishing
+
 - ✅ Test on clean VS Code install
 - ✅ Test on Windows, Mac, Linux
 - ✅ Run all tests
@@ -247,6 +259,7 @@ git push origin main --tags
 - ✅ Spell check all documentation
 
 ### Marketplace Listing
+
 - Use clear, descriptive display name
 - Write compelling description (first 200 chars matter)
 - Add quality screenshots/GIFs
@@ -256,6 +269,7 @@ git push origin main --tags
 - Include contribution guidelines
 
 ### Post-Publication
+
 - Monitor Q&A section for user questions
 - Respond to reviews (good and bad)
 - Track issues on GitHub

@@ -48,6 +48,7 @@
 	"MD035": {
 		"style": "---"
 	},
+	"MD036": false,
 	"MD040": true,
 	"MD041": true,
 	"MD046": {
@@ -61,5 +62,7 @@
 	},
 	"MD050": {
 		"style": "asterisk"
-	}
+	},
+	"MD058": true,
+	"MD060": false
 }

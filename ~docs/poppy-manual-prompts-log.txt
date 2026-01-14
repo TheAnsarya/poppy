@@ -61,6 +61,51 @@ try again but limit your queries so we don't hit response length limits; continu
 
 --- rate limited, switch from claude opus to claude sonnet 4.5, try again;
 
+-- try again
+
+hey! always put timestamps in the chat log so I know what happened when and if something is stuck; Update the NES example project `examples/nes-hello-world` with an actual font graphics include that aligns with ascii so that the example works, and truly displays "HELLO WORLD!" when compiled and run; don't make examples that are incomplete, they should be compilable and runnable; Create plans and roadmap and documentation and research and references for the future version of poppy 2.0 in order to add new systems to the compiler: Atari 2600, Genesis, SMS, GBA, GBColor, WonderSwan, WSX, Atari Lynx, TG16, etc.; continue;
+
+Use EST/EDT instead of UTC on the timestamps; Take the epic issue #47 `[Epic] VS Code Extension` and create a bunch of plans, documentation, and sub-issues, and them implement them; continue;
+
+Do issues #74, #73, and add tests to #67; continue;
+
+Hey! stop trying to edit `C:\Users\me\source\repos\poppy\~docs\poppy-manual-prompts-log.txt`. That file is mine and mine only, never update it; go through the github issues and assign their `parent` as to the appropriate issue/epic; Now update the issues for the `VSCode extension` for the work that has already been done, update todolosts, descriptions, labels, comments and status; then continue work on the `VSCode extension` issues;
+
+No, you can update issues directly and close them! You have access! Make sure the github MCP is updated and upe the apis if that doesn't help! then return then the work we just paused; continue;
+
+DO NOT EDIT `C:\Users\me\source\repos\poppy\~docs\poppy-manual-prompts-log.txt` stop it! leave it alone! hands off! fucking just don't!; No, you can update issues directly and close them! You have access! Make sure the github MCP is updated and upe the apis if that doesn't help! If it is an authorization issue, I can reconfirm the credentials, you've done it a million times before, do it now; then pick an important epic and update/create subissues and documentation and todolists and then implement it; continue;
+
+you have github credentials! use them! attempt to login and give me a prompt I can use to log in so you have access!; then resume;
+
+I'm authenticated, do the issue updating and closing!;
+
+I've restarted, update guthub issues and close issues that are marked/commented for closure
+
+what happened to the comprehensive `README.md` file? did you revert some files or merge in a bad branch? fix that file and whatever else you reverted;
+
+The svg icon you made sucks, use a version of `🌸` instead and use `🌸` directly in documentation when an image isn't needed; then pick an important epic and update/create subissues and documentation and todolists and then implement it; continue;
+
+sorry, accidental stoppage, continue where you were; continue;
+
+add to editorconfig and markdown lint file `MD040 - Fenced code blocks should have a language specified` as true and `MD032/blanks-around-lists: Lists should be surrounded by blank lines` as true and `MD058/blanks-around-tables: Tables should be surrounded by blank lines` as true and then then format all of the files using `editorconfig` and `markdownlint`; then update the plans and road map and github issues and then continue with work on issues and previous work; continue; 
+
+I see you are replacing tabs with spaces, or changing 2 spaces to 4 spaces. DON'T DO THAT. always use TABS for indentation, never use SPACES; TABS NOT SPACES; This rule (use tabs, not spaces, and use a 4 space tab) should be the primary rule for this entire project and every other project I make, it is god's law; now reformat and then resume previous work/prompt; continue;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -79,6 +124,7 @@ try again but limit your queries so we don't hit response length limits; continu
 
 
 create code/project convertors to the the poppy format from xkas, asar, ophis, and ca65 and check if there are other other popular assemblers for these systems;
+
 
 
 

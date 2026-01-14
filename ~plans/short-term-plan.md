@@ -8,6 +8,7 @@
 ## 🎯 Week 1: Project Setup (Current)
 
 ### Goals
+
 - [x] Establish project structure and configuration
 - [x] Create documentation framework
 - [x] Set up coding standards and guidelines
@@ -16,6 +17,7 @@
 - [ ] Git commit all initial setup work
 
 ### Tasks
+
 1. ✅ Create `.github/copilot-instructions.md`
 2. ✅ Update `README.md` with project overview
 3. ✅ Update roadmap for compiler project
@@ -30,12 +32,14 @@
 ## 🎯 Week 2: Research & Architecture
 
 ### Goals
+
 - [ ] Research existing assemblers (ASAR, XKAS, Ophis, ca65)
 - [ ] Document instruction sets (6502, 65816)
 - [ ] Design compiler architecture
 - [ ] Choose implementation language
 
 ### Tasks
+
 1. ⬜ Document 6502 instruction set reference
 2. ⬜ Document 65816 instruction set reference
 3. ⬜ Analyze ASAR syntax and features
@@ -50,12 +54,14 @@
 ## 🎯 Week 3: Core Lexer & Parser
 
 ### Goals
+
 - [ ] Implement basic lexer for Poppy syntax
 - [ ] Implement basic parser structure
 - [ ] Create token definitions
 - [ ] Set up test framework
 
 ### Tasks
+
 1. ⬜ Create `src/` project structure
 2. ⬜ Define token types (opcodes, operands, labels, etc.)
 3. ⬜ Implement lexer for basic assembly statements
@@ -70,11 +76,13 @@
 ## 🎯 Week 4: Basic Code Generation
 
 ### Goals
+
 - [ ] Implement 6502 instruction encoding
 - [ ] Create simple binary output
 - [ ] Test with basic NES assembly
 
 ### Tasks
+
 1. ⬜ Create opcode-to-byte mapping tables
 2. ⬜ Implement addressing mode detection
 3. ⬜ Generate binary output for basic instructions
@@ -87,6 +95,7 @@
 ## 📊 Success Criteria
 
 By end of Week 4:
+
 - [ ] Can parse simple 6502 assembly files
 - [ ] Can generate correct binary for basic instructions
 - [ ] Have documented architecture and syntax spec

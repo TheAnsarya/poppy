@@ -4,7 +4,7 @@ This folder will contain the Poppy Compiler source code.
 
 ## Structure (Planned)
 
-```
+```text
 src/
 ├── Poppy.Core/              # Core compiler library
 │   ├── Lexer/               # Tokenization

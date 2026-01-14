@@ -23,6 +23,7 @@ Implement anonymous forward (+) and backward (-) labels for quick short branches
 ```
 
 ## Acceptance Criteria
+
 - [ ] + label creates forward reference point
 - [ ] - label creates backward reference point
 - [ ] Multiple + or - for farther references (++, ---)
@@ -31,9 +32,10 @@ Implement anonymous forward (+) and backward (-) labels for quick short branches
 - [ ] Unit tests for anonymous labels
 
 ## Implementation Notes
+
 - Track anonymous label stacks during parsing
-- + pushes to forward stack, resolves later
-- - references most recent backward label
+      - - pushes to forward stack, resolves later
+      - - references most recent backward label
 - Count repeated symbols for distance
 
 ## Related

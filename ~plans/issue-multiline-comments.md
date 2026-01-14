@@ -1,5 +1,5 @@
 ## Description
-Implement C-style multi-line comments using /* */ syntax.
+Implement C-style multi-line comments using /**/ syntax.
 
 ## Syntax
 ```asm
@@ -16,7 +16,8 @@ lda #$00  /* inline block comment */ sta $2000
 ```
 
 ## Acceptance Criteria
-- [ ] Parse /* ... */ multi-line comments
+
+- [ ] Parse /_..._/ multi-line comments
 - [ ] Support comments spanning multiple lines
 - [ ] Support inline block comments
 - [ ] Proper line number tracking across comments
@@ -24,7 +25,8 @@ lda #$00  /* inline block comment */ sta $2000
 - [ ] Unit tests for multi-line comments
 
 ## Implementation Notes
-- Modify Lexer to detect /* and scan until */
+
+- Modify Lexer to detect /_and scan until_/
 - Track line numbers through comment body
 - Skip comment content entirely
 - Error on unterminated comment

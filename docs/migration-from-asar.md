@@ -45,6 +45,7 @@ endmacro
 ```
 
 ### Key Differences
+
 - Use `.macro` and `.endmacro` with dot prefix
 - Parameters listed after macro name with commas
 - Parameter references use `\param` instead of `<param>`
@@ -98,7 +99,7 @@ Note: Poppy requires a colon after anonymous label definitions.
 | Division | `/` | `/` |
 | Modulo | `%` | `%` |
 | Bitwise AND | `&` | `&` |
-| Bitwise OR | `|` | `|` |
+| Bitwise OR | `\|` | `\|` |
 | Bitwise XOR | `^` | `^` |
 | Shift Left | `<<` | `<<` |
 | Shift Right | `>>` | `>>` |

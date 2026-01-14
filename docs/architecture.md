@@ -8,7 +8,7 @@ This document outlines the architecture and design of the Poppy multi-system ass
 
 ## 📐 High-Level Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           POPPY COMPILER                            │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -103,7 +103,7 @@ enum TokenType {
 
 #### Lexer State Machine
 
-```
+```text
 ┌───────────┐  letter    ┌────────────┐
 │   START   │───────────▶│ IDENTIFIER │
 └───────────┘            └────────────┘
@@ -190,6 +190,7 @@ class ExpressionNode : AstNode {
 **Purpose**: Validate AST and resolve symbols.
 
 **Responsibilities**:
+
 - Build symbol table
 - Resolve label references
 - Evaluate constant expressions
@@ -249,7 +250,7 @@ class CodeGeneratorSM83 : ICodeGenerator {
 
 #### Multi-Pass Assembly
 
-```
+```text
 Pass 1: Symbol Collection
   - Scan all labels
   - Calculate preliminary addresses
@@ -282,7 +283,7 @@ Pass 2: Code Generation
 
 ## 📁 Project Structure
 
-```
+```text
 src/
 ├── Poppy.Core/              # Core library
 │   ├── Lexer/
@@ -331,7 +332,7 @@ src/
 
 ## 🔄 Data Flow
 
-```
+```text
 Source File
     │
     ▼
@@ -370,6 +371,7 @@ Binary Output
 ### 1. Separation of Concerns
 
 Each component has a single responsibility:
+
 - Lexer: Text → Tokens
 - Parser: Tokens → AST
 - Analyzer: AST validation
@@ -378,6 +380,7 @@ Each component has a single responsibility:
 ### 2. Extensibility
 
 Adding a new CPU target requires:
+
 1. Instruction definition table
 2. Code generator implementation
 3. Test suite

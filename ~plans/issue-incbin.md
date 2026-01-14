@@ -9,6 +9,7 @@ Implement the .incbin directive to include binary files directly into the output
 ```
 
 ## Acceptance Criteria
+
 - [ ] Parse .incbin "filename" syntax
 - [ ] Support optional offset parameter
 - [ ] Support optional length parameter
@@ -17,6 +18,7 @@ Implement the .incbin directive to include binary files directly into the output
 - [ ] Unit tests for binary inclusion
 
 ## Implementation Notes
+
 - Add IncbinDirective AST node
 - Read binary file during code generation
 - Validate file exists and parameters are valid

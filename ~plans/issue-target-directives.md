@@ -18,6 +18,7 @@ Implement directives to configure the target system from within source files.
 ```
 
 ## Acceptance Criteria
+
 - [ ] .target directive sets processor architecture
 - [ ] .nes, .snes, .gb shortcuts
 - [ ] .lorom, .hirom, .exhirom for SNES
@@ -27,6 +28,7 @@ Implement directives to configure the target system from within source files.
 - [ ] Unit tests for target directives
 
 ## Implementation Notes
+
 - Add TargetDirective AST node
 - Store target in compiler context
 - Validate target before code generation

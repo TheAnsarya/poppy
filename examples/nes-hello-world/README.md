@@ -4,7 +4,7 @@ A complete example NES project demonstrating Poppy Assembly features.
 
 ## Project Structure
 
-```
+```text
 nes-hello-world/
 ├── poppy.json          # Project configuration
 ├── main.pasm           # Main source file
@@ -111,6 +111,7 @@ poppy -o hello.nes main.pasm
 ## Running
 
 Load `hello.nes` in any NES emulator:
+
 - [Mesen](https://www.mesen.ca/)
 - [FCEUX](http://www.fceux.com/)
 - [Nestopia](http://nestopia.sourceforge.net/)
@@ -118,6 +119,7 @@ Load `hello.nes` in any NES emulator:
 ## Notes
 
 This example creates a minimal ROM that:
+
 1. Initializes the NES hardware
 2. Clears RAM
 3. Loads a palette

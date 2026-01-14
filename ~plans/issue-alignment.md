@@ -14,6 +14,7 @@ Implement alignment and padding directives for memory layout control.
 ```
 
 ## Acceptance Criteria
+
 - [ ] .align N - align to N-byte boundary with zeros
 - [ ] .pad address - pad to specific address
 - [ ] .pad address, value - pad with specific byte
@@ -23,6 +24,7 @@ Implement alignment and padding directives for memory layout control.
 - [ ] Unit tests for alignment
 
 ## Implementation Notes
+
 - Calculate padding needed for alignment
 - Verify current address < target for .pad
 - Use existing fill infrastructure

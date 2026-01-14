@@ -15,6 +15,7 @@
 **Epic Issues:** 8 (all open)
 
 ### Recently Closed (January 2026)
+
 - ✅ #74 - VS Code extension test suite (Jan 14)
 - ✅ #73 - Document formatting provider (Jan 14)
 - ✅ #72 - IntelliSense completion provider (Jan 14)
@@ -31,6 +32,7 @@
 ### Currently Open Issues
 
 #### Epic Issues (8)
+
 - #9 - [Epic] Include System (phase-6, milestone: v0.2.0)
 - #10 - [Epic] Label System Enhancement (phase-6, milestone: v0.2.0)
 - #11 - [Epic] Directive System (phase-6, milestone: v0.2.0)
@@ -42,6 +44,7 @@
 - #48 - [Epic] Game Boy Support
 
 #### Core Functionality - 3 issues
+
 - #69 - Add .include directive support
 - #52 - Create FFMQ Poppy project configuration
 - #51 - Create DW1 Poppy project configuration
@@ -429,18 +432,22 @@ Document the codebase for contributors.
 
 ### Milestone: v0.1.0 - Basic 6502 Assembler
 **Target:** Q1 2026
+
 - Issues: #4, #5, #6, #7, #8, #14
 
 ### Milestone: v0.2.0 - 65816 Support
 **Target:** Q2 2026
+
 - Issues: #9, #10, #15
 
 ### Milestone: v0.3.0 - Advanced Features
 **Target:** Q3 2026
+
 - Issues: #11, #12, #13
 
 ### Milestone: v1.0.0 - Production Release
 **Target:** Q4 2026
+
 - Issues: #16, #17, plus polish
 
 ---

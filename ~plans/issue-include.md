@@ -8,6 +8,7 @@ Implement the .include directive to include other assembly files.
 ```
 
 ## Acceptance Criteria
+
 - [ ] Parse .include "filename" syntax
 - [ ] Recursively process included files
 - [ ] Track include paths for error reporting
@@ -17,6 +18,7 @@ Implement the .include directive to include other assembly files.
 - [ ] Unit tests for include resolution
 
 ## Implementation Notes
+
 - Modify Lexer to handle include directive
 - Add IncludeDirective AST node
 - Process includes during parsing phase

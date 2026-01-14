@@ -10,6 +10,7 @@
 ## 🎯 Vision
 
 Create a comprehensive assembly compiler supporting:
+
 - **NES** (6502) - Primary target
 - **SNES** (65816) - Primary target
 - **Game Boy** (Z80-like) - Secondary target
@@ -25,6 +26,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Establish project structure and documentation
 
 #### Tasks
+
 - ✅ Create `.editorconfig` with comprehensive formatting rules
 - ✅ Create `.gitignore` for common development artifacts
 - ✅ Set up documentation folder structure
@@ -45,6 +47,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Design compiler architecture and document target systems
 
 #### Tasks
+
 - ✅ Document 6502 instruction set (in InstructionSet6502.cs)
 - ⬜ Document 65816 instruction set
 - ✅ Analyze ASAR, XKAS, Ophis, ca65 syntax
@@ -60,6 +63,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Implement lexical analysis and parsing
 
 #### Tasks
+
 - ✅ Create source code project structure
 - ✅ Define token types (opcodes, operands, labels, directives)
 - ✅ Implement lexer for Poppy syntax
@@ -76,6 +80,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Completed:** January 11, 2026
 
 #### Tasks
+
 - ✅ Create opcode-to-byte mapping tables (InstructionSet6502)
 - ✅ Implement all 6502 addressing modes
 - ✅ Label and symbol resolution (SemanticAnalyzer)
@@ -90,6 +95,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Add SNES/65816 support
 
 #### Tasks
+
 - ⬜ Implement 65816 instruction set
 - ⬜ Handle 16-bit mode
 - ⬜ Bank switching support
@@ -104,6 +110,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Completed:** January 11, 2026
 
 #### Tasks
+
 - ✅ .include directive for file inclusion
 - ✅ .incbin directive for binary data inclusion
 - ✅ Local labels with @ prefix and scoping
@@ -113,7 +120,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 - ✅ Mapper selection (.mapper)
 - ✅ Alignment directives (.align, .pad)
 - ✅ Compile-time assertions (.assert, .error, .warning)
-- ✅ Multi-line comments (/* */)
+- ✅ Multi-line comments (/**/)
 
 ---
 
@@ -123,6 +130,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Completed:** January 11, 2026
 
 #### Tasks
+
 - ✅ iNES 1.0 and iNES 2.0 header generation
 - ✅ 12 iNES header directives (.ines_prg, .ines_chr, etc.)
 - ✅ Debug symbol export (FCEUX .nl, Mesen .mlb, generic .sym)
@@ -137,6 +145,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Completed:** January 12, 2026
 
 #### Tasks
+
 - ✅ Macro definitions (.macro/.endmacro)
 - ✅ Macro expansion engine (MacroExpander)
 - ✅ Macro parameters and substitution
@@ -163,6 +172,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Completed:** January 12, 2026
 
 #### Tasks
+
 - ✅ Error messages with source context (ErrorFormatter)
 - ✅ Listing file generation (ListingGenerator)
 - ✅ Symbol table in listings
@@ -178,6 +188,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Implement project file support and build pipeline
 
 #### Tasks
+
 - ⬜ Define poppy.json project file format (#49)
 - ⬜ Implement project file parser
 - ⬜ Multi-file compilation support
@@ -193,6 +204,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Add SNES/65816 architecture support
 
 #### Tasks
+
 - ⬜ 65816 instruction set implementation (#39)
 - ⬜ M/X flag mode tracking (#40)
 - ⬜ Long (24-bit) addressing support
@@ -208,6 +220,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Compile target game projects from GameInfo repository
 
 #### Tasks
+
 - ⬜ Compile Dragon Warrior 1 (NES/6502)
 - ⬜ Compile Final Fantasy Mystic Quest (SNES/65816)
 - ⬜ Compile Dragon Warrior 4 (NES/6502)
@@ -223,6 +236,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Add Game Boy (DMG/CGB) architecture support
 
 #### Tasks
+
 - ⬜ SM83 (GB-Z80) instruction set
 - ⬜ Game Boy header directives
 - ⬜ MBC bank switching support
@@ -237,6 +251,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Complete documentation and VS Code extension
 
 #### Tasks
+
 - ⬜ Comprehensive user manual
 - ⬜ API documentation
 - ⬜ Tutorial projects
@@ -252,6 +267,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 **Goal:** Version 1.0 release
 
 #### Tasks
+
 - ⬜ Performance optimization
 - ⬜ Final testing with real projects
 - ⬜ Package for distribution (NuGet, standalone)
@@ -263,6 +279,7 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 ## 📋 Coding Standards
 
 ### Formatting
+
 - **Indentation:** Tabs (4-space width, 8 for assembly), NEVER spaces
 - **Brace Style:** K&R (opening brace on same line)
 - **Hexadecimal:** Always lowercase with `$` prefix
@@ -272,11 +289,13 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 - **Trailing Whitespace:** Removed (except markdown line breaks)
 
 ### Assembly Code
+
 - Lowercase opcodes: `lda`, `sta`, `jsr`, `inc`, `tya`
 - Lowercase hex values: `$40df`, `$ff`, `$0a`
 - `$` prefix for all hex values
 
 ### Git Workflow
+
 - **Feature Branches:** Create branch for each significant feature
 - **Issue Tracking:** All commits reference issues
 - **Logical Commits:** Commit in logical, related batches
@@ -326,6 +345,7 @@ Learning from existing assemblers:
 ## 📊 Success Criteria
 
 Poppy 1.0 will be complete when:
+
 - ✅ Core configuration and documentation in place
 - ✅ Can compile 6502/NES assembly correctly
 - ⬜ Can compile 65816/SNES assembly correctly

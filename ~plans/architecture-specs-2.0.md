@@ -11,6 +11,7 @@
 ### 1️⃣ Motorola 68000 (Sega Genesis/Mega Drive)
 
 #### Overview
+
 - **Word Size:** 16-bit data, 32-bit address (24-bit physical)
 - **Registers:** 8 data (D0-D7), 8 address (A0-A7), PC, SR
 - **Endianness:** Big-endian
@@ -25,6 +26,7 @@ Variable length: 1-5 words (2-10 bytes)
 ```
 
 #### Addressing Modes (14 modes)
+
 1. Data Register Direct - `Dn`
 2. Address Register Direct - `An`
 3. Address Register Indirect - `(An)`
@@ -41,6 +43,7 @@ Variable length: 1-5 words (2-10 bytes)
 14. Condition Code Register - `CCR`
 
 #### Key Instructions (56 unique mnemonics)
+
 - **Data Movement:** MOVE, MOVEA, MOVEM, MOVEP, EXG, SWAP, LEA, PEA
 - **Arithmetic:** ADD, SUB, MUL, DIV, NEG, CLR, CMP, TST, EXT
 - **Logical:** AND, OR, EOR, NOT
@@ -64,6 +67,7 @@ byte[] encoding = { 0x23, 0xC0, 0x10, 0x00 };
 ### 2️⃣ ARM7TDMI (Game Boy Advance)
 
 #### Overview
+
 - **Word Size:** 32-bit
 - **Registers:** 16 general (R0-R15), CPSR, SPSR
 - **Modes:** ARM (32-bit), Thumb (16-bit)
@@ -87,9 +91,11 @@ byte[] encoding = { 0x23, 0xC0, 0x10, 0x00 };
 ```
 
 #### Condition Codes (ARM)
+
 - EQ, NE, CS/HS, CC/LO, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
 
 #### Key Instructions
+
 - **Data Processing:** MOV, ADD, SUB, MUL, AND, ORR, EOR, BIC
 - **Memory:** LDR, STR, LDM, STM (with addressing modes)
 - **Branch:** B, BL, BX (mode switching)
@@ -113,6 +119,7 @@ thumb_func:
 ### 3️⃣ Zilog Z80 (Sega Master System)
 
 #### Overview
+
 - **Word Size:** 8-bit
 - **Registers:** A, B, C, D, E, H, L, F (flags), IX, IY, SP, PC
 - **Alternate Set:** A', B', C', D', E', H', L', F'
@@ -129,12 +136,14 @@ Optional   Required    Optional   Optional
 ```
 
 #### Prefixes
+
 - `$CB` - Bit operations
 - `$DD` - IX register operations
 - `$ED` - Extended instructions
 - `$FD` - IY register operations
 
 #### Addressing Modes
+
 1. Register - `A, B, C, D, E, H, L`
 2. Immediate - `n` or `nn`
 3. Indirect - `(HL), (BC), (DE)`
@@ -143,6 +152,7 @@ Optional   Required    Optional   Optional
 6. I/O - `(C)` or `(n)`
 
 #### Key Instructions
+
 - **8-bit Load:** LD r,r' / LD r,n / LD r,(HL)
 - **16-bit Load:** LD rr,nn / LD rr,(nn) / PUSH/POP
 - **Arithmetic:** ADD, ADC, SUB, SBC, INC, DEC, CP
@@ -166,6 +176,7 @@ out ($be), a
 ### 4️⃣ HuC6280 (TurboGrafx-16)
 
 #### Overview
+
 - **Base:** WDC 65C02 (enhanced 6502)
 - **Word Size:** 8-bit
 - **Registers:** A, X, Y, S, P, PC
@@ -173,6 +184,7 @@ out ($be), a
 - **Extensions:** Block transfer, I/O, MMU
 
 #### New Instructions (vs 6502)
+
 - **Block Transfer:** TAI, TIA, TII, TDD, TIN
 - **Bit Operations:** TST, TSB, TRB
 - **Stack:** PHX, PHY, PLX, PLY
@@ -188,8 +200,10 @@ tii $4000, $6000, $2000
 ```
 
 #### MMU Registers
+
 - 8 mapping registers (MPR0-MPR7)
 - Each maps 8KB window to physical memory
+
 ```asm
 lda #$80      ; Bank $80
 tam #$02      ; Map to MPR2 ($4000-$5fff)
@@ -200,6 +214,7 @@ tam #$02      ; Map to MPR2 ($4000-$5fff)
 ### 5️⃣ NEC V30MZ (WonderSwan)
 
 #### Overview
+
 - **Base:** Intel 8086 compatible
 - **Word Size:** 16-bit
 - **Registers:** AX, BX, CX, DX, SI, DI, BP, SP, CS, DS, SS, ES
@@ -220,6 +235,7 @@ Physical Address = (Segment << 4) + Offset
 ```
 
 #### Key Instructions
+
 - **Data Movement:** MOV, PUSH, POP, XCHG, IN, OUT
 - **Arithmetic:** ADD, SUB, MUL, DIV, INC, DEC
 - **Logical:** AND, OR, XOR, NOT, TEST
@@ -232,6 +248,7 @@ Physical Address = (Segment << 4) + Offset
 ### 6️⃣ WDC 65C02 (Atari Lynx)
 
 #### Overview
+
 - **Base:** MOS 6502 enhanced
 - **Word Size:** 8-bit
 - **Registers:** A, X, Y, S, P, PC
@@ -239,6 +256,7 @@ Physical Address = (Segment << 4) + Offset
 - **Extensions:** New opcodes, BCD fixes
 
 #### New Instructions (vs 6502)
+
 - **Bit Operations:** TSB, TRB, BIT (new modes)
 - **Branches:** BRA (unconditional)
 - **Stack:** PHX, PHY, PLX, PLY
@@ -246,6 +264,7 @@ Physical Address = (Segment << 4) + Offset
 - **No-ops:** All illegal opcodes become NOPs
 
 #### Removed "Illegal" Opcodes
+
 - All undocumented 6502 opcodes function as NOP
 
 ---
@@ -253,18 +272,21 @@ Physical Address = (Segment << 4) + Offset
 ## 🔧 Implementation Priorities
 
 ### Phase 1: Foundation (Weeks 1-4)
+
 1. **Backend Interface** - Define `IArchitectureBackend`
 2. **M68000 Parser** - Instruction encoding logic
 3. **ARM7 Parser** - ARM/Thumb dual-mode
 4. **Test Framework** - Per-architecture validation
 
 ### Phase 2: Code Generation (Weeks 5-8)
+
 1. **M68000 CodeGen** - All addressing modes
 2. **ARM7 CodeGen** - Condition codes, shifts
 3. **Z80 CodeGen** - Prefixed instructions
 4. **Integration Tests** - Hello World per system
 
 ### Phase 3: ROM Building (Weeks 9-12)
+
 1. **Genesis Header** - SEGA string, checksum
 2. **GBA Header** - Nintendo logo, CRC
 3. **SMS Header** - Region codes
@@ -284,6 +306,7 @@ Physical Address = (Segment << 4) + Offset
 | 65C02 | ~115 | 13 | Simple | Low |
 
 **Encoding Complexity:**
+
 - **Simple:** Fixed-width or minimal variation (6502 family)
 - **Moderate:** Variable-width with patterns (Z80, ARM Thumb)
 - **Complex:** Multi-byte with many edge cases (68K, 8086)

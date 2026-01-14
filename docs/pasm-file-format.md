@@ -43,16 +43,18 @@ global_label:
 ### Character Encoding
 
 All `.pasm` files must be:
+
 - **UTF-8 encoded with BOM**
 - **CRLF line endings** (Windows style)
 - Support Unicode characters in:
-	- Comments
-	- String literals
-	- Symbol names (letters, digits, underscore)
+   	- Comments
+   	- String literals
+   	- Symbol names (letters, digits, underscore)
 
 ### Indentation
 
 Poppy uses **tabs for indentation** (never spaces):
+
 - Tab width: 4 spaces (8 for pure assembly sections)
 - Labels at column 0 (no indent)
 - Instructions indented with 1 tab
@@ -261,6 +263,7 @@ BUFFER_SIZE = 256
 ```
 
 **Rules:**
+
 - Default parameters must follow the pattern `name=value`
 - Parameters without defaults are required
 - Required parameters should come before optional ones
@@ -281,6 +284,7 @@ BUFFER_SIZE = 256
 ### Reserved Names
 
 Macros cannot use reserved names:
+
 - 6502/65816 opcodes (`lda`, `sta`, `jmp`, etc.)
 - Directives (`org`, `byte`, `include`, etc.)
 - Macro keywords (`macro`, `endmacro`, `if`, `endif`, etc.)
@@ -757,7 +761,7 @@ nmi:
 
 ### File Organization
 
-```
+```text
 project/
 ├── src/
 │   ├── main.pasm          # Entry point
@@ -775,6 +779,7 @@ project/
 ### Portability
 
 For maximum portability:
+
 - Avoid platform-specific directives when possible
 - Use `.target` to explicitly declare architecture
 - Separate platform-specific code with conditionals
@@ -786,7 +791,7 @@ Poppy provides detailed error messages with source context to help you quickly i
 
 ### Error Format
 
-```
+```text
 filename:line:column: error: message
  line | source code
       | ^
@@ -795,21 +800,21 @@ filename:line:column: error: message
 ### Example Error Output
 
 For an invalid hex digit:
-```
+```text
 test.pasm:1:6: error: Invalid hex digit 'Z'
     1 | lda #$ZZ
       |      ^
 ```
 
 For an undefined symbol:
-```
+```text
 game.pasm:15:5: error: Undefined symbol 'player_x'
    15 |     lda player_x
       |     ^
 ```
 
 For multiple arguments:
-```
+```text
 main.pasm:42:1: error: Unknown directive '.baddir'
    42 | .baddir value
       | ^~~~~~~~~~~~
@@ -829,7 +834,7 @@ Poppy can generate listing files (`.lst`) showing the assembled code alongside t
 
 ### Listing Format
 
-```
+```text
 ; Poppy Assembler Listing
 ; Generated: 2024-01-15 10:30:00
 
@@ -870,6 +875,7 @@ Poppy can generate listing files (`.lst`) showing the assembled code alongside t
 ## Editor Support
 
 Configure your editor to:
+
 - Recognize `.pasm` as assembly language
 - Use tabs (not spaces) for indentation
 - Set tab width to 4 (or 8 for pure assembly)
@@ -889,6 +895,7 @@ To convert existing `.asm` files:
 ---
 
 **See Also:**
+
 - [User Manual](user-manual.md) - Complete language reference
 - [README](../README.md) - Quick start guide
 - [Examples](../~manual-testing/) - Sample `.pasm` files

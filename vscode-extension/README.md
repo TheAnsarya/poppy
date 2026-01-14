@@ -6,6 +6,7 @@ Professional language support for Poppy Assembly (.pasm) files targeting NES, SN
 
 ### 🎨 **Syntax Highlighting**
 Comprehensive TextMate grammar with full support for:
+
 - **6502 Instructions** - All NES opcodes (ADC, LDA, STA, etc.)
 - **65816 Instructions** - SNES-specific opcodes (REP, SEP, MVN, MVP, etc.)
 - **SM83 Instructions** - Game Boy opcodes (LD, PUSH, POP, CB-prefixed, etc.)
@@ -18,6 +19,7 @@ Comprehensive TextMate grammar with full support for:
 
 ### 💡 **IntelliSense Completion**
 Smart, context-aware code completion:
+
 - **Architecture-Specific Opcodes** - Automatically detects target (NES/SNES/GB) from directives
 - **Directive Completion** - All assembler directives with documentation
 - **Register Completion** - Valid registers for each architecture
@@ -26,6 +28,7 @@ Smart, context-aware code completion:
 
 ### 📐 **Code Formatting**
 Professional column-based alignment:
+
 - Labels at column 0
 - Opcodes at column 8 (configurable)
 - Operands at column 16 (configurable)
@@ -34,22 +37,26 @@ Professional column-based alignment:
 - Respects tab/space preferences
 
 ### 🎯 **Navigation**
+
 - **Go to Definition** - Jump to label definitions
 - **Document Symbols** - Outline view of labels and sections
 - **Hover Information** - Opcode documentation and addressing modes
 
 ### 🔧 **Build Integration**
+
 - **Task Provider** - Build current file or entire project
 - **Problem Matcher** - Compiler errors appear in Problems panel
 - **Build Commands** - `Poppy: Build Current File`, `Poppy: Build Project`
 
 ### 🐛 **Real-Time Diagnostics**
+
 - Syntax error detection
 - Compiler integration for validation
 - Inline error messages with context
 
 ### 📝 **Code Snippets**
 40+ snippets for common patterns:
+
 - Project templates (NES, SNES, GB headers)
 - Common macros (wait_vblank, ppu_addr, dma_copy)
 - Control flow patterns (if/while/for/switch)
@@ -57,6 +64,7 @@ Professional column-based alignment:
 - Hardware access patterns
 
 ### 🧪 **Fully Tested**
+
 - 13 integration and unit tests
 - Mocha + @vscode/test-electron framework
 - 885 compiler tests (all passing)
@@ -64,7 +72,7 @@ Professional column-based alignment:
 ## 🚀 Installation
 
 ### From VS Code Marketplace
-*(Coming soon - extension pending publication)*
+_(Coming soon - extension pending publication)_
 
 Search for "Poppy Assembly" in VS Code Extensions marketplace.
 
@@ -254,6 +262,7 @@ start:
 ## 🎨 Color Theme Recommendations
 
 For best syntax highlighting experience, we recommend these VS Code themes:
+
 - **Dark+** (default) - Good contrast for all token types
 - **Monokai** - Excellent for assembly code
 - **Dracula** - Clear distinction between opcodes and directives
@@ -265,23 +274,24 @@ For best syntax highlighting experience, we recommend these VS Code themes:
 
 Type `.` to see all directives, or start typing an opcode to see completions with documentation:
 
-![IntelliSense Demo](images/completion-demo.gif) *(placeholder for future screenshot)*
+![IntelliSense Demo](images/completion-demo.gif) _(placeholder for future screenshot)_
 
 ### Go to Definition
 
 `Ctrl+Click` on any label to jump to its definition:
 
-![Go to Definition Demo](images/goto-demo.gif) *(placeholder)*
+![Go to Definition Demo](images/goto-demo.gif) _(placeholder)_
 
 ### Build Integration
 
 Press `Ctrl+Shift+B` to build your project with the integrated task provider:
 
-![Build Demo](images/build-demo.gif) *(placeholder)*
+![Build Demo](images/build-demo.gif) _(placeholder)_
 
 ## 🤝 Contributing
 
 Contributions welcome! Areas for improvement:
+
 - Additional code snippets
 - More opcode documentation
 - Performance optimizations
@@ -292,6 +302,7 @@ See the main [Poppy repository](https://github.com/TheAnsarya/poppy) for contrib
 ## 📝 Changelog
 
 ### v0.1.0 (Initial Release)
+
 - ✨ Complete syntax highlighting for NES/SNES/GB
 - ✨ IntelliSense completion for opcodes, directives, labels
 - ✨ Document formatting with column alignment

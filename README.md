@@ -23,6 +23,7 @@ The compiler aims to support compilation of retro game projects including Dragon
 ### Implemented ✅
 
 **Core Compiler Features:**
+
 - 📝 Clean, lowercase assembly syntax
 - 🔢 `$` prefix for hexadecimal values (e.g., `$40df`)
 - 🏷️ Labels, local labels, and anonymous labels
@@ -33,18 +34,21 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 🖥️ Command-line interface
 
 **File System & Organization:**
+
 - 📦 `.include` directive for file inclusion
 - 📂 `.incbin` directive for binary data inclusion
 - 🔄 Preprocessor with include path resolution
 - 🗂️ Multi-file project support
 
 **Label System:**
+
 - 🏷️ Global labels
 - 📌 Local labels with `@` prefix and scoping
 - ➕ Anonymous forward labels (`+`, `++`, etc.)
 - ➖ Anonymous backward labels (`-`, `--`, etc.)
 
 **Directives & Features:**
+
 - 🎯 Target directives (`.nes`, `.snes`, `.gb`)
 - 🗺️ Memory mapping (`.lorom`, `.hirom`, `.exhirom`)
 - 🔧 Mapper selection (`.mapper`)
@@ -54,6 +58,7 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 💬 Multi-line comments (`/* */`)
 
 **NES ROM Generation:**
+
 - 🎮 iNES 1.0 and iNES 2.0 header generation
 - 📋 12 iNES header directives (`.ines_prg`, `.ines_chr`, `.ines_mapper`, etc.)
 - 🗺️ Support for mappers 0-4095, submappers 0-15
@@ -61,6 +66,7 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 🌍 NTSC/PAL timing selection
 
 **Macro System & Advanced Directives:**
+
 - 🔧 Macro definitions with parameters (`.macro`/`.endmacro`)
 - 🔄 Macro expansion with parameter substitution
 - 📞 Macro invocations with `@` prefix (`@macro_name arg1, arg2`)
@@ -71,11 +77,13 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 🔢 Enumeration blocks (`.enum`/`.ende`) for sequential constants
 
 **Output Formats:**
+
 - 🎮 NES ROM with iNES 2.0 header
 - 🐛 Debug symbol files (FCEUX .nl, Mesen .mlb, generic .sym)
 - 📊 Symbol table listing output
 
 ### Coming Soon 🚧
+
 - 🎯 65816 instruction set (SNES)
 - 🎮 SM83 instruction set (Game Boy)
 - 🎨 Asset conversion pipeline
@@ -362,5 +370,5 @@ Inspired by and learning from:
 
 ---
 
-*🌸 Poppy - Making retro game development bloom*
+_🌸 Poppy - Making retro game development bloom_
 

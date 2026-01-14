@@ -9,6 +9,7 @@
 ## 📊 Current Status
 
 ### ✅ Already Implemented
+
 - [x] Extension structure and package.json
 - [x] Language configuration (comments, brackets)
 - [x] Basic TextMate grammar
@@ -26,6 +27,7 @@
 **Files:** `syntaxes/pasm.tmLanguage.json`
 
 Current grammar is basic. Needs:
+
 - Target-specific opcode highlighting (6502, SM83, 65816)
 - Directive keyword colors
 - Macro definition/invocation highlighting
@@ -40,6 +42,7 @@ Current grammar is basic. Needs:
 **Files:** New `snippets/pasm.json`
 
 Need snippets for:
+
 - Common macro patterns
 - Directive blocks (`.ines`, `.snes`, `.gb`)
 - Instruction sequences (wait vblank, DMA transfer)
@@ -53,6 +56,7 @@ Need snippets for:
 **Files:** New `src/completionProvider.ts`
 
 Features:
+
 - Opcode completion (context-aware by target)
 - Directive completion
 - Label completion from current file
@@ -65,6 +69,7 @@ Features:
 **Files:** New `src/formattingProvider.ts`
 
 Features:
+
 - Indent alignment
 - Column alignment (opcode, operands, comments)
 - Comment formatting
@@ -73,6 +78,7 @@ Features:
 **Status:** Partial - symbols work  
 **Priority:** Medium  
 **Enhancement needed:**
+
 - Show macro definitions in outline
 - Show segment boundaries
 - Show include file structure
@@ -83,6 +89,7 @@ Features:
 **Files:** New `src/test/`
 
 Need:
+
 - Unit tests for providers
 - Integration tests
 - Test fixtures
@@ -94,6 +101,7 @@ Need:
 ### Issue #70: Enhanced TextMate Grammar
 **Description:** Expand syntax highlighting to support all Poppy features  
 **Tasks:**
+
 - Add 6502 instruction keywords
 - Add SM83 instruction keywords  
 - Add 65816 instruction keywords
@@ -106,6 +114,7 @@ Need:
 ### Issue #71: Code Snippets Library
 **Description:** Create comprehensive snippet collection  
 **Tasks:**
+
 - NES project template snippets
 - SNES project template snippets
 - GB project template snippets
@@ -117,6 +126,7 @@ Need:
 ### Issue #72: IntelliSense Completion Provider
 **Description:** Implement context-aware code completion  
 **Tasks:**
+
 - Create completion provider class
 - Parse opcode lists from compiler
 - Implement opcode completion
@@ -129,6 +139,7 @@ Need:
 ### Issue #73: Document Formatting Provider
 **Description:** Auto-format assembly code  
 **Tasks:**
+
 - Create formatting provider
 - Implement column alignment
 - Implement indentation rules
@@ -138,6 +149,7 @@ Need:
 ### Issue #74: Extension Test Suite
 **Description:** Comprehensive testing for extension  
 **Tasks:**
+
 - Set up test infrastructure
 - Unit tests for diagnostics
 - Unit tests for hover provider
@@ -150,19 +162,22 @@ Need:
 ## 🎯 Implementation Order
 
 ### Phase 1: Core Features (Current Sprint)
+
 1. **Issue #70** - Enhanced syntax highlighting (2 hours)
 2. **Issue #71** - Code snippets (1 hour)
 3. **Issue #72** - Completion provider (3 hours)
 
 ### Phase 2: Quality of Life (Next Sprint)
-4. **Issue #73** - Formatting provider (2 hours)
-5. **Issue #74** - Test suite (3 hours)
+
+1. **Issue #73** - Formatting provider (2 hours)
+2. **Issue #74** - Test suite (3 hours)
 
 ### Phase 3: Polish & Release
-6. README documentation
-7. Extension icon and branding
-8. Marketplace publishing
-9. User guide and tutorials
+
+1. README documentation
+2. Extension icon and branding
+3. Marketplace publishing
+4. User guide and tutorials
 
 ---
 
@@ -216,16 +231,19 @@ class PoppyCompletionProvider implements vscode.CompletionItemProvider {
 ## 🧪 Testing Strategy
 
 ### Unit Tests
+
 - Test each provider in isolation
 - Mock VS Code API
 - Verify correct completions/hovers/etc.
 
 ### Integration Tests
+
 - Test extension activation
 - Test with real .pasm files
 - Verify multi-file projects
 
 ### Manual Tests
+
 - Test in real VS Code instance
 - Test with example projects
 - Performance testing with large files
@@ -245,6 +263,7 @@ class PoppyCompletionProvider implements vscode.CompletionItemProvider {
 ## 🚀 Marketplace Preparation
 
 ### Required for Publishing
+
 - [ ] Extension icon (128x128 PNG)
 - [ ] Detailed README with screenshots
 - [ ] LICENSE file
@@ -253,6 +272,7 @@ class PoppyCompletionProvider implements vscode.CompletionItemProvider {
 - [ ] Publisher account setup
 
 ### Marketing
+
 - [ ] Demo GIF/video
 - [ ] Feature highlights
 - [ ] Installation instructions

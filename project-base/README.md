@@ -4,7 +4,7 @@ This is a template project for building retro games with Poppy.
 
 ## Project Structure
 
-```
+```text
 .
 ├── src/           # Source code files
 ├── assets/        # Game assets

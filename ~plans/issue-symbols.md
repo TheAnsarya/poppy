@@ -24,6 +24,7 @@ RAM:$0000:temp
 ```
 
 ## Acceptance Criteria
+
 - [ ] Output FCEUX .nl format
 - [ ] Output Mesen .mlb format  
 - [ ] Output generic .sym format
@@ -33,6 +34,7 @@ RAM:$0000:temp
 - [ ] Unit tests for symbol output
 
 ## Implementation Notes
+
 - Collect all symbols after assembly
 - Format based on output extension
 - Include RAM vs ROM classification for .mlb

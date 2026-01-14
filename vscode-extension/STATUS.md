@@ -31,6 +31,7 @@
 **Files:** `syntaxes/pasm.tmLanguage.json`
 
 **Capabilities:**
+
 - 6502 instructions (56 opcodes) - NES
 - 65816 instructions (80+ opcodes) - SNES
 - SM83 instructions (90+ opcodes) - Game Boy
@@ -45,6 +46,7 @@
 **Files:** `src/completionProvider.ts`
 
 **Features:**
+
 - **Architecture Detection:** Auto-detects NES/SNES/GB from directives
 - **Opcode Completion:** 200+ opcodes with descriptions and addressing modes
 - **Directive Completion:** All assembler directives with parameter hints
@@ -56,6 +58,7 @@
 **Files:** `src/formattingProvider.ts`
 
 **Features:**
+
 - **Column-Based Alignment:** Labels at 0, opcodes at 8, operands at 16, comments at 40
 - **Configurable Positions:** All columns customizable via settings
 - **Smart Indentation:** Nested scopes (`.scope`, `.macro`, `.repeat`, `.if`)
@@ -75,6 +78,7 @@
 **Files:** `src/symbolProvider.ts`, `src/hoverProvider.ts`
 
 **Capabilities:**
+
 - **Go to Definition:** F12 on labels jumps to definition
 - **Peek Definition:** Alt+F12 shows definition inline
 - **Document Symbols:** Outline view with all labels/sections
@@ -85,6 +89,7 @@
 **Files:** `src/taskProvider.ts`
 
 **Features:**
+
 - **Build Current File:** Command palette → "Poppy: Build Current File"
 - **Build Project:** Command palette → "Poppy: Build Project"
 - **Task Provider:** Integrated with VS Code tasks system
@@ -103,6 +108,7 @@
 **Files:** `src/diagnostics.ts`
 
 **Features:**
+
 - **Real-Time Validation:** Errors appear as you type
 - **Compiler Integration:** Uses actual Poppy compiler for validation
 - **Inline Messages:** Squiggly underlines with error descriptions
@@ -113,6 +119,7 @@
 **Files:** `snippets/pasm.json`
 
 **Categories:**
+
 - **Project Templates:** NES, SNES, GB starter projects
 - **Hardware Macros:** wait_vblank, ppu_addr, dma_copy, etc.
 - **Control Flow:** if/while/for/switch patterns
@@ -125,12 +132,14 @@
 **Files:** `src/test/` directory
 
 **Coverage:**
+
 - **13 Integration Tests** using Mocha + @vscode/test-electron
 - **Completion Tests:** 5 tests for opcode/directive/register completion
 - **Formatting Tests:** 4 tests for alignment and indentation
 - **Integration Tests:** 4 tests for activation and language support
 
 **Test Infrastructure:**
+
 - Mocha 10.0 with TDD interface
 - @vscode/test-electron 2.3.0 for VS Code API testing
 - Debug configurations for test development
@@ -151,13 +160,14 @@
 - ✅ Keywords: assembly, 6502, 65816, NES, SNES, Game Boy
 - ✅ Categories: Programming Languages, Snippets, Formatters, Linters
 - ✅ License: MIT
-- ✅ Repository: https://github.com/TheAnsarya/poppy
+- ✅ Repository: <https://github.com/TheAnsarya/poppy>
 - ✅ Icon: icon.svg (red poppy flower design)
 - ✅ Gallery Banner: Dark theme (#2d3748)
 
 ### Documentation ✅
 
 **README.md** (307 lines)
+
 - ✅ Feature overview with icons
 - ✅ Installation instructions
 - ✅ Usage examples
@@ -169,6 +179,7 @@
 - ✅ License information
 
 **CHANGELOG.md** (97 lines)
+
 - ✅ Version 0.1.0 fully documented
 - ✅ All features listed
 - ✅ Technical details included
@@ -176,6 +187,7 @@
 - ✅ Future plans outlined
 
 **PUBLISHING.md** (NEW - 342 lines)
+
 - ✅ Step-by-step packaging guide
 - ✅ Marketplace publishing instructions
 - ✅ Version management guide
@@ -186,14 +198,15 @@
 ### Build Configuration ✅
 
 **Files:**
+
 - ✅ `.vscodeignore` - Excludes test files and source .ts
 - ✅ `tsconfig.json` - TypeScript compilation configured
 - ✅ `.eslintrc.json` - Code quality rules
 - ✅ `package.json` scripts:
-	- `npm run compile` - Build TypeScript
-	- `npm test` - Run all tests
-	- `npm run package` - Create .vsix
-	- `npm run publish` - Publish to marketplace
+   	- `npm run compile` - Build TypeScript
+   	- `npm test` - Run all tests
+   	- `npm run package` - Create .vsix
+   	- `npm run publish` - Publish to marketplace
 
 ---
 
@@ -202,13 +215,15 @@
 ### Prerequisites
 
 1. **Install vsce:**
+
 ```bash
 npm install -g @vscode/vsce
 ```
 
-2. **Create Microsoft/Azure Account:**
-- Microsoft account: https://account.microsoft.com
-- Azure DevOps: https://dev.azure.com
+1. **Create Microsoft/Azure Account:**
+
+- Microsoft account: <https://account.microsoft.com>
+- Azure DevOps: <https://dev.azure.com>
 - Personal Access Token with Marketplace → Manage scope
 
 ### Package Extension
@@ -284,6 +299,7 @@ vsce publish
 ## ✅ Quality Checklist
 
 ### Functionality
+
 - [x] All features work as documented
 - [x] No console errors or warnings
 - [x] All tests passing (13/13)
@@ -294,6 +310,7 @@ vsce publish
 - [x] Diagnostics report actual errors
 
 ### Documentation
+
 - [x] README comprehensive and clear
 - [x] CHANGELOG up-to-date
 - [x] Code comments thorough
@@ -302,6 +319,7 @@ vsce publish
 - [x] Troubleshooting included
 
 ### Code Quality
+
 - [x] TypeScript strict mode enabled
 - [x] No linter errors
 - [x] Code follows K&R style
@@ -310,6 +328,7 @@ vsce publish
 - [x] UTF-8 with BOM encoding
 
 ### Packaging
+
 - [x] package.json complete
 - [x] Icon included
 - [x] .vscodeignore configured
@@ -322,12 +341,14 @@ vsce publish
 ## 🎯 Remaining Tasks (Optional Enhancements)
 
 ### Before 1.0 Release
+
 1. **Screenshots/GIFs** - Add visual demos to README
 2. **Performance Testing** - Test with large files (>10k lines)
 3. **CI/CD Integration** - Automated testing on push
 4. **Telemetry** - Usage analytics (opt-in)
 
 ### Future Features (Post-1.0)
+
 1. **Refactoring Tools** - Rename label, extract macro
 2. **Code Lens** - Show label references inline
 3. **Breadcrumbs** - Symbol path in editor
@@ -343,6 +364,7 @@ vsce publish
 
 ### What We Built
 A **production-ready VS Code extension** that provides:
+
 - Professional development experience for retro game assembly
 - Intelligent code assistance across NES, SNES, and Game Boy platforms
 - Complete toolchain integration from coding to building
@@ -350,6 +372,7 @@ A **production-ready VS Code extension** that provides:
 - Comprehensive test coverage ensuring reliability
 
 ### Impact
+
 - **Reduces Development Time:** IntelliSense saves constant manual lookups
 - **Improves Code Quality:** Formatting ensures consistent, readable code
 - **Enhances Productivity:** Build integration streamlines workflow

@@ -46,6 +46,7 @@
 ### Philosophy
 
 Poppy aims to be:
+
 - **Readable** - Assembly that looks clean and modern
 - **Consistent** - Same syntax patterns across targets
 - **Helpful** - Clear error messages with suggestions
@@ -85,7 +86,7 @@ dotnet run --project src/Poppy.CLI -- --version
 ```
 
 Expected output:
-```
+```text
 Poppy Compiler v0.1.0
 Target architectures: 6502, 65816, SM83
 Copyright (c) 2024
@@ -157,7 +158,7 @@ xxd hello.bin | head -20
 
 ### Synopsis
 
-```
+```text
 poppy [options] <input.pasm>
 poppy --project [path] [options]
 ```
@@ -342,6 +343,7 @@ poppy clean --project -V --all
 ```
 
 The clean command removes:
+
 - Output ROM files
 - Symbol files
 - Listing files
@@ -632,6 +634,7 @@ poppy -t 6502 game.pasm
 ```
 
 Supported features:
+
 - All 56 official opcodes
 - All 13 addressing modes
 - Automatic zero-page optimization
@@ -643,6 +646,7 @@ poppy -t 65816 game.pasm
 ```
 
 Additional features:
+
 - 16-bit accumulator and index modes
 - 24-bit long addressing
 - Stack relative addressing
@@ -655,6 +659,7 @@ poppy -t sm83 game.pasm
 ```
 
 Features:
+
 - Game Boy specific instruction set
 - Z80-derived syntax
 - CB-prefixed extended instructions
@@ -699,7 +704,7 @@ poppy -l output.lst source.pasm
 ```
 
 Output format:
-```
+```text
 ; Poppy Compiler v0.1.0 Listing
 ; Generated: 2026-01-11 12:00:00
 
@@ -904,7 +909,7 @@ update_sprites:
 
 #### "Invalid addressing mode"
 
-```
+```text
 Error: Invalid addressing mode Immediate for instruction 'sta'
 ```
 
@@ -921,7 +926,7 @@ sta $2000       ; Store to address
 
 #### "Branch target out of range"
 
-```
+```text
 Error: Branch target out of range (150 bytes, must be -128 to +127)
 ```
 
@@ -940,7 +945,7 @@ Error: Branch target out of range (150 bytes, must be -128 to +127)
 
 #### "Undefined symbol"
 
-```
+```text
 Error: Undefined symbol 'mylabel'
 ```
 
@@ -949,7 +954,7 @@ Error: Undefined symbol 'mylabel'
 
 #### "Cannot evaluate operand"
 
-```
+```text
 Error: Cannot evaluate operand for instruction 'lda'
 ```
 

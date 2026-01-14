@@ -23,6 +23,7 @@ Poppy 2.0 will expand beyond NES/SNES/GB to support a comprehensive range of ret
 ## 🕹️ Target Systems - Poppy 2.0
 
 ### ✅ Currently Supported (v1.0)
+
 - **NES** (MOS 6502) - iNES header, mappers
 - **SNES** (WDC 65816) - LoRom/HiRom, FastROM
 - **Game Boy** (Sharp SM83) - DMG/CGB modes
@@ -31,6 +32,7 @@ Poppy 2.0 will expand beyond NES/SNES/GB to support a comprehensive range of ret
 Systems with large homebrew communities and well-documented architectures:
 
 #### Sega Genesis / Mega Drive
+
 - **CPU:** Motorola 68000 @ 7.67 MHz
 - **Sound:** Yamaha YM2612 (FM), TI SN76489 (PSG)
 - **Resolution:** 320×224, 256 colors
@@ -39,6 +41,7 @@ Systems with large homebrew communities and well-documented architectures:
 - **Complexity:** Medium-High (CISC architecture)
 
 #### Game Boy Advance
+
 - **CPU:** ARM7TDMI @ 16.78 MHz
 - **Sound:** 2 PCM channels, 4 GB channels
 - **Resolution:** 240×160, 32,768 colors
@@ -47,6 +50,7 @@ Systems with large homebrew communities and well-documented architectures:
 - **Complexity:** Medium (RISC, but complex peripherals)
 
 #### Sega Master System
+
 - **CPU:** Zilog Z80 @ 3.58 MHz
 - **Sound:** TI SN76489 PSG
 - **Resolution:** 256×192, 32 colors
@@ -55,6 +59,7 @@ Systems with large homebrew communities and well-documented architectures:
 - **Complexity:** Low-Medium (Z80 similar to GB)
 
 #### TurboGrafx-16 / PC Engine
+
 - **CPU:** HuC6280 (enhanced 6502) @ 7.16 MHz
 - **Sound:** HuC6280 PSG (6 channels)
 - **Resolution:** 256×224, 512 colors
@@ -65,6 +70,7 @@ Systems with large homebrew communities and well-documented architectures:
 ### 🎯 Tier 2 - Medium Priority (Q3 2026)
 
 #### Atari 2600 (VCS)
+
 - **CPU:** MOS 6507 @ 1.19 MHz
 - **Sound:** TIA chip
 - **Resolution:** 160×192, 128 colors
@@ -73,6 +79,7 @@ Systems with large homebrew communities and well-documented architectures:
 - **Complexity:** High (extremely hardware-constrained)
 
 #### Game Boy Color
+
 - **CPU:** Sharp SM83 @ 8 MHz (double-speed)
 - **Sound:** 4 channels (same as DMG)
 - **Resolution:** 160×144, 32,768 colors (56 on screen)
@@ -81,6 +88,7 @@ Systems with large homebrew communities and well-documented architectures:
 - **Complexity:** Low (extends existing GB support)
 
 #### WonderSwan / WonderSwan Color
+
 - **CPU:** NEC V30MZ @ 3.07 MHz
 - **Sound:** 4-channel PCM
 - **Resolution:** 224×144, 4096 colors (WSC)
@@ -91,6 +99,7 @@ Systems with large homebrew communities and well-documented architectures:
 ### 🎯 Tier 3 - Future Expansion (Q4 2026+)
 
 #### Atari Lynx
+
 - **CPU:** WDC 65C02 @ 4 MHz
 - **Sound:** 4-channel 8-bit DAC
 - **Resolution:** 160×102, 4096 colors
@@ -99,6 +108,7 @@ Systems with large homebrew communities and well-documented architectures:
 - **Complexity:** Medium (65C02 + custom chips)
 
 #### Neo Geo Pocket / Color
+
 - **CPU:** Toshiba TLCS-900H @ 6.144 MHz
 - **Sound:** T6W28 PSG, DAC
 - **Resolution:** 160×152, 4096 colors
@@ -229,6 +239,7 @@ For each new system, create:
 ### Reference Materials Needed
 
 #### CPU Datasheets
+
 - Motorola M68000 Programmer's Reference Manual
 - ARM7TDMI Technical Reference Manual
 - Zilog Z80 CPU User Manual
@@ -236,6 +247,7 @@ For each new system, create:
 - WDC 65C02 Datasheet
 
 #### System Documentation
+
 - Sega Genesis/MD Hardware Manual
 - GBA Programming Manual (GBATEK)
 - SMS VDP Programmer's Guide
@@ -243,6 +255,7 @@ For each new system, create:
 - Atari 2600 Stella Programmer's Guide
 
 #### Existing Assemblers (for reference)
+
 - **asm68k** - Genesis assembly
 - **devkitARM** - GBA development
 - **WLA-DX** - Multi-system assembler
@@ -287,12 +300,14 @@ Target emulators for validation:
 ## 📦 Deliverables
 
 ### v2.0 Alpha (Q1 2026)
+
 - ✅ Genesis M68000 backend
 - ✅ GBA ARM7 backend
 - ✅ Basic ROM generation for both
 - ✅ Hello World examples
 
 ### v2.0 Beta (Q2 2026)
+
 - ✅ SMS Z80 backend
 - ✅ TG16 HuC6280 backend
 - ✅ Complete header generation
@@ -300,6 +315,7 @@ Target emulators for validation:
 - ✅ Comprehensive test suite
 
 ### v2.0 Release (Q2 2026)
+
 - ✅ All Tier 1 systems complete
 - ✅ Full documentation
 - ✅ Example projects for each system
@@ -313,6 +329,7 @@ Target emulators for validation:
 ### Breaking Changes from v1.0
 
 Minimal - v2.0 maintains backward compatibility:
+
 - Existing NES/SNES/GB projects compile unchanged
 - New `.target` directive optional (auto-detected from file extension)
 - Directives namespaced per-system (`.nes.mapper`, `.sms.region`)

@@ -26,7 +26,7 @@ The standard NES ROM format with 16-byte header.
 
 #### Flags 6 Breakdown
 
-```
+```text
 7       0
 ---------
 NNNN FTBM
@@ -40,7 +40,7 @@ M: Mirroring (0=horizontal, 1=vertical)
 
 #### Flags 7 Breakdown
 
-```
+```text
 7       0
 ---------
 NNNN xxPV
@@ -112,7 +112,7 @@ The SNES header is located at different offsets depending on mapping mode.
 
 ### ROM Makeup Byte ($ffd5)
 
-```
+```text
 7       0
 ---------
 F--SSMMM
@@ -229,7 +229,7 @@ M: Map mode:
 
 Some SNES ROMs have a 512-byte header prepended (copier header).
 
-```
+```text
 Total ROM size % 1024 == 512 → Has SMC header
 Total ROM size % 1024 == 0   → No header
 ```
@@ -330,7 +330,7 @@ Total ROM size % 1024 == 0   → No header
 
 ### Header Checksum Calculation
 
-```
+```text
 x = 0
 for i = $0134 to $014c:
     x = x - ROM[i] - 1
@@ -344,7 +344,7 @@ for i = $0134 to $014c:
 
 Simple patching format for small changes.
 
-```
+```text
 Header:  "PATCH" (5 bytes)
 Records: [offset:3][size:2][data:size] ...
          If size == 0: [rle_size:2][rle_byte:1]
@@ -355,7 +355,7 @@ EOF:     "EOF" (3 bytes)
 
 More sophisticated format with checksums.
 
-```
+```text
 Header:     "BPS1" (4 bytes)
 Source size: variable-length integer
 Target size: variable-length integer

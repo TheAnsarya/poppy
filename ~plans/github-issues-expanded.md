@@ -324,11 +324,13 @@ includes:
 ```
 
 ## Acceptance Criteria
+
 - [ ] Define YAML/JSON project file schema
 - [ ] Parse project files
 - [ ] Build from project file
 - [ ] Watch mode for development
 - [ ] Dependency tracking
+
 ```
 
 ### Issue: Asset Pipeline Integration
@@ -340,11 +342,13 @@ Labels: phase-6, enhancement
 Support automatic asset conversion during build.
 
 ## Acceptance Criteria
+
 - [ ] Define asset type handlers
 - [ ] Support external conversion tools
 - [ ] Built-in CHR conversion
 - [ ] Caching for faster rebuilds
 - [ ] Configurable conversion options
+
 ```
 
 ---
@@ -360,11 +364,13 @@ Labels: phase-5, enhancement
 Add complete 65816 instruction set support.
 
 ## Acceptance Criteria
+
 - [ ] All 65816 opcodes
 - [ ] All 24 addressing modes
 - [ ] Block move (MVN/MVP)
 - [ ] Stack relative addressing
 - [ ] Direct page indirect long
+
 ```
 
 ### Issue: 65816 Mode Tracking
@@ -376,11 +382,13 @@ Labels: phase-5, enhancement
 Track processor mode for variable-size operands.
 
 ## Acceptance Criteria
+
 - [ ] .a8/.a16 directives for accumulator size
 - [ ] .i8/.i16 directives for index size
 - [ ] .smart mode for auto-detection
 - [ ] SEP/REP instruction handling
 - [ ] Warning for mode mismatches
+
 ```
 
 ### Issue: Long Addressing Support
@@ -392,10 +400,12 @@ Labels: phase-5, enhancement
 Support 24-bit bank:address addressing.
 
 ## Acceptance Criteria
+
 - [ ] $BBHHLL long address syntax
 - [ ] JML, JSL long jumps
 - [ ] LDA.l, STA.l long loads/stores
 - [ ] Bank byte operators (^)
+
 ```
 
 ---
@@ -411,11 +421,13 @@ Labels: phase-7, enhancement
 Provide helpful error messages with context and suggestions.
 
 ## Acceptance Criteria
+
 - [ ] Show source line with error
 - [ ] Caret (^) pointing to error location
 - [ ] Suggest fixes for common errors
 - [ ] Similar symbol suggestions for typos
 - [ ] Include stack for macro expansion errors
+
 ```
 
 ### Issue: Warning System
@@ -427,10 +439,12 @@ Labels: phase-7, enhancement
 Add configurable warning system.
 
 ## Acceptance Criteria
+
 - [ ] Warning levels (0-3)
 - [ ] -W flags for specific warnings
 - [ ] .nowarn directive to suppress
 - [ ] Treat warnings as errors option
+
 ```
 
 ---
@@ -446,11 +460,13 @@ Labels: phase-7, enhancement
 Generate iNES 2.0 format headers.
 
 ## Acceptance Criteria
+
 - [ ] iNES 2.0 header structure
 - [ ] Extended mapper support (> 255)
 - [ ] Submapper field
 - [ ] PRG/CHR RAM size fields
 - [ ] VS System / PlayChoice fields
+
 ```
 
 ### Issue: Symbol File Output
@@ -462,10 +478,12 @@ Labels: phase-7, enhancement
 Output symbol tables for debuggers.
 
 ## Acceptance Criteria
+
 - [ ] FCEUX .nl format
 - [ ] Mesen .mlb format
 - [ ] Generic .sym format
 - [ ] Include all labels and constants
+
 ```
 
 ### Issue: Map File Output
@@ -477,10 +495,12 @@ Labels: phase-7, enhancement
 Output detailed memory usage information.
 
 ## Acceptance Criteria
+
 - [ ] List all segments
 - [ ] Show segment sizes and ranges
 - [ ] List symbols per segment
 - [ ] Calculate free space
+
 ```
 
 ---

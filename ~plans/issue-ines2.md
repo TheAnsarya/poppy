@@ -28,6 +28,7 @@ Byte 15: Default expansion device
 ```
 
 ## Acceptance Criteria
+
 - [ ] Generate valid iNES 2.0 header
 - [ ] Extended mapper support (> 255)
 - [ ] Submapper field support
@@ -37,6 +38,7 @@ Byte 15: Default expansion device
 - [ ] Unit tests with header verification
 
 ## Implementation Notes
+
 - Parse iNES directives during assembly
 - Generate 16-byte header before PRG data
 - Validate mapper/size combinations

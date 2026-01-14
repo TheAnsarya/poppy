@@ -15,6 +15,7 @@ Implement compile-time assertion directives for validation.
 ```
 
 ## Acceptance Criteria
+
 - [ ] .assert condition, "message" - fail if false
 - [ ] .error "message" - unconditional error
 - [ ] .warning "message" - unconditional warning
@@ -23,6 +24,7 @@ Implement compile-time assertion directives for validation.
 - [ ] Unit tests for assertion directives
 
 ## Implementation Notes
+
 - Evaluate assertions during semantic analysis
 - Add AssertDirective, ErrorDirective, WarningDirective AST nodes
 - Collect warnings, fail on errors
