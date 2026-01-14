@@ -89,10 +89,17 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			var headerBuilder = _analyzer.GetSnesHeaderBuilder();
 			if (headerBuilder is not null) {
 				var header = headerBuilder.Build();
-				var output = new byte[header.Length + binary.Length];
-				Array.Copy(header, 0, output, 0, header.Length);
-				Array.Copy(binary, 0, output, header.Length, binary.Length);
-				return output;
+				var mapMode = GetSnesMapMode();
+
+				// Use SnesRomBuilder to place header at correct offset
+				var romBuilder = new SnesRomBuilder(mapMode, header);
+
+				// Add all segments to the ROM builder
+				foreach (var segment in _segments) {
+					romBuilder.AddSegment(segment.StartAddress, segment.Data.ToArray());
+				}
+
+				return romBuilder.Build();
 			}
 		}
 
@@ -101,10 +108,16 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			var headerBuilder = _analyzer.GetGbHeaderBuilder();
 			if (headerBuilder is not null) {
 				var header = headerBuilder.Build();
-				var output = new byte[header.Length + binary.Length];
-				Array.Copy(header, 0, output, 0, header.Length);
-				Array.Copy(binary, 0, output, header.Length, binary.Length);
-				return output;
+
+				// Use GbRomBuilder to place header at $0100
+				var romBuilder = new GbRomBuilder(header);
+
+				// Add all segments to the ROM builder
+				foreach (var segment in _segments) {
+					romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+				}
+
+				return romBuilder.Build();
 			}
 		}
 
@@ -812,6 +825,19 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		return mnemonic.ToLowerInvariant() switch {
 			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
 			_ => false
+		};
+	}
+
+	/// <summary>
+	/// Gets the SNES memory mapping mode from the analyzer.
+	/// </summary>
+	private SnesMapMode GetSnesMapMode() {
+		var mapping = _analyzer.MemoryMapping?.ToLowerInvariant();
+		return mapping switch {
+			"lorom" => SnesMapMode.LoRom,
+			"hirom" => SnesMapMode.HiRom,
+			"exhirom" => SnesMapMode.ExHiRom,
+			_ => SnesMapMode.LoRom // Default to LoROM
 		};
 	}
 

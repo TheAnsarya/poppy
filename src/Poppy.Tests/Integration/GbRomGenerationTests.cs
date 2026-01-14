@@ -28,7 +28,7 @@ public sealed class GbRomGenerationTests {
 .gb_rom_size 32
 .gb_region 0
 
-.org $0
+.org $150
 start:
 	di
 	nop
@@ -49,17 +49,23 @@ start:
 		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
 		Assert.False(generator.HasErrors, GetErrorsString(generator));
 
-		// Header is prepended, so check header content at start
-		// Currently the header is simply prepended to the binary
-		// Entry point should be nop; jp $0150
-		Assert.Equal(0x00, binary[0]);   // nop
-		Assert.Equal(0xc3, binary[1]);   // jp
-		Assert.Equal(0x50, binary[2]);   // $0150 low
-		Assert.Equal(0x01, binary[3]);   // $0150 high
+		// With proper ROM layout, header is at $0100
+		// ROM should be at least 32KB
+		Assert.True(binary.Length >= 0x8000, "ROM should be at least 32KB");
 
-		// Nintendo logo at offset 4 (within prepended header)
-		Assert.Equal(0xce, binary[4]);   // First byte of Nintendo logo
-		Assert.Equal(0xed, binary[5]);   // Second byte
+		// Entry point at $0100 should be nop; jp $0150
+		Assert.Equal(0x00, binary[0x100]);   // nop
+		Assert.Equal(0xc3, binary[0x101]);   // jp
+		Assert.Equal(0x50, binary[0x102]);   // $0150 low
+		Assert.Equal(0x01, binary[0x103]);   // $0150 high
+
+		// Nintendo logo at $0104
+		Assert.Equal(0xce, binary[0x104]);   // First byte of Nintendo logo
+		Assert.Equal(0xed, binary[0x105]);   // Second byte
+
+		// Title at $0134
+		Assert.Equal((byte)'T', binary[0x134]);
+		Assert.Equal((byte)'E', binary[0x135]);
 	}
 
 	[Fact]

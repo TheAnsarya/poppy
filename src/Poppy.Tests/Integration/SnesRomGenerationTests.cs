@@ -47,28 +47,31 @@ reset:
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
 
-		// Check SNES header (first 64 bytes)
-		// Title should be at start
-		var title = System.Text.Encoding.ASCII.GetString(binary, 0, 21).TrimEnd();
+		// With proper ROM layout, header is at $7fc0 for LoROM
+		// ROM should be at least 32KB
+		Assert.True(binary.Length >= 0x8000, "ROM should be at least 32KB");
+
+		// Check SNES header at $7fc0
+		var headerOffset = 0x7fc0;
+
+		// Title should be at header start
+		var title = System.Text.Encoding.ASCII.GetString(binary, headerOffset, 21).TrimEnd();
 		Assert.Equal("TEST ROM", title);
 
-		// Map mode at offset 21 (LoRom = 0x20)
-		Assert.Equal(0x20, binary[21]);
+		// Map mode at header offset 21 (LoRom = 0x20)
+		Assert.Equal(0x20, binary[headerOffset + 21]);
 
-		// ROM size at offset 23
-		Assert.Equal(0x08, binary[23]);  // 256KB = 2^8
+		// ROM size at header offset 23
+		Assert.Equal(0x08, binary[headerOffset + 23]);  // 256KB = 2^8
 
-		// RAM size at offset 24
-		Assert.Equal(0x03, binary[24]);  // 8KB
+		// RAM size at header offset 24
+		Assert.Equal(0x03, binary[headerOffset + 24]);  // 8KB
 
-		// Region at offset 25
-		Assert.Equal(0x01, binary[25]);  // USA
+		// Region at header offset 25
+		Assert.Equal(0x01, binary[headerOffset + 25]);  // USA
 
-		// Version at offset 27
-		Assert.Equal(1, binary[27]);
-
-		// Check that code follows after header
-		Assert.True(binary.Length > 64);
+		// Version at header offset 27
+		Assert.Equal(1, binary[headerOffset + 27]);
 	}
 
 	[Fact]
@@ -99,9 +102,11 @@ reset:
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
 
-		// Should NOT have SNES header - binary should be smaller than with header
-		// (header is 64 bytes, so without header should be significantly smaller for this tiny program)
-		Assert.True(binary.Length < 100);  // Much smaller than a header + code would be
+		// Without header directives, should generate raw binary
+		// Code starts at $8000, so with flat output we just get the code bytes
+		// sei = $78, clc = $18, xce = $fb
+		Assert.True(binary.Length > 0);
+		Assert.Equal(0x78, binary[0]);  // sei
 	}
 
 	[Fact]
@@ -113,14 +118,14 @@ reset:
 .snes_title ""HIROM TEST""
 .snes_region ""Japan""
 
-.org $c000
+.org $c00000
 reset:
 	sei
 	clc
 	xce
 	jmp reset
 
-.org $fffc
+.org $c0fffc
 	.word reset
 	.word reset
 ";
@@ -140,11 +145,14 @@ reset:
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
 
-		// Map mode at offset 21 (HiRom = 0x21)
-		Assert.Equal(0x21, binary[21]);
+		// For HiROM, header is at $ffc0
+		var headerOffset = 0xffc0;
+
+		// Map mode at header offset 21 (HiRom = 0x21)
+		Assert.Equal(0x21, binary[headerOffset + 21]);
 
 		// Region should be Japan (0x00)
-		Assert.Equal(0x00, binary[25]);
+		Assert.Equal(0x00, binary[headerOffset + 25]);
 	}
 
 	[Fact]
@@ -177,8 +185,11 @@ reset:
 		Assert.False(analyzer.HasErrors);
 		Assert.False(generator.HasErrors);
 
-		// Map mode at offset 21 should have bit 4 set for FastROM
-		Assert.True((binary[21] & 0x10) != 0);
+		// For LoROM, header is at $7fc0
+		var headerOffset = 0x7fc0;
+
+		// Map mode at header offset 21 should have bit 4 set for FastROM
+		Assert.True((binary[headerOffset + 21] & 0x10) != 0);
 	}
 
 	[Fact]
