@@ -240,7 +240,7 @@ export class PoppyCompletionProvider implements vscode.CompletionItemProvider {
 		// Opcode completion (at start of instruction, after label, or after whitespace)
 		if (linePrefix.match(/(?:^\s*|:\s*|\t\s*)[\w]*$/)) {
 			let opcodes: typeof OPCODES_6502 = [];
-			
+
 			if (target === 'gb') {
 				opcodes = OPCODES_SM83;
 			} else if (target === 'snes') {
