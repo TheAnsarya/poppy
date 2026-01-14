@@ -1692,24 +1692,28 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			var lower = mnemonic.ToLowerInvariant();
 			// Index register instructions use X flag
 			if (lower is "ldx" or "ldy" or "cpx" or "cpy") {
-				return _indexIs16Bit ? 3 : 2; // Base 1 + immediate
+				return _indexIs16Bit ? 2 : 1; // 2 bytes in 16-bit, 1 byte in 8-bit
 			}
 			// Accumulator instructions use M flag
 			if (lower is "lda" or "adc" or "sbc" or "cmp" or "and" or "ora" or "eor" or "bit") {
-				return _accumulatorIs16Bit ? 3 : 2;
+				return _accumulatorIs16Bit ? 2 : 1; // 2 bytes in 16-bit, 1 byte in 8-bit
 			}
 			// REP/SEP are always 8-bit immediate
 			if (lower is "rep" or "sep") {
+				return 1;
+			}
+			// PEA is always 16-bit
+			if (lower is "pea") {
 				return 2;
 			}
-			// Default to current register size
-			return _accumulatorIs16Bit ? 3 : 2;
+			// Default to current accumulator size for other immediate instructions
+			return _accumulatorIs16Bit ? 2 : 1;
 		}
 
 		return mode switch {
 			AddressingMode.Implied => 0,
 			AddressingMode.Accumulator => 0,
-			AddressingMode.Immediate => Target == TargetArchitecture.WDC65816 ? 2 : 1,
+			AddressingMode.Immediate => 1, // 6502/SM83: always 1 byte immediate
 			AddressingMode.ZeroPage => 1,
 			AddressingMode.ZeroPageX => 1,
 			AddressingMode.ZeroPageY => 1,

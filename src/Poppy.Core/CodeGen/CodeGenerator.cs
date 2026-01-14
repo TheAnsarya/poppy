@@ -21,6 +21,10 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	private OutputSegment? _currentSegment;
 	private long _currentAddress;
 
+	// 65816 M/X flag tracking for correct immediate operand sizes
+	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
+	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
+
 	/// <summary>
 	/// Gets all code generation errors.
 	/// </summary>
@@ -184,8 +188,23 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				EmitByte((byte)(offset & 0xff));
 			} else {
 				// Emit operand based on size
-				var operandSize = encoding.Size - 1;
+				// For 65816 immediate mode, size depends on M/X flags
+				var operandSize = GetOperandSize(mnemonic, addressingMode, encoding);
 				EmitValue(operandValue.Value, operandSize, node.SizeSuffix);
+			}
+
+			// Track REP/SEP instructions for M/X flag state (65816)
+			if (_target == TargetArchitecture.WDC65816) {
+				var lower = mnemonic.ToLowerInvariant();
+				if (lower == "rep" && operandValue.HasValue) {
+					// REP clears flags (sets to 16-bit mode)
+					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = true;  // M flag
+					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = true;        // X flag
+				} else if (lower == "sep" && operandValue.HasValue) {
+					// SEP sets flags (sets to 8-bit mode)
+					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = false; // M flag
+					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = false;       // X flag
+				}
 			}
 		}
 
@@ -259,6 +278,20 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 			case "pad":
 				HandlePadDirective(node);
+				break;
+
+			// 65816 register size directives
+			case "a8":
+				_accumulatorIs16Bit = false;
+				break;
+			case "a16":
+				_accumulatorIs16Bit = true;
+				break;
+			case "i8":
+				_indexIs16Bit = false;
+				break;
+			case "i16":
+				_indexIs16Bit = true;
 				break;
 
 				// Other directives don't generate code
@@ -694,6 +727,46 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		for (int i = 0; i < bytes; i++) {
 			EmitByte((byte)((value >> (i * 8)) & 0xff));
 		}
+	}
+
+	/// <summary>
+	/// Gets the operand size for an instruction, accounting for 65816 M/X flags.
+	/// </summary>
+	/// <param name="mnemonic">The instruction mnemonic.</param>
+	/// <param name="mode">The addressing mode.</param>
+	/// <param name="encoding">The instruction encoding.</param>
+	/// <returns>The operand size in bytes.</returns>
+	private int GetOperandSize(string mnemonic, AddressingMode mode, InstructionSet6502.InstructionEncoding encoding) {
+		// For 65816 immediate mode, size depends on M/X flags
+		if (_target == TargetArchitecture.WDC65816 && mode == AddressingMode.Immediate) {
+			var lower = mnemonic.ToLowerInvariant();
+
+			// Index register instructions use X flag
+			if (lower is "ldx" or "ldy" or "cpx" or "cpy") {
+				return _indexIs16Bit ? 2 : 1;
+			}
+
+			// Accumulator instructions use M flag
+			if (lower is "lda" or "adc" or "sbc" or "cmp" or "and" or "ora" or "eor" or "bit") {
+				return _accumulatorIs16Bit ? 2 : 1;
+			}
+
+			// REP/SEP are always 8-bit immediate
+			if (lower is "rep" or "sep") {
+				return 1;
+			}
+
+			// PEA is always 16-bit immediate
+			if (lower is "pea") {
+				return 2;
+			}
+
+			// Default to current accumulator size for other immediate instructions
+			return _accumulatorIs16Bit ? 2 : 1;
+		}
+
+		// For non-65816 or non-immediate modes, use the encoding's static size
+		return encoding.Size - 1;
 	}
 
 	/// <summary>

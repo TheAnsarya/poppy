@@ -199,19 +199,37 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 11: 65816 Support ⬜ (Not Started)
-**Status:** Not Started
-**Goal:** Add SNES/65816 architecture support
+### Phase 11: 65816/SNES Support 🔄 (In Progress - ~70% Complete)
+**Status:** In Progress
+**Goal:** Complete SNES/65816 architecture support
+**Updated:** January 14, 2026
 
-#### Tasks
+#### Completed ✅
 
-- ⬜ 65816 instruction set implementation (#39)
-- ⬜ M/X flag mode tracking (#40)
-- ⬜ Long (24-bit) addressing support
-- ⬜ SNES memory mapping directives (#41)
-- ⬜ SNES ROM output (SFC) (#42)
+- ✅ 65816 instruction set implementation (InstructionSet65816.cs)
+- ✅ SNES header builder (SnesHeaderBuilder.cs)
+- ✅ Target architecture enum (WDC65816)
+- ✅ Basic directives (.snes, .lorom, .hirom, .exhirom)
+- ✅ M/X flag tracking with REP/SEP
+- ✅ Register size directives (.a8, .a16, .i8, .i16, .smart)
+- ✅ Basic header directives (.snes_title, .snes_region, etc.)
+- ✅ SNES directive tests (SnesDirectiveTests.cs)
 
-**GitHub Issue:** #12 (Epic)
+#### Remaining Tasks
+
+- ⬜ M/X flag-aware instruction sizing (#76)
+- ⬜ Bank:Address notation parsing (#77)
+- ⬜ Proper SNES ROM layout generation (#78)
+- ⬜ SNES memory mapper implementation (#79)
+- ⬜ Complete SNES header directives (#80)
+- ⬜ SNES vector directives (#81)
+- ⬜ ExLoROM support (#82)
+- ⬜ SNES integration tests (#83)
+- ⬜ SNES example project (#84)
+- ⬜ SNES user documentation (#85)
+- ⬜ SNES migration guide (#86)
+
+**GitHub Issues:** #12 (Epic), #75 (Epic - SNES Completion)
 
 ---
 
