@@ -37,6 +37,11 @@ internal static class Program {
 			return 0;
 		}
 
+		// Handle clean command
+		if (options.Command == CommandType.Clean) {
+			return CleanProject(options);
+		}
+
 		// Project-based build
 		if (options.ProjectPath is not null) {
 			return BuildProject(options);
@@ -275,6 +280,130 @@ internal static class Program {
 	}
 
 	/// <summary>
+	/// Cleans build artifacts from a project.
+	/// </summary>
+	private static int CleanProject(CompilerOptions options) {
+		// Clean requires a project path
+		var projectPath = options.ProjectPath ?? ".";
+		string projectFile;
+
+		if (Directory.Exists(projectPath)) {
+			projectFile = Path.Combine(projectPath, "poppy.json");
+		} else if (File.Exists(projectPath)) {
+			projectFile = projectPath;
+		} else {
+			Console.Error.WriteLine($"Error: Project not found: {projectPath}");
+			return 1;
+		}
+
+		if (!File.Exists(projectFile)) {
+			Console.Error.WriteLine($"Error: Project file not found: {projectFile}");
+			return 1;
+		}
+
+		// Load project
+		ProjectFile project;
+		try {
+			project = ProjectFile.Load(projectFile);
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error loading project file: {ex.Message}");
+			return 1;
+		}
+
+		var projectDir = Path.GetDirectoryName(Path.GetFullPath(projectFile)) ?? ".";
+		var deletedFiles = new List<string>();
+		var deletedDirs = new List<string>();
+
+		if (options.Verbose) {
+			Console.WriteLine($"🌸 Cleaning project: {project.Name}");
+			Console.WriteLine($"   Directory: {projectDir}");
+			if (options.CleanAll) {
+				Console.WriteLine("   Mode: All configurations");
+			} else {
+				Console.WriteLine($"   Configuration: {options.Configuration ?? project.DefaultConfiguration}");
+			}
+		}
+
+		// Collect files to clean
+		var filesToClean = new HashSet<string>();
+
+		if (options.CleanAll) {
+			// Clean base project outputs
+			AddOutputFiles(filesToClean, projectDir, project.Output, project.Symbols, project.Listing, project.MapFile);
+
+			// Clean all configuration outputs
+			foreach (var (configName, config) in project.Configurations) {
+				AddOutputFiles(filesToClean, projectDir, config.Output, config.Symbols, config.Listing, config.MapFile);
+			}
+		} else {
+			// Clean specific configuration
+			var configName = options.Configuration ?? project.DefaultConfiguration;
+			var config = project.GetEffectiveConfiguration(configName);
+			AddOutputFiles(filesToClean, projectDir, config.Output, config.Symbols, config.Listing, config.MapFile);
+		}
+
+		// Delete files
+		foreach (var file in filesToClean) {
+			if (File.Exists(file)) {
+				try {
+					File.Delete(file);
+					deletedFiles.Add(file);
+					if (options.Verbose) {
+						Console.WriteLine($"   Deleted: {Path.GetRelativePath(projectDir, file)}");
+					}
+				} catch (Exception ex) {
+					Console.Error.WriteLine($"   Warning: Could not delete {file}: {ex.Message}");
+				}
+			}
+		}
+
+		// Try to clean empty directories
+		var dirsToCheck = filesToClean
+			.Select(f => Path.GetDirectoryName(f))
+			.Where(d => d is not null && d != projectDir)
+			.Distinct()
+			.OrderByDescending(d => d!.Length)  // Process deepest first
+			.ToList();
+
+		foreach (var dir in dirsToCheck) {
+			if (dir is not null && Directory.Exists(dir)) {
+				try {
+					if (!Directory.EnumerateFileSystemEntries(dir).Any()) {
+						Directory.Delete(dir);
+						deletedDirs.Add(dir);
+						if (options.Verbose) {
+							Console.WriteLine($"   Removed empty directory: {Path.GetRelativePath(projectDir, dir)}");
+						}
+					}
+				} catch {
+					// Ignore directory deletion errors
+				}
+			}
+		}
+
+		// Summary
+		if (deletedFiles.Count == 0 && deletedDirs.Count == 0) {
+			Console.WriteLine("🌸 Nothing to clean.");
+		} else {
+			Console.WriteLine($"🌸 Cleaned {deletedFiles.Count} file(s)");
+		}
+
+		return 0;
+	}
+
+	/// <summary>
+	/// Adds output file paths to the set of files to clean.
+	/// </summary>
+	private static void AddOutputFiles(HashSet<string> files, string projectDir, params string?[] paths) {
+		foreach (var path in paths) {
+			if (path is not null) {
+				var fullPath = Path.IsPathRooted(path) ? path : Path.Combine(projectDir, path);
+				files.Add(Path.GetFullPath(fullPath));
+			}
+		}
+	}
+
+	/// <summary>
 	/// Compiles a source file.
 	/// </summary>
 	private static int Compile(CompilerOptions options) {
@@ -464,6 +593,16 @@ internal static class Program {
 			var arg = args[i];
 
 			switch (arg) {
+				case "clean":
+					// Clean command
+					options.Command = CommandType.Clean;
+					break;
+
+				case "--all":
+					// Clean all configurations
+					options.CleanAll = true;
+					break;
+
 				case "-h":
 				case "--help":
 					options.ShowHelp = true;
@@ -582,6 +721,10 @@ internal static class Program {
 		Console.WriteLine();
 		Console.WriteLine("Usage: poppy [options] <input.pasm>");
 		Console.WriteLine("       poppy --project [path] [--config <name>]");
+		Console.WriteLine("       poppy clean --project [path] [--all]");
+		Console.WriteLine();
+		Console.WriteLine("Commands:");
+		Console.WriteLine("  clean                Remove build artifacts from a project");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -596,6 +739,7 @@ internal static class Program {
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -p, --project [path] Build from project file (poppy.json)");
 		Console.WriteLine("  -c, --config <name>  Build configuration (debug, release, etc.)");
+		Console.WriteLine("  --all                Clean all configurations (with clean command)");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
 		Console.WriteLine("                         65816, snes   - WDC 65816");
@@ -608,6 +752,8 @@ internal static class Program {
 		Console.WriteLine("  poppy --project                    Build from ./poppy.json");
 		Console.WriteLine("  poppy --project path/to/game       Build from project directory");
 		Console.WriteLine("  poppy --project -c release         Build release configuration");
+		Console.WriteLine("  poppy clean --project              Clean default config outputs");
+		Console.WriteLine("  poppy clean --project --all        Clean all config outputs");
 	}
 
 	/// <summary>
@@ -621,9 +767,23 @@ internal static class Program {
 }
 
 /// <summary>
+/// Command type for CLI operations.
+/// </summary>
+internal enum CommandType {
+	/// <summary>Build/compile (default).</summary>
+	Build,
+
+	/// <summary>Clean build artifacts.</summary>
+	Clean
+}
+
+/// <summary>
 /// Compiler options parsed from command line.
 /// </summary>
 internal sealed class CompilerOptions {
+	/// <summary>Command to execute.</summary>
+	public CommandType Command { get; set; } = CommandType.Build;
+
 	/// <summary>Input source file.</summary>
 	public string? InputFile { get; set; }
 
@@ -644,6 +804,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Build configuration name (debug, release, etc.).</summary>
 	public string? Configuration { get; set; }
+
+	/// <summary>Clean all configurations.</summary>
+	public bool CleanAll { get; set; }
 
 	/// <summary>Include search paths.</summary>
 	public List<string> IncludePaths { get; } = [];

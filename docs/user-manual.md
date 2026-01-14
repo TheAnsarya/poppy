@@ -326,6 +326,28 @@ poppy --project -c debug --verbose
 
 Configuration settings override base project settings. Defines are merged, with configuration values taking precedence.
 
+### Cleaning Build Artifacts
+
+The `clean` command removes build outputs from a project:
+
+```bash
+# Clean default configuration outputs
+poppy clean --project
+
+# Clean all configurations
+poppy clean --project --all
+
+# Clean with verbose output (shows deleted files)
+poppy clean --project -V --all
+```
+
+The clean command removes:
+- Output ROM files
+- Symbol files
+- Listing files
+- Map files
+- Empty build directories
+
 ---
 
 ## 6. Assembly Syntax {#assembly-syntax}
