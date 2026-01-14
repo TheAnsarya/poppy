@@ -1,0 +1,32 @@
+# Build artifacts
+out/test/**
+src/**
+.vscode-test/**
+*.vsix
+
+# Development files
+.vscode/**
+.vscode-test/**
+tsconfig.json
+.eslintrc.json
+
+# Node modules (keep only production dependencies)
+node_modules/**
+!node_modules/@types/**
+
+# Git files
+.git/**
+.gitignore
+
+# Documentation
+images/**/*.gif
+images/**/*.psd
+
+# Test files
+src/test/**
+out/test/**
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*

@@ -1,28 +1,49 @@
 {
 	"name": "poppy-assembly",
 	"displayName": "Poppy Assembly",
-	"description": "Language support for Poppy Assembly (.pasm) files",
+	"description": "Complete language support for Poppy Assembly - NES, SNES, and Game Boy development with IntelliSense, formatting, and build integration",
 	"version": "0.1.0",
 	"publisher": "TheAnsarya",
+	"author": {
+		"name": "TheAnsarya"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/TheAnsarya/poppy#readme",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/TheAnsarya/poppy"
+	},
+	"bugs": {
+		"url": "https://github.com/TheAnsarya/poppy/issues"
 	},
 	"engines": {
 		"vscode": "^1.80.0"
 	},
 	"categories": [
-		"Programming Languages"
+		"Programming Languages",
+		"Snippets",
+		"Formatters",
+		"Linters"
 	],
 	"keywords": [
 		"assembly",
+		"assembler",
 		"6502",
 		"65816",
+		"sm83",
 		"nes",
 		"snes",
 		"gameboy",
-		"retro"
+		"game boy",
+		"retro",
+		"retro gaming",
+		"pasm",
+		"poppy"
 	],
+	"galleryBanner": {
+		"color": "#1e1e1e",
+		"theme": "dark"
+	},
 	"activationEvents": [],
 	"main": "./out/extension.js",
 	"contributes": {
