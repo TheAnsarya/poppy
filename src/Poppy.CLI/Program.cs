@@ -6,6 +6,7 @@
 using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
+using Poppy.Core.Project;
 using Poppy.Core.Semantics;
 
 namespace Poppy.CLI;
@@ -34,6 +35,11 @@ internal static class Program {
 		if (options.ShowVersion) {
 			ShowVersion();
 			return 0;
+		}
+
+		// Project-based build
+		if (options.ProjectPath is not null) {
+			return BuildProject(options);
 		}
 
 		if (options.InputFile is null) {
@@ -130,6 +136,131 @@ internal static class Program {
 		Console.WriteLine("Watch mode stopped.");
 
 		return 0;
+	}
+
+	/// <summary>
+	/// Builds a project from a poppy.json file.
+	/// </summary>
+	private static int BuildProject(CompilerOptions options) {
+		// Find project file
+		var projectPath = options.ProjectPath!;
+		string projectFile;
+
+		if (Directory.Exists(projectPath)) {
+			// Directory provided - look for poppy.json
+			projectFile = Path.Combine(projectPath, "poppy.json");
+		} else if (File.Exists(projectPath)) {
+			// File provided directly
+			projectFile = projectPath;
+		} else {
+			Console.Error.WriteLine($"Error: Project not found: {projectPath}");
+			return 1;
+		}
+
+		if (!File.Exists(projectFile)) {
+			Console.Error.WriteLine($"Error: Project file not found: {projectFile}");
+			return 1;
+		}
+
+		// Load project
+		ProjectFile project;
+		try {
+			project = ProjectFile.Load(projectFile);
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error loading project file: {ex.Message}");
+			return 1;
+		}
+
+		// Validate project
+		var errors = project.Validate();
+		if (errors.Count > 0) {
+			Console.Error.WriteLine("Project validation errors:");
+			foreach (var error in errors) {
+				Console.Error.WriteLine($"  - {error}");
+			}
+
+			return 1;
+		}
+
+		var projectDir = Path.GetDirectoryName(Path.GetFullPath(projectFile)) ?? ".";
+
+		if (options.Verbose) {
+			Console.WriteLine($"🌸 Building project: {project.Name}");
+			Console.WriteLine($"   Target: {project.Target}");
+			Console.WriteLine($"   Directory: {projectDir}");
+		}
+
+		// Determine main source file
+		string mainFile;
+		if (!string.IsNullOrEmpty(project.Main)) {
+			mainFile = Path.IsPathRooted(project.Main)
+				? project.Main
+				: Path.Combine(projectDir, project.Main);
+		} else if (project.Sources.Count > 0) {
+			// Use first source file as main
+			var pattern = project.Sources[0];
+			var files = Directory.GetFiles(projectDir, pattern, SearchOption.AllDirectories);
+			if (files.Length == 0) {
+				Console.Error.WriteLine($"Error: No source files match pattern: {pattern}");
+				return 1;
+			}
+
+			mainFile = files[0];
+		} else {
+			Console.Error.WriteLine("Error: No main file or sources specified in project");
+			return 1;
+		}
+
+		if (!File.Exists(mainFile)) {
+			Console.Error.WriteLine($"Error: Main source file not found: {mainFile}");
+			return 1;
+		}
+
+		// Build include paths from project
+		var includePaths = new List<string>(options.IncludePaths);
+		foreach (var inc in project.Includes) {
+			var incPath = Path.IsPathRooted(inc) ? inc : Path.Combine(projectDir, inc);
+			if (Directory.Exists(incPath)) {
+				includePaths.Add(incPath);
+			}
+		}
+
+		// Add project directory as include path
+		includePaths.Add(projectDir);
+
+		// Build with project settings
+		var compileOptions = new CompilerOptions {
+			InputFile = mainFile,
+			OutputFile = options.OutputFile ?? (project.Output is not null
+				? (Path.IsPathRooted(project.Output) ? project.Output : Path.Combine(projectDir, project.Output))
+				: Path.Combine(projectDir, $"{project.Name}.bin")),
+			SymbolFile = options.SymbolFile ?? (project.Symbols is not null
+				? (Path.IsPathRooted(project.Symbols) ? project.Symbols : Path.Combine(projectDir, project.Symbols))
+				: null),
+			ListingFile = options.ListingFile ?? (project.Listing is not null
+				? (Path.IsPathRooted(project.Listing) ? project.Listing : Path.Combine(projectDir, project.Listing))
+				: null),
+			MapFile = options.MapFile ?? (project.MapFile is not null
+				? (Path.IsPathRooted(project.MapFile) ? project.MapFile : Path.Combine(projectDir, project.MapFile))
+				: null),
+			Target = project.TargetArchitecture,
+			Verbose = options.Verbose,
+			AutoGenerateLabels = options.AutoGenerateLabels || project.AutoLabels
+		};
+
+		// Copy include paths
+		foreach (var path in includePaths) {
+			compileOptions.IncludePaths.Add(path);
+		}
+
+		// Compile
+		var result = Compile(compileOptions);
+
+		if (result == 0 && options.Verbose) {
+			Console.WriteLine($"🌸 Build successful: {compileOptions.OutputFile}");
+		}
+
+		return result;
 	}
 
 	/// <summary>
@@ -400,6 +531,18 @@ internal static class Program {
 					options.Watch = true;
 					break;
 
+				case "-p":
+				case "--project":
+					// Check if next arg is a path or another flag
+					if (i + 1 < args.Length && !args[i + 1].StartsWith('-')) {
+						options.ProjectPath = args[++i];
+					} else {
+						// Use current directory
+						options.ProjectPath = ".";
+					}
+
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -416,9 +559,10 @@ internal static class Program {
 	/// Shows help message.
 	/// </summary>
 	private static void ShowHelp() {
-		Console.WriteLine($"{AppName} v{Version}");
+		Console.WriteLine($"🌸 {AppName} v{Version}");
 		Console.WriteLine();
 		Console.WriteLine("Usage: poppy [options] <input.pasm>");
+		Console.WriteLine("       poppy --project [path]");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -431,6 +575,7 @@ internal static class Program {
 		Console.WriteLine("  -a, --auto-labels    Auto-generate labels for JSR/JMP targets");
 		Console.WriteLine("  -w, --watch          Watch mode: recompile on file changes");
 		Console.WriteLine("  -I, --include <path> Add include search path");
+		Console.WriteLine("  -p, --project [path] Build from project file (poppy.json)");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
 		Console.WriteLine("                         65816, snes   - WDC 65816");
@@ -440,6 +585,8 @@ internal static class Program {
 		Console.WriteLine("  poppy game.pasm                    Assemble to game.bin");
 		Console.WriteLine("  poppy -o rom.nes game.pasm         Assemble to rom.nes");
 		Console.WriteLine("  poppy -t snes -l game.lst game.pasm");
+		Console.WriteLine("  poppy --project                    Build from ./poppy.json");
+		Console.WriteLine("  poppy --project path/to/game       Build from project directory");
 	}
 
 	/// <summary>
@@ -470,6 +617,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Memory map file path.</summary>
 	public string? MapFile { get; set; }
+
+	/// <summary>Project file or directory path.</summary>
+	public string? ProjectPath { get; set; }
 
 	/// <summary>Include search paths.</summary>
 	public List<string> IncludePaths { get; } = [];

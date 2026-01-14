@@ -1,40 +1,45 @@
 <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-	<!-- Background circle -->
-	<circle cx="64" cy="64" r="60" fill="#2d3748"/>
-	
-	<!-- Flower petals (poppy) -->
+	<defs>
+		<!-- Petal gradient - pink to white like 🌸 -->
+		<radialGradient id="petalGradient" cx="50%" cy="30%" r="70%">
+			<stop offset="0%" stop-color="#ffffff"/>
+			<stop offset="40%" stop-color="#ffb7c5"/>
+			<stop offset="100%" stop-color="#ff69b4"/>
+		</radialGradient>
+		<!-- Center gradient -->
+		<radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
+			<stop offset="0%" stop-color="#ffeb3b"/>
+			<stop offset="100%" stop-color="#ff9800"/>
+		</radialGradient>
+	</defs>
+
+	<!-- Background circle - dark for contrast -->
+	<circle cx="64" cy="64" r="62" fill="#1a1a2e"/>
+
+	<!-- Cherry blossom 🌸 - 5 heart-shaped petals -->
 	<g transform="translate(64, 64)">
-		<!-- Top petal -->
-		<ellipse cx="0" cy="-25" rx="15" ry="20" fill="#e53e3e" transform="rotate(0)"/>
-		
-		<!-- Right petal -->
-		<ellipse cx="18" cy="-18" rx="15" ry="20" fill="#e53e3e" transform="rotate(45)"/>
-		
-		<!-- Bottom-right petal -->
-		<ellipse cx="25" cy="0" rx="15" ry="20" fill="#e53e3e" transform="rotate(90)"/>
-		
-		<!-- Bottom petal -->
-		<ellipse cx="18" cy="18" rx="15" ry="20" fill="#e53e3e" transform="rotate(135)"/>
-		
-		<!-- Bottom-left petal -->
-		<ellipse cx="0" cy="25" rx="15" ry="20" fill="#e53e3e" transform="rotate(180)"/>
-		
-		<!-- Left petal -->
-		<ellipse cx="-18" cy="18" rx="15" ry="20" fill="#e53e3e" transform="rotate(225)"/>
-		
-		<!-- Top-left petal -->
-		<ellipse cx="-25" cy="0" rx="15" ry="20" fill="#e53e3e" transform="rotate(270)"/>
-		
-		<!-- Top-left petal 2 -->
-		<ellipse cx="-18" cy="-18" rx="15" ry="20" fill="#e53e3e" transform="rotate(315)"/>
-		
-		<!-- Center -->
-		<circle cx="0" cy="0" r="12" fill="#1a202c"/>
-		
-		<!-- Assembly code symbol (< >) in center -->
-		<text x="-8" y="5" font-family="monospace" font-size="14" fill="#48bb78" font-weight="bold">&lt;P&gt;</text>
+		<!-- Petal 1 - top -->
+		<path d="M0,-42 C-12,-42 -18,-30 -18,-22 C-18,-10 -8,0 0,8 C8,0 18,-10 18,-22 C18,-30 12,-42 0,-42 Z" fill="url(#petalGradient)" transform="rotate(0)"/>
+		<!-- Petal 2 - top right -->
+		<path d="M0,-42 C-12,-42 -18,-30 -18,-22 C-18,-10 -8,0 0,8 C8,0 18,-10 18,-22 C18,-30 12,-42 0,-42 Z" fill="url(#petalGradient)" transform="rotate(72)"/>
+		<!-- Petal 3 - bottom right -->
+		<path d="M0,-42 C-12,-42 -18,-30 -18,-22 C-18,-10 -8,0 0,8 C8,0 18,-10 18,-22 C18,-30 12,-42 0,-42 Z" fill="url(#petalGradient)" transform="rotate(144)"/>
+		<!-- Petal 4 - bottom left -->
+		<path d="M0,-42 C-12,-42 -18,-30 -18,-22 C-18,-10 -8,0 0,8 C8,0 18,-10 18,-22 C18,-30 12,-42 0,-42 Z" fill="url(#petalGradient)" transform="rotate(216)"/>
+		<!-- Petal 5 - top left -->
+		<path d="M0,-42 C-12,-42 -18,-30 -18,-22 C-18,-10 -8,0 0,8 C8,0 18,-10 18,-22 C18,-30 12,-42 0,-42 Z" fill="url(#petalGradient)" transform="rotate(288)"/>
+
+		<!-- Center circle - yellow/orange like 🌸 -->
+		<circle cx="0" cy="0" r="10" fill="url(#centerGradient)"/>
+
+		<!-- Center dots - stamens -->
+		<circle cx="0" cy="-5" r="2" fill="#d84315"/>
+		<circle cx="4.5" cy="-1.5" r="2" fill="#d84315"/>
+		<circle cx="2.8" cy="4" r="2" fill="#d84315"/>
+		<circle cx="-2.8" cy="4" r="2" fill="#d84315"/>
+		<circle cx="-4.5" cy="-1.5" r="2" fill="#d84315"/>
 	</g>
-	
-	<!-- Outer ring -->
-	<circle cx="64" cy="64" r="60" fill="none" stroke="#4a5568" stroke-width="4"/>
+
+	<!-- Subtle outer glow -->
+	<circle cx="64" cy="64" r="60" fill="none" stroke="#ff69b4" stroke-width="2" opacity="0.5"/>
 </svg>

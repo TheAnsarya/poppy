@@ -1,6 +1,6 @@
 {
 	"name": "poppy-assembly",
-	"displayName": "Poppy Assembly",
+	"displayName": "🌸 Poppy Assembly",
 	"description": "Complete language support for Poppy Assembly - NES, SNES, and Game Boy development with IntelliSense, formatting, and build integration",
 	"version": "0.1.0",
 	"publisher": "TheAnsarya",
@@ -18,7 +18,7 @@
 	},
 	"icon": "icon.svg",
 	"galleryBanner": {
-		"color": "#2d3748",
+		"color": "#1a1a2e",
 		"theme": "dark"
 	},
 	"engines": {

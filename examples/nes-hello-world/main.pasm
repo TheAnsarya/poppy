@@ -16,7 +16,11 @@
 ; iNES Header Configuration
 ; ============================================================================
 ; This generates the 16-byte iNES header automatically
-.ines {"mapper": 0, "prg": 2, "chr": 1, "mirroring": "horizontal"}
+.nes
+.ines_mapper 0           ; NROM mapper
+.ines_prg 2              ; 32KB PRG-ROM (2 x 16KB)
+.ines_chr 1              ; 8KB CHR-ROM
+.ines_mirroring 0        ; Horizontal mirroring
 
 ; ============================================================================
 ; Zero Page Variables ($00-$ff)
@@ -44,11 +48,11 @@ scroll_y:       .ds 1       ; Vertical scroll position
 .endmacro
 
 ; ----------------------------------------------------------------------------
-; Macro: ppu_addr
+; Macro: set_ppu_addr
 ; Set the PPU address register
 ; Parameters: \1 = address (16-bit)
 ; ----------------------------------------------------------------------------
-.macro ppu_addr, addr
+.macro set_ppu_addr, addr
     lda #>(addr)            ; High byte first
     sta PPU_ADDR
     lda #<(addr)            ; Then low byte

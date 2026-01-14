@@ -1,4 +1,4 @@
-# Poppy Assembly VS Code Extension
+# 🌸 Poppy Assembly VS Code Extension
 
 Professional language support for Poppy Assembly (.pasm) files targeting NES, SNES, and Game Boy platforms.
 
