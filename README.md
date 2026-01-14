@@ -248,6 +248,7 @@ bne -            ; jump to previous -
 | Document | Description |
 |----------|-------------|
 | [User Manual](docs/user-manual.md) | Complete usage guide with examples |
+| [SNES Development Guide](docs/snes-guide.md) | Comprehensive SNES/65816 guide |
 | [Project File Format](docs/project-file-format.md) | `.poppy` project configuration |
 | [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
 
@@ -264,6 +265,7 @@ bne -            ; jump to previous -
 | Document | Description |
 |----------|-------------|
 | [Roadmap](~docs/roadmap.md) | Development roadmap and milestones |
+| [SNES Implementation Plan](~plans/snes-implementation-plan.md) | SNES/65816 work plan |
 | [Short-Term Plan](~plans/short-term-plan.md) | 4-week immediate goals |
 | [Long-Term Plan](~plans/long-term-plan.md) | Quarterly milestones |
 | [GitHub Issues (Expanded)](~plans/github-issues-expanded.md) | Comprehensive issue templates |

@@ -639,18 +639,157 @@ Supported features:
 - All 13 addressing modes
 - Automatic zero-page optimization
 
-### 65816 (SNES) - Coming Soon
+### 65816 (SNES)
+
+The WDC 65816 is the processor used in the Super Nintendo Entertainment System (SNES).
 
 ```bash
 poppy -t 65816 game.pasm
 ```
 
-Additional features:
+#### 65816 Features
 
-- 16-bit accumulator and index modes
-- 24-bit long addressing
+- All 6502 instructions plus 65816 extensions
+- 16-bit accumulator and index register modes
+- 24-bit address space (16MB)
 - Stack relative addressing
-- Block move instructions
+- Block move instructions (MVN/MVP)
+- Direct page relocation
+
+#### Memory Mapping Directives
+
+```asm
+.snes                   ; Set target to SNES/65816
+.lorom                  ; LoROM mapping (32KB banks, $8000-$ffff)
+.hirom                  ; HiROM mapping (64KB banks, $0000-$ffff)
+.exhirom                ; ExHiROM mapping (extended, up to 8MB)
+```
+
+#### Register Size Directives
+
+The 65816 can operate with 8-bit or 16-bit accumulator and index registers.
+Use these directives to inform the assembler of the current register sizes:
+
+```asm
+.a8                     ; Accumulator is 8-bit (M flag = 1)
+.a16                    ; Accumulator is 16-bit (M flag = 0)
+.i8                     ; Index registers are 8-bit (X flag = 1)
+.i16                    ; Index registers are 16-bit (X flag = 0)
+.smart                  ; Auto-track M/X flags from REP/SEP
+```
+
+Example:
+
+```asm
+.snes
+.lorom
+
+.org $8000
+reset:
+    sei
+    clc
+    xce                     ; Switch to native mode
+
+    ; Set 16-bit accumulator, 8-bit index
+    rep #$20                ; Clear M flag (16-bit A)
+    .a16
+    sep #$10                ; Set X flag (8-bit X/Y)
+    .i8
+
+    lda #$1234              ; 3-byte instruction (16-bit immediate)
+    ldx #$ff                ; 2-byte instruction (8-bit immediate)
+
+    ; Switch to 8-bit accumulator
+    sep #$20                ; Set M flag (8-bit A)
+    .a8
+
+    lda #$42                ; 2-byte instruction (8-bit immediate)
+```
+
+#### SNES Header Directives
+
+Configure the internal SNES ROM header:
+
+```asm
+.snes_title "MY GAME"       ; Game title (up to 21 characters)
+.snes_region "USA"          ; Region: "Japan", "USA", "Europe"
+.snes_version 1             ; Version number (0-255)
+.snes_rom_size 256          ; ROM size in KB (128, 256, 512, etc.)
+.snes_ram_size 8            ; Save RAM size in KB (0, 2, 8, 32, etc.)
+.fastrom                    ; Enable FastROM mode (3.58 MHz)
+```
+
+#### 65816-Specific Addressing Modes
+
+```asm
+; Direct Page
+lda $12                     ; Direct page (like zero page)
+lda $12,x                   ; Direct page indexed X
+lda $12,y                   ; Direct page indexed Y
+
+; Absolute
+lda $1234                   ; Absolute
+lda $1234,x                 ; Absolute indexed X
+lda $1234,y                 ; Absolute indexed Y
+
+; Long (24-bit)
+lda $7e1234                 ; Absolute long
+lda $7e1234,x               ; Absolute long indexed X
+
+; Indirect
+lda ($12)                   ; Direct page indirect
+lda ($12,x)                 ; Direct page indexed indirect
+lda ($12),y                 ; Direct page indirect indexed
+lda [$12]                   ; Direct page indirect long
+lda [$12],y                 ; Direct page indirect long indexed
+
+; Stack Relative
+lda $03,s                   ; Stack relative
+lda ($03,s),y               ; Stack relative indirect indexed
+
+; Immediate with size hints
+lda.b #$12                  ; Force 8-bit immediate
+lda.w #$1234                ; Force 16-bit immediate
+```
+
+#### Block Move Instructions
+
+```asm
+; Move 256 bytes from bank $7e to bank $7f
+lda #$00ff                  ; Number of bytes - 1
+ldx #$0000                  ; Source offset
+ldy #$0000                  ; Destination offset
+mvn $7f, $7e                ; Move negative (increment)
+
+; Or use move positive
+mvp $7f, $7e                ; Move positive (decrement)
+```
+
+#### 65816 Vector Table
+
+```asm
+.org $ffe0
+; Native mode vectors
+    .word 0                 ; Reserved
+    .word 0                 ; Reserved
+    .word cop_handler       ; COP
+    .word brk_handler       ; BRK
+    .word abort_handler     ; ABORT
+    .word nmi_handler       ; NMI
+    .word 0                 ; Reserved
+    .word irq_handler       ; IRQ
+
+.org $fff0
+; Emulation mode vectors
+    .word 0                 ; Reserved
+    .word 0                 ; Reserved
+    .word cop_handler       ; COP
+    .word 0                 ; Reserved
+    .word abort_handler     ; ABORT
+    .word nmi_handler       ; NMI
+    .word reset_handler     ; RESET
+    .word irq_handler       ; IRQ/BRK
+```
 
 ### SM83 (Game Boy) - Coming Soon
 
@@ -691,9 +830,42 @@ NES ROM with iNES header.
 .mapper 0
 ```
 
-### SFC Format (Coming Soon)
+### SFC Format
 
-SNES ROM with internal header.
+SNES ROM with internal header. The header is automatically generated when you use
+SNES header directives.
+
+```asm
+.snes
+.lorom
+.snes_title "MY SNES GAME"
+.snes_region "USA"
+.snes_version 1
+.snes_rom_size 256          ; 256KB ROM
+.snes_ram_size 8            ; 8KB SRAM
+
+.org $8000
+reset:
+    sei
+    clc
+    xce
+    ; ... game code ...
+
+; Vectors
+.org $fffc
+    .word reset             ; Reset vector
+    .word reset             ; NMI vector (placeholder)
+```
+
+The SFC header includes:
+
+- Game title (21 characters)
+- Map mode (LoROM/HiROM/ExHiROM)
+- ROM type and size
+- RAM size
+- Region/country code
+- Version number
+- Checksums (auto-calculated)
 
 ### Listing File
 
