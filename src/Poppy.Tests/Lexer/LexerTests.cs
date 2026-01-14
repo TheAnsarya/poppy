@@ -155,6 +155,46 @@ public class LexerTests {
 	}
 
 	[Theory]
+	[InlineData("$7e:1234", 0x7e1234)]     // Standard bank:address
+	[InlineData("$00:8000", 0x008000)]     // Bank 0
+	[InlineData("$7f:ffff", 0x7fffff)]     // SNES WRAM end
+	[InlineData("$c0:0000", 0xc00000)]     // HiROM bank
+	[InlineData("$ff:ffff", 0xffffff)]     // Max 24-bit
+	[InlineData("$00:0000", 0x000000)]     // Min value
+	[InlineData("$7E:ABCD", 0x7eabcd)]     // Mixed case
+	public void Tokenize_BankAddressNotation_ReturnsCorrect24BitValue(string input, long expected) {
+		// arrange
+		var lexer = new Core.Lexer.Lexer(input);
+
+		// act
+		var tokens = lexer.Tokenize();
+
+		// assert
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Number, tokens[0].Type);
+		Assert.Equal(expected, tokens[0].NumericValue);
+		Assert.Equal(input, tokens[0].Text); // Preserves original text
+	}
+
+	[Fact]
+	public void Tokenize_BankAddressInInstruction_ParsesCorrectly() {
+		// arrange
+		var source = "lda $7e:1234";
+		var lexer = new Core.Lexer.Lexer(source);
+
+		// act
+		var tokens = lexer.Tokenize();
+
+		// assert
+		var meaningful = tokens.Where(t => t.Type != TokenType.EndOfFile).ToList();
+		Assert.Equal(2, meaningful.Count);
+		Assert.Equal(TokenType.Mnemonic, meaningful[0].Type); // lda is recognized as mnemonic
+		Assert.Equal("lda", meaningful[0].Text);
+		Assert.Equal(TokenType.Number, meaningful[1].Type);
+		Assert.Equal(0x7e1234, meaningful[1].NumericValue);
+	}
+
+	[Theory]
 	[InlineData("0", 0)]
 	[InlineData("42", 42)]
 	[InlineData("255", 255)]

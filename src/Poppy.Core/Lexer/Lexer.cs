@@ -163,6 +163,25 @@ public sealed class Lexer {
 			value = (value << 4) | digit;
 		}
 
+		// Check for bank:address notation ($bb:aaaa)
+		// This is common in SNES development for 24-bit addresses
+		if (Peek() == ':' && IsDigit(PeekNext(), 16)) {
+			Advance(); // consume ':'
+
+			// The value we have so far is the bank byte
+			var bank = value;
+			value = 0;
+
+			// Parse the address portion
+			while (IsDigit(Peek(), 16)) {
+				var digit = (long)HexDigitValue(Advance());
+				value = (value << 4) | digit;
+			}
+
+			// Combine: (bank << 16) | address
+			value = (bank << 16) | (value & 0xffff);
+		}
+
 		var text = _source[start.._position];
 		return MakeToken(TokenType.Number, text, location, value);
 	}
