@@ -16,6 +16,11 @@
 	"bugs": {
 		"url": "https://github.com/TheAnsarya/poppy/issues"
 	},
+	"icon": "icon.svg",
+	"galleryBanner": {
+		"color": "#2d3748",
+		"theme": "dark"
+	},
 	"engines": {
 		"vscode": "^1.80.0"
 	},
@@ -184,7 +189,9 @@
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint src --ext ts",
 		"pretest": "npm run compile",
-		"test": "node ./out/test/runTests.js"
+		"test": "node ./out/test/runTests.js",
+		"package": "vsce package",
+		"publish": "vsce publish"
 	},
 	"devDependencies": {
 		"@types/glob": "^8.1.0",
