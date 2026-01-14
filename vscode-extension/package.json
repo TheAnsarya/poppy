@@ -29,8 +29,14 @@
 		"languages": [
 			{
 				"id": "pasm",
-				"aliases": ["Poppy Assembly", "pasm"],
-				"extensions": [".pasm", ".inc"],
+				"aliases": [
+					"Poppy Assembly",
+					"pasm"
+				],
+				"extensions": [
+					".pasm",
+					".inc"
+				],
 				"configuration": "./language-configuration.json"
 			}
 		],
@@ -60,7 +66,9 @@
 		"taskDefinitions": [
 			{
 				"type": "poppy",
-				"required": ["task"],
+				"required": [
+					"task"
+				],
 				"properties": {
 					"task": {
 						"type": "string",
@@ -76,7 +84,11 @@
 					},
 					"target": {
 						"type": "string",
-						"enum": ["nes", "snes", "gb"],
+						"enum": [
+							"nes",
+							"snes",
+							"gb"
+						],
 						"description": "Target architecture"
 					},
 					"output": {
@@ -90,7 +102,10 @@
 			{
 				"name": "poppy",
 				"owner": "poppy",
-				"fileLocation": ["relative", "${workspaceFolder}"],
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
 				"pattern": {
 					"regexp": "^(.+)\\((\\d+)(?:,(\\d+))?\\):\\s+(error|warning):\\s+(.+)$",
 					"file": 1,
@@ -112,13 +127,32 @@
 				"poppy.compiler.target": {
 					"type": "string",
 					"default": "nes",
-					"enum": ["nes", "snes", "gb"],
+					"enum": [
+						"nes",
+						"snes",
+						"gb"
+					],
 					"description": "Default target architecture"
 				},
 				"poppy.diagnostics.enabled": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enable real-time diagnostics"
+				},
+				"poppy.formatting.opcodeColumn": {
+					"type": "number",
+					"default": 8,
+					"description": "Column position for instruction opcodes"
+				},
+				"poppy.formatting.operandColumn": {
+					"type": "number",
+					"default": 16,
+					"description": "Column position for operands"
+				},
+				"poppy.formatting.commentColumn": {
+					"type": "number",
+					"default": 40,
+					"description": "Column position for comments"
 				}
 			}
 		}
@@ -127,14 +161,20 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"lint": "eslint src --ext ts"
+		"lint": "eslint src --ext ts",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTests.js"
 	},
 	"devDependencies": {
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.0",
 		"@types/node": "^20.0.0",
 		"@types/vscode": "^1.80.0",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
+		"@vscode/test-electron": "^2.3.0",
 		"eslint": "^8.0.0",
+		"mocha": "^10.0.0",
 		"typescript": "^5.0.0"
 	}
 }

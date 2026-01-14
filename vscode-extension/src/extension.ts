@@ -8,6 +8,7 @@ import { PoppyDiagnosticsProvider } from './diagnostics';
 import { PoppySymbolProvider } from './symbolProvider';
 import { PoppyHoverProvider } from './hoverProvider';
 import { PoppyCompletionProvider } from './completionProvider';
+import { PoppyFormattingProvider } from './formattingProvider';
 
 // Document selector for Poppy Assembly files
 const PASM_SELECTOR: vscode.DocumentSelector = { language: 'pasm', scheme: 'file' };
@@ -60,6 +61,12 @@ export function activate(context: vscode.ExtensionContext) {
 			'#', // Trigger on # for immediate mode
 			'$'  // Trigger on $ for hex values
 		)
+	);
+
+	// Create formatting provider
+	const formattingProvider = new PoppyFormattingProvider();
+	context.subscriptions.push(
+		vscode.languages.registerDocumentFormattingEditProvider(PASM_SELECTOR, formattingProvider)
 	);
 
 	// Register the task provider
