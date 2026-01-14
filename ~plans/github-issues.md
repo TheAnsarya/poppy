@@ -4,6 +4,47 @@
 
 **Repository:** TheAnsarya/poppy
 **Created:** January 11, 2026
+**Last Updated:** January 14, 2026
+
+---
+
+## 📈 Current Status
+
+**Open Issues:** 12
+**Closed Issues:** 63
+**Epic Issues:** 8 (all open)
+
+### Recently Closed (January 2026)
+- ✅ #74 - VS Code extension test suite (Jan 14)
+- ✅ #73 - Document formatting provider (Jan 14)
+- ✅ #72 - IntelliSense completion provider (Jan 14)
+- ✅ #71 - Code snippets library (Jan 14)
+- ✅ #70 - Enhanced TextMate grammar (Jan 14)
+- ✅ #68 - Add completion provider (duplicate of #72, Jan 14)
+- ✅ #67 - Game Boy header directives (Jan 14)
+- ✅ #58 - Code generation for conditionals/macros/repeat (Jan 12)
+- ✅ #33 - Comprehensive macro system tests (Jan 12)
+- ✅ #8 - Listing file output (Jan 12)
+- ✅ #7 - Error messages with context (Jan 12)
+- ✅ #5 - Include file support (previously closed)
+
+### Currently Open Issues
+
+#### Epic Issues (8)
+- #9 - [Epic] Include System (phase-6, milestone: v0.2.0)
+- #10 - [Epic] Label System Enhancement (phase-6, milestone: v0.2.0)
+- #11 - [Epic] Directive System (phase-6, milestone: v0.2.0)
+- #13 - [Epic] Output Formats (phase-7, milestone: v1.0.0)
+- #44 - [Epic] GameInfo Repository Integration
+- #45 - [Epic] Project Build System
+- #46 - [Epic] Documentation and Examples
+- #47 - [Epic] VS Code Extension (near complete - packaging/publishing remaining)
+- #48 - [Epic] Game Boy Support
+
+#### Core Functionality - 3 issues
+- #69 - Add .include directive support
+- #52 - Create FFMQ Poppy project configuration
+- #51 - Create DW1 Poppy project configuration
 
 ---
 
