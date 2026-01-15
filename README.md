@@ -2,7 +2,7 @@
 
 > **Smart multi-system assembly compiler for retro gaming projects**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
 
 ---
 
@@ -10,9 +10,9 @@
 
 **Poppy** is a multi-system assembly compiler targeting classic gaming platforms:
 
-- **NES** (6502 processor)
-- **SNES** (65816 processor)
-- **Game Boy** (Z80-like processor)
+- **NES** (6502 processor) ✅
+- **SNES** (65816 processor) ✅
+- **Game Boy** (SM83 processor) ✅
 
 The compiler aims to support compilation of retro game projects including Dragon Warrior, Final Fantasy Mystic Quest, and Dragon Quest remakes.
 
@@ -40,6 +40,14 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 🔄 Preprocessor with include path resolution
 - 🗂️ Multi-file project support
 
+**Target Systems:**
+
+- 🎮 Full NES/Famicom support (6502)
+- 🎨 Full SNES/Super Famicom support (65816)
+- 🕹️ Full Game Boy/Color support (SM83)
+- 🏛️ Multiple memory mapping modes (LoROM, HiROM, ExHiROM)
+- 📋 All iNES mapper configurations
+
 **Label System:**
 
 - 🏷️ Global labels
@@ -57,6 +65,23 @@ The compiler aims to support compilation of retro game projects including Dragon
 - ⚠️ Error and warning directives (`.error`, `.warning`)
 - 💬 Multi-line comments (`/* */`)
 
+**SNES ROM Generation:**
+
+- 🎨 SNES header at correct ROM offset ($7fc0 LoROM, $ffc0 HiROM)
+- 📋 11 SNES header directives (`.snes_name`, `.snes_map_mode`, etc.)
+- 🗺️ LoROM, HiROM, and ExHiROM support
+- ✅ Automatic checksum calculation
+- 🔢 ROM speed, type, and region configuration
+
+**Game Boy ROM Generation:**
+
+- 🕹️ Game Boy header at $0100-$014f
+- 📋 7 GB header directives (`.gb_title`, `.gb_mbc`, `.gb_cgb`, etc.)
+- 🎮 MBC support (MBC1, MBC3, MBC5, etc.)
+- 🌈 CGB (Color Game Boy) mode flags
+- ✅ Automatic Nintendo logo and checksums
+- 🔋 RAM size and battery configuration
+
 **NES ROM Generation:**
 
 - 🎮 iNES 1.0 and iNES 2.0 header generation
@@ -67,11 +92,10 @@ The compiler aims to support compilation of retro game projects including Dragon
 
 **Macro System & Advanced Directives:**
 
-- 🔧 Macro definitions with parameters (`.macro`/`.endmacro`)
-- 🔄 Macro expansion with parameter substitution
-- 📞 Macro invocations with `@` prefix (`@macro_name arg1, arg2`)
-- 🏷️ Local label support in macros with automatic renaming
-- ❓ Conditional assembly (`.if`/`.elseif`/`.else`/`.endif`)
+- 📊 Enhanced error reporting with context
+- 🧮 More advanced expression evaluation
+- 🎨 Asset conversion pipeline
+- 📦 Project file system (poppy.json)`/`.else`/`.endif`)
 - 🔍 Symbol existence checks (`.ifdef`/`.ifndef`)
 - 🔁 Repeat blocks (`.rept`/`.endr`) for code generation
 - 🔢 Enumeration blocks (`.enum`/`.ende`) for sequential constants
@@ -249,6 +273,7 @@ bne -            ; jump to previous -
 |----------|-------------|
 | [User Manual](docs/user-manual.md) | Complete usage guide with examples |
 | [SNES Development Guide](docs/snes-guide.md) | Comprehensive SNES/65816 guide |
+| [Game Boy Development Guide](docs/gameboy-guide.md) | Complete GB/GBC guide with SM83 |
 | [Project File Format](docs/project-file-format.md) | `.poppy` project configuration |
 | [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
 
@@ -358,7 +383,9 @@ See [.github/copilot-instructions.md](.github/copilot-instructions.md) for compl
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+is free and unencumbered software released into the public domain.
 
+See the [LICENSE](LICENSE) file for details (Unlicense)
 ---
 
 ## 🔗 References

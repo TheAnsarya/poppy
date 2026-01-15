@@ -58,6 +58,14 @@
 └── ~reference-files/ # Reference materials
 ```
 
+## 🛠️ Build Tools
+
+### Package Manager
+- **ALWAYS use Yarn** for JavaScript/TypeScript projects (vscode-extension)
+- Never use npm or npx commands
+- Yarn version: 1.22.22
+- Common commands: `yarn install`, `yarn compile`, `yarn test`, `yarn package`
+
 ## 📝 Documentation Requirements
 
 ### Code Comments
@@ -106,4 +114,5 @@
 3. **Never modify** the manual prompts log file
 4. **Always** add BOM to UTF-8 files
 5. **Always** ensure documentation is linked from README
+6. **Always use Yarn** for JavaScript/TypeScript - never npm/npx
 

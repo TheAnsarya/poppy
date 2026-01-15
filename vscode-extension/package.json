@@ -7,7 +7,7 @@
 	"author": {
 		"name": "TheAnsarya"
 	},
-	"license": "MIT",
+	"license": "Unlicense",
 	"homepage": "https://github.com/TheAnsarya/poppy#readme",
 	"repository": {
 		"type": "git",
@@ -16,7 +16,6 @@
 	"bugs": {
 		"url": "https://github.com/TheAnsarya/poppy/issues"
 	},
-	"icon": "icon.svg",
 	"galleryBanner": {
 		"color": "#1a1a2e",
 		"theme": "dark"
