@@ -263,6 +263,14 @@ bne -            ; jump to previous -
 .warning "TODO: Optimize this section"
 ```
 
+### Examples
+
+Check out the example projects in the `examples/` directory:
+
+- **[nes-hello-world](examples/nes-hello-world/)** - Minimal NES ROM with screen initialization
+- **[snes-hello-world](examples/snes-hello-world/)** - SNES ROM with native mode setup
+- **[gb-hello-world](examples/gb-hello-world/)** - Game Boy ROM displaying "HELLO" text
+
 ---
 
 ## 📖 Documentation

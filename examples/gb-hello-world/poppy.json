@@ -1,0 +1,7 @@
+{
+	"name": "gb-hello-world",
+	"version": "1.0.0",
+	"target": "gameboy",
+	"entry": "main.pasm",
+	"output": "hello.gb"
+}

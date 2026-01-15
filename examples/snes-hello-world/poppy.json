@@ -1,0 +1,7 @@
+{
+	"name": "snes-hello-world",
+	"version": "1.0.0",
+	"target": "snes",
+	"entry": "main.pasm",
+	"output": "hello.sfc"
+}
