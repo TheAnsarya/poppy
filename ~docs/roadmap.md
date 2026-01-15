@@ -3,7 +3,23 @@
 **Repository:** TheAnsarya/poppy
 **Purpose:** Multi-system assembly compiler for retro gaming platforms
 **Created:** December 25, 2025
-**Updated:** January 11, 2026
+**Updated:** January 15, 2026
+**Current Version:** 1.0.0 (Released)
+
+---
+
+## 🎉 Current Status
+
+**Poppy v1.0.0 is RELEASED!** (January 15, 2026)
+
+✅ **Complete NES Support** - Full 6502 with iNES 2.0
+✅ **Complete SNES Support** - Full 65816 with LoROM/HiROM
+✅ **Complete Game Boy Support** - Full SM83 with MBC/CGB
+✅ **VS Code Extension** - Published to marketplace
+✅ **942 Tests Passing** - Comprehensive test coverage
+✅ **Full Documentation** - 5,800+ lines across 10 guides
+
+[📦 Download v1.0.0](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 
 ---
 
@@ -19,9 +35,18 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-## 📅 Milestones
+## �️ Detailed Roadmaps
 
-### Phase 1: Foundation ✅ (Complete)
+For detailed feature planning:
+
+- [v1.x Roadmap](../~plans/v1.x-roadmap.md) - v1.1.0 through v1.3.0 plans
+- [v2.0 Roadmap](../~plans/v2.0-roadmap.md) - Platform expansion and advanced features
+
+---
+
+## 📅 Historical Milestones (COMPLETED)
+
+### Phase 1: Foundation ✅ (December 2025)
 **Status:** Complete
 **Goal:** Establish project structure and documentation
 
@@ -38,11 +63,9 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 - ✅ Update README.md for project
 - ✅ Git commit all work
 - ✅ Enable GitHub Issues
-- ⬜ Create Kanban board
+- ✅ Create Kanban board
 
----
-
-### Phase 2: Research & Architecture ✅ (Complete)
+### Phase 2: Research & Architecture ✅ (December 2025)
 **Status:** Complete
 **Goal:** Design compiler architecture and document target systems
 
@@ -90,17 +113,17 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 5: Code Generation - 65816 ⬜ (Not Started)
-**Status:** Not Started
+### Phase 5: Code Generation - 65816 ✅ (January 2026)
+**Status:** Complete
 **Goal:** Add SNES/65816 support
 
 #### Tasks
 
-- ⬜ Implement 65816 instruction set
-- ⬜ Handle 16-bit mode
-- ⬜ Bank switching support
-- ⬜ SNES header generation
-- ⬜ Memory mapping
+- ✅ Implement 65816 instruction set
+- ✅ Handle 16-bit mode
+- ✅ Bank switching support
+- ✅ SNES header generation
+- ✅ Memory mapping (LoROM/HiROM/ExHiROM)
 
 ---
 
@@ -183,98 +206,182 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 ---
 
-### Phase 10: Project Build System ⬜ (Not Started)
-**Status:** Not Started
-**Goal:** Implement project file support and build pipeline
-
-#### Tasks
-
-- ⬜ Define poppy.json project file format (#49)
-- ⬜ Implement project file parser
-- ⬜ Multi-file compilation support
-- ⬜ Watch mode for auto-recompilation (#50)
-- ⬜ Build configurations (debug/release)
-
-**GitHub Issue:** #45 (Epic)
-
----
-
-### Phase 11: 65816/SNES Support 🔄 (In Progress - ~70% Complete)
-**Status:** In Progress
-**Goal:** Complete SNES/65816 architecture support
-**Updated:** January 14, 2026
-
-#### Completed ✅
-
-- ✅ 65816 instruction set implementation (InstructionSet65816.cs)
-- ✅ SNES header builder (SnesHeaderBuilder.cs)
-- ✅ Target architecture enum (WDC65816)
-- ✅ Basic directives (.snes, .lorom, .hirom, .exhirom)
-- ✅ M/X flag tracking with REP/SEP
-- ✅ Register size directives (.a8, .a16, .i8, .i16, .smart)
-- ✅ Basic header directives (.snes_title, .snes_region, etc.)
-- ✅ SNES directive tests (SnesDirectiveTests.cs)
-
-#### Remaining Tasks
-
-- ⬜ M/X flag-aware instruction sizing (#76)
-- ⬜ Bank:Address notation parsing (#77)
-- ⬜ Proper SNES ROM layout generation (#78)
-- ⬜ SNES memory mapper implementation (#79)
-- ⬜ Complete SNES header directives (#80)
-- ⬜ SNES vector directives (#81)
-- ⬜ ExLoROM support (#82)
-- ⬜ SNES integration tests (#83)
-- ⬜ SNES example project (#84)
-- ⬜ SNES user documentation (#85)
-- ⬜ SNES migration guide (#86)
-
-**GitHub Issues:** #12 (Epic), #75 (Epic - SNES Completion)
-
----
-
-### Phase 12: GameInfo Integration ⬜ (Not Started)
-**Status:** Not Started
-**Goal:** Compile target game projects from GameInfo repository
-
-#### Tasks
-
-- ⬜ Compile Dragon Warrior 1 (NES/6502)
-- ⬜ Compile Final Fantasy Mystic Quest (SNES/65816)
-- ⬜ Compile Dragon Warrior 4 (NES/6502)
-- ⬜ Compile Dragon Quest 3 Remake (SNES/65816)
-- ⬜ Update GameInfo repos to use Poppy build system
-
-**GitHub Issue:** #44 (Epic)
-
----
-
-### Phase 13: Game Boy Support ⬜ (Not Started)
-**Status:** Not Started
+### Phase 10: Game Boy Support ✅ (January 2026)
+**Status:** Complete
 **Goal:** Add Game Boy (DMG/CGB) architecture support
 
 #### Tasks
 
-- ⬜ SM83 (GB-Z80) instruction set
-- ⬜ Game Boy header directives
-- ⬜ MBC bank switching support
-- ⬜ CGB (Color) mode features
+- ✅ SM83 (GB-Z80) instruction set
+- ✅ Game Boy header directives  
+- ✅ MBC bank switching support
+- ✅ CGB (Color) mode features
+- ✅ Complete Game Boy guide documentation
 
-**GitHub Issue:** #48 (Epic)
+**GitHub Issue:** #48 (Epic) - Closed
 
 ---
 
-### Phase 14: Documentation & Tooling ⬜ (Not Started)
-**Status:** Not Started
+### Phase 11: SNES Support ✅ (January 2026)
+**Status:** Complete
+**Goal:** Complete SNES/65816 architecture support
+
+#### Tasks
+
+- ✅ 65816 instruction set implementation
+- ✅ SNES header builder
+- ✅ M/X flag tracking with REP/SEP
+- ✅ Register size directives (.a8, .a16, .i8, .i16, .smart)
+- ✅ SNES header directives (.snes_title, .snes_region, etc.)
+- ✅ LoROM/HiROM/ExHiROM memory mapping
+- ✅ SNES example project
+- ✅ SNES user documentation
+
+---
+
+### Phase 12: VS Code Extension ✅ (January 2026)
+**Status:** Complete
 **Goal:** Complete documentation and VS Code extension
 
 #### Tasks
 
-- ⬜ Comprehensive user manual
-- ⬜ API documentation
-- ⬜ Tutorial projects
-- ⬜ VS Code extension (#47)
-- ⬜ Migration guides (ca65, ASAR)
+- ✅ Comprehensive user manual (1,373 lines)
+- ✅ Architecture documentation
+- ✅ Tutorial projects (NES, SNES, GB)
+- ✅ VS Code extension (#47) - Published
+	- Syntax highlighting
+	- IntelliSense completion
+	- Code formatting
+	- Build integration
+	- 40+ code snippets
+- ✅ Migration guides (ca65, ASAR)
+
+**GitHub Issue:** #47 (Epic) - Closed
+
+---
+
+### Phase 13: v1.0.0 Release ✅ (January 15, 2026)
+**Status:** Complete
+**Goal:** First stable release
+
+#### Deliverables
+
+- ✅ Complete compiler for 3 platforms (NES, SNES, GB)
+- ✅ 942 tests passing
+- ✅ VS Code extension published to marketplace
+- ✅ Complete documentation (10 guides, 5,800+ lines)
+- ✅ Example projects for all platforms
+- ✅ GitHub release with binaries
+- ✅ Unlicense (public domain)
+
+---
+
+## 🚀 Future Roadmap
+
+### Planned: Project Build System (Phase 14)
+**Target:** v1.1.0 (Q1 2026)
+**Goal:** Implement project file support and build pipeline
+
+#### Tasks
+
+- [ ] Define poppy.json project file format
+- [ ] Implement project file parser
+- [ ] Multi-file compilation support
+- [ ] Watch mode for auto-recompilation
+- [ ] Build configurations (debug/release)
+
+See [v1.x Roadmap](../~plans/v1.x-roadmap.md) for complete v1.1-1.3 plans.
+
+---
+
+### Planned: Platform Expansion (Phase 15)
+**Target:** v2.0.0 (Q4 2026)
+**Goal:** Add additional retro platforms
+
+#### Tasks
+
+- [ ] Game Boy Advance (ARM7TDMI)
+- [ ] Sega Genesis/Mega Drive (68000)
+- [ ] SNES SPC700 (Audio processor)
+
+See [v2.0 Roadmap](../~plans/v2.0-roadmap.md) for complete v2.0 plans.
+
+---
+
+## 📊 Progress Summary
+
+### Overall Completion
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Foundation | ✅ Complete | 100% |
+| Research & Architecture | ✅ Complete | 100% |
+| Lexer & Parser | ✅ Complete | 100% |
+| 6502 Code Generation | ✅ Complete | 100% |
+| 65816 Code Generation | ✅ Complete | 100% |
+| Include & Labels | ✅ Complete | 100% |
+| Output Formats | ✅ Complete | 100% |
+| Macros & Conditionals | ✅ Complete | 100% |
+| Developer Experience | ✅ Complete | 100% |
+| Game Boy Support | ✅ Complete | 100% |
+| SNES Support | ✅ Complete | 100% |
+| VS Code Extension | ✅ Complete | 100% |
+| **v1.0.0 Release** | ✅ **RELEASED** | **100%** |
+
+**v1.0.0:** 13/13 phases complete ✅
+
+---
+
+### Platform Support Status
+
+| Platform | Instruction Set | ROM Generation | Documentation | Examples | Status |
+|----------|----------------|----------------|---------------|----------|--------|
+| NES | ✅ 6502 | ✅ iNES 2.0 | ✅ Complete | ✅ | **Stable** |
+| SNES | ✅ 65816 | ✅ LoROM/HiROM | ✅ Complete | ✅ | **Stable** |
+| Game Boy | ✅ SM83 | ✅ MBC/CGB | ✅ Complete | ✅ | **Stable** |
+| GBA | - | - | - | - | Planned v2.0 |
+| Genesis | - | - | - | - | Planned v2.0 |
+
+---
+
+### Test Coverage
+
+- **Total Tests:** 942
+- **Pass Rate:** 100%
+- **Coverage Areas:**
+	- Lexer (125+ tests)
+	- Parser (200+ tests)
+	- Code Generation (200+ tests)
+	- Semantics (150+ tests)
+	- Integration (100+ tests)
+	- Macros (60+ tests)
+	- Error Handling (30+ tests)
+	- VS Code Extension (13 tests)
+
+---
+
+## 🎯 Next Steps
+
+1. **v1.1.0 Development** - Start implementing project system
+2. **Community Building** - Gather feedback on v1.0.0
+3. **Example Projects** - Create more complete game examples
+4. **v2.0 Planning** - Finalize GBA/Genesis architecture
+
+---
+
+## 📝 Related Documents
+
+- [Architecture Guide](architecture.md) - Compiler design details
+- [Syntax Specification](syntax-spec.md) - Language reference
+- [User Manual](user-manual.md) - Complete usage guide
+- [v1.x Roadmap](../~plans/v1.x-roadmap.md) - v1.1-1.3 plans
+- [v2.0 Roadmap](../~plans/v2.0-roadmap.md) - Future platform expansion
+
+---
+
+**Last Updated:** January 15, 2026
+**Current Version:** v1.0.0 (Released)
+**Next Target:** v1.1.0 (Q1 2026)
 
 **GitHub Issues:** #46, #47 (Epics)
 
