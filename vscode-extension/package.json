@@ -2,7 +2,7 @@
 	"name": "poppy-assembly",
 	"displayName": "🌸 Poppy Assembly",
 	"description": "Complete language support for Poppy Assembly - NES, SNES, and Game Boy development with IntelliSense, formatting, and build integration",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"publisher": "TheAnsarya",
 	"author": {
 		"name": "TheAnsarya"

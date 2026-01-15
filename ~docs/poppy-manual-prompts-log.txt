@@ -91,11 +91,17 @@ add to editorconfig and markdown lint file `MD040 - Fenced code blocks should ha
 
 I see you are replacing tabs with spaces, or changing 2 spaces to 4 spaces. DON'T DO THAT. always use TABS for indentation, never use SPACES; TABS NOT SPACES; This rule (use tabs, not spaces, and use a 4 space tab) should be the primary rule for this entire project and every other project I make, it is god's law; now reformat and then resume previous work/prompt; continue;
 
+do a quick check of the poppy project for the SNES compatibility and add a few epics, github issues, and the add roadmap, plans, documentation, and tons of sub-issues for this work effort (sub-issue means that the issue has a parent issue (usually an epic)), and then work on it and after work on the documentation to have comprehensive docs for SNES projects and compilation; work those new issues!; continue;
 
+Create a "how to finish" document with a giant todo-list of tasks needing to be done in order to finish this v1.0.0 version of poppy, vscode extension, and plan the additional  todolists and github issues make all the issues (with a parent issue, labels, status, priority, etc); once you've made all of that docs/lists/issues sutff implementing the plan, actually start doing all of that work; continue;
 
+What? No don't fake the tests, never fake the tests, just create a todolist for fixing those tests that have issues; continue what you were doing, the how to finsih stuff
 
+--- switch to claude 4.5, try again
 
+yarn, document this, always use yarn, not npm/npx;
 
+Switch to using the Unlicense for our project, and copy it to the vscode extension as well; create sub-issues for issue #48 `[Epic] Game Boy Support` and then implment them; update all related issues, todolists, and documents; continue;
 
 
 
@@ -135,7 +141,7 @@ create code/project convertors to the the poppy format from xkas, asar, ophis, a
 
 
 
-
+The main `README.md` should have a comprehensive rework but reuse most of the content in this file or a sub documentation file and lets leave things colorful and graphical, start with a header and description, then a disclaimer/warning that the `*.psm` format and the poppy project file format are still in flux, then a Table of Contents index of the documentation in this file, and put specifics in the ub documentation files, the readme should be able to reach all documentation in the link web, prioritize (put early) the usage of the poppy project, such as "how to use" starting with vscode, vscode extension, download release, what next?; 
 
 
 
