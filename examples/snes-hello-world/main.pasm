@@ -39,20 +39,20 @@ reset:
 	; Switch to native mode
 	clc                        ; Clear carry for native mode
 	xce                        ; Exchange carry with emulation flag
-	
+
 	; Set up processor state
 	sei                        ; Disable interrupts
-	
+
 	; Set 16-bit accumulator and index registers
 	rep #$30                   ; Clear M and X flags (16-bit mode)
-	
+
 	; Set up stack
 	lda #$1fff                 ; Stack at top of RAM
 	tcs                        ; Transfer to stack pointer
-	
+
 	; Initialize hardware
 	jsr init_snes
-	
+
 	; Main loop
 @loop:
 	wai                        ; Wait for interrupt
@@ -67,15 +67,15 @@ init_snes:
 	sep #$20                   ; 8-bit accumulator
 	lda #$00
 	sta NMITIMEN               ; Disable NMI and IRQ
-	
+
 	; Force blank (screen off)
 	lda #$80
 	sta INIDISP                ; Force blank
-	
+
 	; Set video mode
 	lda #$09                   ; Mode 1, BG3 priority
 	sta BGMODE
-	
+
 	; Clear all PPU registers
 	; This is a simplified version - full init would clear more
 	ldx #$2100
@@ -84,19 +84,19 @@ init_snes:
 	inx
 	cpx #$2134
 	bne @clear_ppu
-	
+
 	; Set ROM speed to FastROM if available
 	lda #$01
 	sta MEMSEL
-	
+
 	; Enable main screen layers
 	lda #$01                   ; Enable BG1
 	sta TM
-	
+
 	; Turn on screen (end force blank)
 	lda #$0f                   ; Full brightness
 	sta INIDISP
-	
+
 	rep #$30                   ; Back to 16-bit mode
 	rts
 

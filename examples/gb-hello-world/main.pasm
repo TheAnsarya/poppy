@@ -38,32 +38,32 @@ VRAM_MAP    = $9800            ; Background map
 start:
 	; Disable interrupts during initialization
 	di
-	
+
 	; Initialize stack pointer
 	ld sp, $fffe
-	
+
 	; Turn off LCD (required before accessing VRAM)
 	call wait_vblank
 	xor a                      ; A = 0
 	ldh (LCDC), a              ; Turn off LCD
-	
+
 	; Clear VRAM
 	call clear_vram
-	
+
 	; Load tile data
 	call load_tiles
-	
+
 	; Display "HELLO" on background
 	call display_hello
-	
+
 	; Set up palette (grayscale)
 	ld a, %11100100            ; Palette: 3=black, 2=dark, 1=light, 0=white
 	ldh (BGP), a
-	
+
 	; Turn on LCD with background enabled
 	ld a, LCDC_ON | LCDC_BG_ON
 	ldh (LCDC), a
-	
+
 	; Enable interrupts
 	ei
 
@@ -114,27 +114,27 @@ load_tiles:
 ; Display "HELLO" on background map
 display_hello:
 	ld hl, VRAM_MAP + 32 * 8 + 6  ; Row 8, column 6 (centered)
-	
+
 	; H
 	ld a, 1
 	ld (hl+), a
-	
+
 	; E
 	ld a, 2
 	ld (hl+), a
-	
+
 	; L
 	ld a, 3
 	ld (hl+), a
-	
+
 	; L
 	ld a, 3
 	ld (hl+), a
-	
+
 	; O
 	ld a, 4
 	ld (hl+), a
-	
+
 	ret
 
 ; ============================================================================
@@ -149,19 +149,19 @@ tile_data:
 	; Tile 0: Blank (space)
 	.byte $00, $00, $00, $00, $00, $00, $00, $00
 	.byte $00, $00, $00, $00, $00, $00, $00, $00
-	
+
 	; Tile 1: H
 	.byte $81, $81, $81, $81, $ff, $ff, $81, $81
 	.byte $81, $81, $81, $81, $00, $00, $00, $00
-	
+
 	; Tile 2: E
 	.byte $ff, $ff, $80, $80, $fc, $fc, $80, $80
 	.byte $ff, $ff, $00, $00, $00, $00, $00, $00
-	
+
 	; Tile 3: L
 	.byte $80, $80, $80, $80, $80, $80, $80, $80
 	.byte $ff, $ff, $00, $00, $00, $00, $00, $00
-	
+
 	; Tile 4: O
 	.byte $7e, $7e, $81, $81, $81, $81, $81, $81
 	.byte $7e, $7e, $00, $00, $00, $00, $00, $00

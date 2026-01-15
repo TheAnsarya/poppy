@@ -103,11 +103,23 @@ yarn, document this, always use yarn, not npm/npx;
 
 Switch to using the Unlicense for our project, and copy it to the vscode extension as well; create sub-issues for issue #48 `[Epic] Game Boy Support` and then implment them; update all related issues, todolists, and documents; continue;
 
+verify or implement with subissues the epics at issues #46, #11, #10, #9 and #13 and close the ones that are completed after working on them; continue;
 
+verify or implement with subissues the epics/issues #46, #69, #13, and #83 and close the ones that are completed after working on them; continue;
 
+do one last pass to make sure the `v1.0.0` version is ready for release; finish issue #47 `[Epic] VS Code Extension`, create the package and publish the extension to the `VS Code marketplace` and finish the documentation; once the documentation is done, create the Release on github and commit everything; update the roadmap and plans; then prepare for a roadmap and plans for working towards version 2.0.0;
 
+update the primary `readme.md` file, for instance the `Coming Soon` section is out of date, we're in version 1.0.0, so update all the documentation to reflect the current state; then resume the work; Create plans and roadmap and documentation and research and references for the future version of poppy 2.0 in order to add new systems to the compiler: Atari 2600, Genesis, SMS, GBA, GBColor, WonderSwan, WSX, Atari Lynx, TG16, SNES SPC700, etc.; continue;
 
-
+&&&
+pause; install the `vsce` utils so we can publish the vscode extension by running:
+```
+cd vscode-extension
+vsce login TheAnsarya
+vsce publish  # Will publish poppy-assembly-1.0.0.vsix to marketplace
+```
+then continue working on previous prompt and work;
+&&&
 
 
 
