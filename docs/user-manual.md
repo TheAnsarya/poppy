@@ -2,8 +2,8 @@
 
 > Complete guide to using the Poppy multi-system assembly compiler
 
-**Version:** 0.1.0
-**Updated:** January 11, 2026
+**Version:** 1.0.0
+**Updated:** January 15, 2026
 
 ---
 
@@ -23,6 +23,59 @@
 12. [Output Formats](#output-formats)
 13. [Examples](#examples)
 14. [Troubleshooting](#troubleshooting)
+
+---
+
+## 📖 Quick Reference
+
+### All Directives
+
+| Directive | Description | Example |
+|-----------|-------------|---------|
+| **Data** |||
+| `.byte`, `.db` | Define byte(s) | `.byte $01, $02, "text"` |
+| `.word`, `.dw` | Define 16-bit word(s) | `.word $1234, label` |
+| `.long`, `.dl` | Define 24/32-bit value | `.long $123456` |
+| `.ds`, `.res` | Reserve space (zeros) | `.ds 16` |
+| `.fill` | Fill with value | `.fill 8, $ff` |
+| **Layout** |||
+| `.org` | Set program counter | `.org $8000` |
+| `.align` | Align to boundary | `.align 256` |
+| `.pad` | Pad to address | `.pad $fffa, $ff` |
+| **Include** |||
+| `.include` | Include source file | `.include "defs.pasm"` |
+| `.incbin` | Include binary data | `.incbin "data.bin"` |
+| **Macros** |||
+| `.macro` | Define macro | `.macro NAME [params]` |
+| `.endmacro` | End macro definition | `.endmacro` |
+| `.rept` | Repeat block | `.rept 8 [, var]` |
+| `.endr` | End repeat | `.endr` |
+| **Conditionals** |||
+| `.if` | If expression true | `.if DEBUG = 1` |
+| `.ifdef` | If symbol defined | `.ifdef FEATURE_X` |
+| `.ifndef` | If symbol not defined | `.ifndef RELEASE` |
+| `.else` | Alternative block | `.else` |
+| `.elseif` | Conditional alternative | `.elseif DEBUG = 2` |
+| `.endif` | End conditional | `.endif` |
+| **Assertions** |||
+| `.assert` | Assert condition | `.assert * < $8000` |
+| `.error` | Emit error | `.error "Not supported"` |
+| `.warning` | Emit warning | `.warning "Deprecated"` |
+| **Target** |||
+| `.nes` | Set NES target | `.nes` |
+| `.snes` | Set SNES target | `.snes` |
+| `.gb`, `.gameboy` | Set Game Boy target | `.gb` |
+| **Constants** |||
+| `=`, `.equ`, `.define` | Define constant | `VALUE = $2000` |
+
+### Label Types
+
+| Type | Syntax | Scope | Example |
+|------|--------|-------|---------|
+| **Global** | `name:` | Entire file | `reset:` |
+| **Local** | `@name:` | Current routine | `@loop:` |
+| **Anonymous** | `-`, `+` | Nearest reference | `-` or `+` |
+| **Named Anonymous** | `-name`, `+name` | Nearest reference | `+skip` |
 
 ---
 
@@ -437,6 +490,40 @@ CONSTANT = $2000
 .fill 256, $ea         ; 256 NOP instructions
 ```
 
+### Alignment Directives
+
+```asm
+; Align to boundary
+.align 256             ; Align to 256-byte boundary
+.align 2               ; Align to even address
+
+; Example: Align sprite data to page boundary
+.align 256
+sprite_data:
+    .incbin "sprites.bin"
+
+; Pad to specific address
+.pad $c000             ; Fill with zeros until $c000
+.pad $8000, $ff        ; Fill with $ff until $8000
+
+; Example: Ensure interrupt vectors at end of ROM
+.org $8000
+code_start:
+    ; ... code here ...
+.pad $fffa             ; Pad to vector table
+nmi_vector:
+    .word nmi_handler
+reset_vector:
+    .word reset
+irq_vector:
+    .word irq_handler
+```
+
+**Features:**
+- `.align N` - Align to N-byte boundary
+- `.pad ADDR [, VALUE]` - Fill with value (default $00) until address
+- Useful for page-aligned data and ROM layouts
+
 ### Constant Definition
 
 ```asm
@@ -448,24 +535,159 @@ SCREEN_WIDTH = 256
 .define TILE_SIZE, 8
 ```
 
-### Coming Soon
+### Include Directives
 
 ```asm
-; Include files (not yet implemented)
+; Include another assembly file
 .include "macros.pasm"
-.incbin "data.bin"
+.include "constants.pasm"
 
-; Conditional assembly (not yet implemented)
+; Include binary data
+.incbin "graphics.bin"
+.incbin "music.bin" $0, $400    ; Include bytes $0-$400
+
+; Relative paths
+.include "../common/defs.pasm"
+```
+
+**Features:**
+- Recursive includes supported
+- Circular include detection
+- Relative and absolute paths
+- Error messages show correct file/line
+
+### Conditional Assembly
+
+```asm
+; Conditional on symbol definition
 .ifdef DEBUG
-    lda #$ff
+    lda #$ff            ; Debug code
+    sta $2001
 .endif
 
-; Macros (parsing complete, expansion pending)
+; Conditional on symbol NOT defined
+.ifndef RELEASE
+    jsr debug_routine   ; Only in debug builds
+.endif
+
+; With else clause
+.ifdef PAL
+    lda #50             ; PAL refresh rate
+.else
+    lda #60             ; NTSC refresh rate
+.endif
+
+; Expression-based conditionals
+.if SCREEN_WIDTH > 256
+    .error "Screen too wide"
+.endif
+
+; Nested conditionals
+.ifdef SNES
+    .ifdef DEBUG
+        jsr snes_debug
+    .endif
+.endif
+```
+
+**Supported Directives:**
+- `.ifdef SYMBOL` - If symbol defined
+- `.ifndef SYMBOL` - If symbol not defined
+- `.if EXPR` - If expression is non-zero
+- `.else` - Alternative block
+- `.elseif EXPR` - Conditional alternative
+- `.endif` - End conditional block
+
+### Macro System
+
+```asm
+; Define a macro
 .macro PUSH_ALL
     pha
     phx
     phy
 .endmacro
+
+; Use the macro
+    PUSH_ALL
+
+; Macros with parameters
+.macro SET_PPU_ADDR addr
+    lda #>addr
+    sta $2006
+    lda #<addr
+    sta $2006
+.endmacro
+
+; Use with argument
+    SET_PPU_ADDR $2400
+
+; Default parameters
+.macro WAIT_FRAMES count = 1
+    lda #count
+    jsr wait_frames
+.endmacro
+
+    WAIT_FRAMES         ; Uses default: 1
+    WAIT_FRAMES 5       ; Override: 5
+
+; Nested macro calls
+.macro INIT_SPRITE x, y
+    lda #y
+    sta $0200
+    lda #x
+    sta $0203
+.endmacro
+
+.macro SETUP_PLAYER
+    INIT_SPRITE 100, 120
+.endmacro
+```
+
+**Features:**
+- Parameter substitution
+- Default parameter values
+- Nested macro calls
+- Local label scoping within macros
+- Full recursion support
+
+### Repeat Directive
+
+```asm
+; Repeat a block of code
+.rept 8
+    nop
+.endr
+
+; With counter variable
+.rept 16, i
+    .byte i * 2
+.endr
+
+; Result: .byte 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
+
+; Generate lookup tables
+.rept 256, n
+    .byte (n * 3) / 2
+.endr
+```
+
+### Assertion Directives
+
+```asm
+; Assert a condition
+.assert * < $8000, "Code exceeded bank boundary"
+
+; Static error messages
+.error "This configuration is not supported"
+
+; Static warnings
+.warning "Using deprecated feature"
+
+; Conditional errors
+.if BUFFER_SIZE < 256
+    .error "Buffer too small"
+.endif
 ```
 
 ---
@@ -593,33 +815,82 @@ CONSTANT = $2000        ; Define constant
     sta CONSTANT        ; Use constant
 ```
 
-### Local Labels (Coming Soon)
+### Local Labels
+
+Local labels are scoped to the nearest global label. They start with `@` and are local to their containing routine:
 
 ```asm
 routine1:
+    ldx #10
     @loop:              ; Local to routine1
         dex
         bne @loop
+    rts
 
 routine2:
+    ldy #5
     @loop:              ; Different label, local to routine2
         dey
-        bne @loop
+        bne @loop       ; References routine2's @loop
+    rts
+
+; You can have the same local label name in different routines
+init:
+    @wait:
+        lda $2002
+        bpl @wait
+    rts
 ```
 
-### Anonymous Labels (Coming Soon)
+**Features:**
+- Scoped to nearest global label
+- Same name can be reused in different routines
+- Cannot be referenced outside their scope
+- Cleaner code organization
+
+### Anonymous Labels
+
+Anonymous labels provide quick forward/backward references without naming:
 
 ```asm
+; Backward references use -
     ldx #$10
--                       ; Backward target
+-                       ; Anonymous backward label
     dex
     bne -               ; Branch to previous -
 
+; Forward references use +
     lda #$00
     beq +               ; Branch to next +
     nop
-+                       ; Forward target
+    nop
++                       ; Anonymous forward label
+    sta $2000
+
+; Multiple levels
+    ldx #5
+--                      ; Outer loop
+    ldy #10
+-                       ; Inner loop
+    dey
+    bne -               ; Branch to nearest -
+    dex
+    bne --              ; Branch to nearest --
+
+; Named anonymous labels
+    lda #0
+    beq +skip           ; Branch to next +skip
+    inc $00
++skip
+    rts
 ```
+
+**Features:**
+- `-` references nearest previous anonymous label
+- `+` references nearest next anonymous label
+- Multiple `-` or `+` for different nesting levels
+- Named variants (`+name`, `-name`) for clarity
+- Reduces label clutter for small jumps
 
 ---
 
