@@ -125,6 +125,9 @@ then continue working on previous prompt and work;
 
 Make sure to update issues, epics, todolists, chat/session logs, documentation (document!) and create a ton of sub-issues snd todos that are all linked to a parent issue, usually an epic, and implement that code starting with atari 2600, atari lynx, WSX, WSC, and then genesis and bigendian; continue;
 
+Make sure to update issues, epics, todolists, chat/session logs, documentation (document!) and create a ton of sub-issues snd todos that are all linked to a parent issue, usually an epic, and implement that code starting with atari 2600, atari lynx, WSX, WSC, and then genesis and bigendian; continue;
+
+
 
 
 

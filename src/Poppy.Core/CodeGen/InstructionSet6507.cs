@@ -32,10 +32,10 @@ public static class InstructionSet6507 {
 		// The only difference is the reduced address space (13-bit vs 16-bit)
 		// which is handled at the code generation level, not the instruction encoding level
 		var result = InstructionSet6502.TryGetEncoding(mnemonic, mode, out var encoding6502);
-		
+
 		// Convert the 6502 encoding to 6507 encoding (same values)
 		encoding = new InstructionEncoding(encoding6502.Opcode, encoding6502.Size);
-		
+
 		return result;
 	}
 
