@@ -250,6 +250,9 @@ public enum AddressingMode {
 	/// <summary>Zero page indexed by Y (e.g., ldx $00,y)</summary>
 	ZeroPageY,
 
+	/// <summary>Zero page indirect (65C02) (e.g., lda ($00))</summary>
+	ZeroPageIndirect,
+
 	/// <summary>Absolute address (e.g., lda $2000)</summary>
 	Absolute,
 

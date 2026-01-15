@@ -84,6 +84,34 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
+		// Build Atari 2600 ROM if configured (for Atari 2600 target only)
+		if (_target == TargetArchitecture.MOS6507) {
+			// Default to 4K ROM if no header builder is configured
+			var romSize = 4096;  // TODO: Get from header builder or directive
+			var romBuilder = new Atari2600RomBuilder(romSize, Atari2600RomBuilder.BankSwitchingMethod.None);
+
+			// Add all segments to the ROM builder
+			foreach (var segment in _segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+
+			return romBuilder.Build();
+		}
+
+		// Build Atari Lynx ROM if configured (for Atari Lynx target only)
+		if (_target == TargetArchitecture.MOS65SC02) {
+			// Default to 128K ROM if no header builder is configured
+			var romSize = 131072;  // 128K
+			var romBuilder = new AtariLynxRomBuilder(romSize, "Poppy Game");
+
+			// Add all segments to the ROM builder
+			foreach (var segment in _segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+
+			return romBuilder.Build();
+		}
+
 		// Prepend SNES header if configured (for SNES/65816 target only)
 		if (_target == TargetArchitecture.WDC65816) {
 			var headerBuilder = _analyzer.GetSnesHeaderBuilder();
@@ -806,6 +834,24 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return false;
 		}
 
+		if (_target == TargetArchitecture.MOS6507) {
+			if (InstructionSet6507.TryGetEncoding(mnemonic, mode, out var enc6507)) {
+				encoding = new InstructionSet6502.InstructionEncoding(enc6507.Opcode, enc6507.Size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		if (_target == TargetArchitecture.MOS65SC02) {
+			if (InstructionSet65SC02.TryGetEncoding(mnemonic, mode, out var enc65sc02)) {
+				encoding = new InstructionSet6502.InstructionEncoding(enc65sc02.Opcode, enc65sc02.Size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
 		// Default to 6502
 		return InstructionSet6502.TryGetEncoding(mnemonic, mode, out encoding);
 	}
@@ -820,6 +866,10 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 		if (_target == TargetArchitecture.WDC65816) {
 			return InstructionSet65816.IsBranchInstruction(mnemonic);
+		}
+
+		if (_target == TargetArchitecture.MOS65SC02) {
+			return InstructionSet65SC02.IsBranchInstruction(mnemonic);
 		}
 
 		return mnemonic.ToLowerInvariant() switch {
