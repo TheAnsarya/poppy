@@ -3,18 +3,27 @@
 > **Smart multi-system assembly compiler for retro gaming projects**
 
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
+[![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
+[![Tests](https://img.shields.io/badge/tests-942%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+
+---
+
+## 🎉 v1.0.0 Released!
+
+**Poppy v1.0.0** is now available with complete support for three retro gaming platforms! [Download the release →](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 
 ---
 
 ## 🎯 Overview
 
-**Poppy** is a multi-system assembly compiler targeting classic gaming platforms:
+**Poppy** is a production-ready multi-system assembly compiler targeting classic gaming platforms:
 
-- **NES** (6502 processor) ✅
-- **SNES** (65816 processor) ✅
-- **Game Boy** (SM83 processor) ✅
+- **NES** (6502 processor) ✅ Complete
+- **SNES** (65816 processor) ✅ Complete
+- **Game Boy** (SM83 processor) ✅ Complete
 
-The compiler aims to support compilation of retro game projects including Dragon Warrior, Final Fantasy Mystic Quest, and Dragon Quest remakes.
+The compiler supports real-world game development with comprehensive tooling, including a VS Code extension with IntelliSense, formatting, and build integration.
 
 ---
 
@@ -90,29 +99,37 @@ The compiler aims to support compilation of retro game projects including Dragon
 - 🔋 Battery backup, trainer, mirroring configuration
 - 🌍 NTSC/PAL timing selection
 
-**Macro System & Advanced Directives:**
+**Macro System:**
 
-- 📊 Enhanced error reporting with context
-- 🧮 More advanced expression evaluation
-- 🎨 Asset conversion pipeline
-- 📦 Project file system (poppy.json)`/`.else`/`.endif`)
+- 🔧 Macro definitions with parameters (`.macro`/`.endmacro`)
+- 🎯 Macro parameter substitution and default values
+- 🏷️ Local labels within macros
+- 🔁 Nested macro invocations
+
+**Conditional Assembly:**
+
+- ❓ Conditional compilation (`.if`/`.else`/`.endif`)
 - 🔍 Symbol existence checks (`.ifdef`/`.ifndef`)
+- 🔢 Expression-based conditionals (`.ifeq`, `.ifne`, `.ifgt`, etc.)
+
+**Code Generation:**
+
 - 🔁 Repeat blocks (`.rept`/`.endr`) for code generation
 - 🔢 Enumeration blocks (`.enum`/`.ende`) for sequential constants
+- 📊 Listing file generation with symbol tables
 
-**Output Formats:**
+**Developer Tools:**
 
-- 🎮 NES ROM with iNES 2.0 header
-- 🐛 Debug symbol files (FCEUX .nl, Mesen .mlb, generic .sym)
-- 📊 Symbol table listing output
-
-### Coming Soon 🚧
-
-- 🎯 65816 instruction set (SNES)
-- 🎮 SM83 instruction set (Game Boy)
-- 🎨 Asset conversion pipeline
-- 📊 Enhanced error reporting with context
-- 🧮 More advanced expression evaluation
+- 🎨 [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
+	- Syntax highlighting for all platforms
+	- IntelliSense with opcode documentation
+	- Code formatting with column alignment
+	- 40+ code snippets
+	- Build task integration
+	- Go-to-definition and hover info
+- 📊 Comprehensive error messages with context
+- 🧮 Advanced expression evaluation
+- 📋 Multiple output formats (ROM, symbols, listings, memory maps)
 
 ---
 
@@ -120,17 +137,27 @@ The compiler aims to support compilation of retro game projects including Dragon
 
 ### Installation
 
+#### From GitHub Releases
+
+Download the latest release from [GitHub Releases](https://github.com/TheAnsarya/poppy/releases/latest).
+
+#### From Source
+
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/poppy.git
+git clone https://github.com/TheAnsarya/poppy.git
 cd poppy
 
 # Build the compiler
-dotnet build src/
+cd src
+dotnet build -c Release
 
-# Run the compiler
-dotnet run --project src/Poppy.CLI -- --help
+# The compiler will be at: src/Poppy.CLI/bin/Release/net9.0/poppy.exe
 ```
+
+#### VS Code Extension
+
+Install the "Poppy Assembly" extension from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly) for the best development experience.
 
 ### Usage
 
@@ -297,11 +324,10 @@ Check out the example projects in the `examples/` directory:
 
 | Document | Description |
 |----------|-------------|
-| [Roadmap](~docs/roadmap.md) | Development roadmap and milestones |
-| [SNES Implementation Plan](~plans/snes-implementation-plan.md) | SNES/65816 work plan |
-| [Short-Term Plan](~plans/short-term-plan.md) | 4-week immediate goals |
-| [Long-Term Plan](~plans/long-term-plan.md) | Quarterly milestones |
-| [GitHub Issues (Expanded)](~plans/github-issues-expanded.md) | Comprehensive issue templates |
+| [Roadmap](~docs/roadmap.md) | Development roadmap and milestones (v1.0 complete!) |
+| [v1.x Roadmap](~plans/v1.x-roadmap.md) | Plans for v1.1-v1.3 (project system, assets, advanced features) |
+| [v2.0 Roadmap](~plans/v2.0-roadmap.md) | Platform expansion (GBA, Genesis, SPC700, LSP, WASM) |
+| [v1.0.0 Release Report](~plans/v1.0.0-final-release-report.md) | Complete v1.0.0 release summary |
 
 ### Internal Documentation
 
@@ -357,19 +383,34 @@ rts
 
 ## 🏗️ Project Status
 
-**Current Phase:** v0.1.0 - Foundation Complete
+**Current Version:** v1.0.0 (Released January 15, 2026)
 
-- ✅ Project structure established
-- ✅ Documentation framework in place
-- ✅ Coding standards defined
-- ✅ Core compiler implementation
-- ✅ NES ROM generation with iNES 2.0
-- ✅ Symbol export for debuggers
-- ✅ Include system and preprocessor
-- ✅ Label system (global, local, anonymous)
-- ✅ Comprehensive test suite (375 tests)
+**Completed:**
+- ✅ Full NES support (6502, iNES 2.0, 942 tests passing)
+- ✅ Full SNES support (65816, LoROM/HiROM/ExHiROM)
+- ✅ Full Game Boy support (SM83, MBC1/3/5, CGB modes)
+- ✅ Complete macro system with parameters
+- ✅ Conditional assembly (.if, .ifdef, .ifndef)
+- ✅ Include system (.include, .incbin)
+- ✅ Debug symbol export (.sym, .nl, .mlb)
+- ✅ VS Code extension (published to marketplace)
+- ✅ Comprehensive documentation (10 guides, 5,800+ lines)
+- ✅ Example projects for all platforms
 
-**Next Phase:** Macro System & Conditional Assembly
+**Next Version:** v1.1.0 (Q1 2026)
+- Project file system (poppy.json)
+- Multi-file compilation with dependency tracking
+- Watch mode for auto-rebuild
+- Enhanced expression evaluation
+- VS Code workspace symbols
+
+**Future:** v2.0.0 (Q4 2026)
+- Platform expansion (GBA, Genesis, Atari 2600, TG16, etc.)
+- Language Server Protocol (LSP)
+- Web-based compiler (WASM)
+- Plugin system
+
+See [v1.x Roadmap](~plans/v1.x-roadmap.md) and [v2.0 Roadmap](~plans/v2.0-roadmap.md) for details.
 
 ---
 
