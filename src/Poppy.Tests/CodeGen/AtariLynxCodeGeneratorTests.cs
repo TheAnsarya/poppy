@@ -20,7 +20,7 @@ public class AtariLynxCodeGeneratorTests {
 	/// Helper to generate Atari Lynx code from source.
 	/// </summary>
 	private static (byte[] Code, CodeGenerator Generator) GenerateAtariLynxCode(string source) {
-		var lexer = new PoppyLexer(source);
+		var lexer = new PoppyLexer(source, "test.pasm");
 		var tokens = lexer.Tokenize();
 		var parser = new PoppyParser(tokens);
 		var program = parser.Parse();
@@ -52,7 +52,7 @@ loop:
 		Assert.False(gen.HasErrors);
 		// ROM has 64-byte header
 		Assert.True(code.Length >= 64);
-		
+
 		// Check header magic "LYNX"
 		Assert.Equal(0x4c, code[0]); // 'L'
 		Assert.Equal(0x59, code[1]); // 'Y'
@@ -213,7 +213,7 @@ loop:
 	public void RomBuilder_AddsSegment() {
 		var builder = new AtariLynxRomBuilder(131072, "Test");
 		var data = new byte[] { 0xa9, 0x42, 0x60 }; // LDA #$42, RTS
-		
+
 		builder.AddSegment(0, data);
 		var rom = builder.Build();
 
@@ -263,7 +263,7 @@ loop:
 	[Fact]
 	public void InstructionSet65SC02_ReturnsAllMnemonics() {
 		var mnemonics = InstructionSet65SC02.GetAllMnemonics().ToList();
-		
+
 		// Should have both 65SC02 and 6502 mnemonics
 		Assert.Contains("bra", mnemonics, StringComparer.OrdinalIgnoreCase);
 		Assert.Contains("stz", mnemonics, StringComparer.OrdinalIgnoreCase);
@@ -289,7 +289,7 @@ clear_loop:
 	stz $c000,x  ; Use STZ instead of LDA #0 / STA
 	inx
 	bne clear_loop
-	
+
 	; Use BRA for infinite loop
 main_loop:
 	nop
@@ -299,7 +299,7 @@ main_loop:
 
 		Assert.False(gen.HasErrors);
 		Assert.True(code.Length > 64); // Has header + code
-		
+
 		// Verify header
 		Assert.Equal(0x4c, code[0]); // 'L'
 		Assert.Equal(0x59, code[1]); // 'Y'

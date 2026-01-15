@@ -64,7 +64,7 @@ start:
 
 		Assert.False(gen.HasErrors);
 		Assert.Equal(4096, code.Length);
-		
+
 		// Verify instructions in ROM
 		Assert.Equal(0xa9, code[0]); // LDA #$00
 		Assert.Equal(0x00, code[1]);
@@ -87,7 +87,7 @@ start:
 
 		Assert.False(gen.HasErrors);
 		Assert.Equal(4096, code.Length);
-		
+
 		// Verify reset vector at end of ROM (offset 4092-4093)
 		Assert.Equal(0x00, code[4092]); // Low byte of $1000
 		Assert.Equal(0x10, code[4093]); // High byte of $1000
@@ -148,11 +148,11 @@ start:
 	[Fact]
 	public void RomBuilder_ValidatesBankSwitching() {
 		// F8 requires 8K
-		Assert.Throws<ArgumentException>(() => 
+		Assert.Throws<ArgumentException>(() =>
 			new Atari2600RomBuilder(4096, Atari2600RomBuilder.BankSwitchingMethod.F8));
-		
+
 		// F6 requires 16K
-		Assert.Throws<ArgumentException>(() => 
+		Assert.Throws<ArgumentException>(() =>
 			new Atari2600RomBuilder(4096, Atari2600RomBuilder.BankSwitchingMethod.F6));
 	}
 
@@ -160,7 +160,7 @@ start:
 	public void RomBuilder_AddsSegment() {
 		var builder = new Atari2600RomBuilder(4096, Atari2600RomBuilder.BankSwitchingMethod.None);
 		var data = new byte[] { 0xa9, 0x42, 0x60 }; // LDA #$42, RTS
-		
+
 		builder.AddSegment(0x1000, data);
 		var rom = builder.Build();
 
@@ -189,7 +189,7 @@ start:
 	[Fact]
 	public void InstructionSet6507_ReturnsAllMnemonics() {
 		var mnemonics = InstructionSet6507.GetAllMnemonics().ToList();
-		
+
 		Assert.Contains("lda", mnemonics, StringComparer.OrdinalIgnoreCase);
 		Assert.Contains("sta", mnemonics, StringComparer.OrdinalIgnoreCase);
 		Assert.Contains("jmp", mnemonics, StringComparer.OrdinalIgnoreCase);

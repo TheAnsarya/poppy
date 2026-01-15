@@ -45,11 +45,18 @@ public sealed class AtariLynxRomBuilder {
 	/// <summary>
 	/// Adds a code segment to the ROM.
 	/// </summary>
-	/// <param name="address">The starting address for the segment.</param>
+	/// <param name="address">The starting address for the segment (CPU address >= 0x0200, or ROM offset if &lt; 0x0200).</param>
 	/// <param name="data">The binary data to write.</param>
 	public void AddSegment(int address, byte[] data) {
+		// Map CPU address to ROM offset
+		// Load address is $0200, so subtract to get ROM offset
+		// If address < $0200, treat it as a ROM offset already
+		const int LoadAddress = 0x0200;
+		
 		for (int i = 0; i < data.Length; i++) {
-			var romAddress = address + i;
+			var addr = address + i;
+			var romAddress = addr >= LoadAddress ? addr - LoadAddress : addr;
+			
 			if (romAddress >= 0 && romAddress < _romSize) {
 				_rom[romAddress] = data[i];
 			}

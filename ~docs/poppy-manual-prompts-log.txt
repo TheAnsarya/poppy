@@ -127,7 +127,9 @@ Make sure to update issues, epics, todolists, chat/session logs, documentation (
 
 Make sure to update issues, epics, todolists, chat/session logs, documentation (document!) and create a ton of sub-issues snd todos that are all linked to a parent issue, usually an epic, and implement that code starting with atari 2600, atari lynx, WSX, WSC, and then genesis and bigendian; continue;
 
+create even more sub-issues for both epics and regular issues, linked to their parent issue, then implement them; document everything!; create plans and roadmaps and issues and todolists for all of the efforts we want to work on, including creating a self-contained project file (`zip` archive of a folder that contains all of the code and assets, and meta files, etc. named `*.poppy`) based on (but not exact to) the custom project file in `https://github.com/TheAnsarya/GameInfo`; implement, document and continue;
 
+make sure each compikle and build and code type is separate so compiling an NES game or a WSC game or compilking a Genesis game or SNES game is separate compiler operation; continue with all the iussues that are needed; continue;
 
 
 

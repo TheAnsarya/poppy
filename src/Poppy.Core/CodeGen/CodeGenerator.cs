@@ -256,21 +256,26 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// Resolves the best addressing mode based on operand value.
 	/// </summary>
 	private AddressingMode ResolveAddressingMode(string mnemonic, AddressingMode mode, long value) {
+		// Convert Absolute to Relative for branch instructions
+		if (IsBranchInstruction(mnemonic) && mode == AddressingMode.Absolute) {
+			return AddressingMode.Relative;
+		}
+
 		// Check if we can optimize to zero page variant
 		var isZeroPage = value >= 0 && value <= 0xff;
 
 		var optimizedMode = mode switch {
 			// Optimize absolute to zero page
 			AddressingMode.Absolute when isZeroPage
-				&& InstructionSet6502.TryGetEncoding(mnemonic, AddressingMode.ZeroPage, out _)
+				&& TryGetInstructionEncoding(mnemonic, AddressingMode.ZeroPage, out _)
 				=> AddressingMode.ZeroPage,
 
 			AddressingMode.AbsoluteX when isZeroPage
-				&& InstructionSet6502.TryGetEncoding(mnemonic, AddressingMode.ZeroPageX, out _)
+				&& TryGetInstructionEncoding(mnemonic, AddressingMode.ZeroPageX, out _)
 				=> AddressingMode.ZeroPageX,
 
 			AddressingMode.AbsoluteY when isZeroPage
-				&& InstructionSet6502.TryGetEncoding(mnemonic, AddressingMode.ZeroPageY, out _)
+				&& TryGetInstructionEncoding(mnemonic, AddressingMode.ZeroPageY, out _)
 				=> AddressingMode.ZeroPageY,
 
 			// Keep original mode
