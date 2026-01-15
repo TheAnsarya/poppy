@@ -937,7 +937,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 
 		if (node.Arguments.Count < 1) {
 			_errors.Add(new SemanticError(
-				".target directive requires an architecture (nes, snes, gb)",
+				".target directive requires an architecture (nes, snes, gb, atari2600, lynx, genesis, sms, ws, gba, spc700, tg16)",
 				node.Location));
 			return;
 		}
@@ -952,8 +952,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		var targetName = targetNode.Name.ToLowerInvariant();
 		var target = targetName switch {
 			"nes" or "6502" => TargetArchitecture.MOS6502,
+			"atari2600" or "2600" or "6507" => TargetArchitecture.MOS6507,
+			"atarilynx" or "lynx" or "65sc02" => TargetArchitecture.MOS65SC02,
 			"snes" or "65816" => TargetArchitecture.WDC65816,
 			"gb" or "gameboy" or "sm83" => TargetArchitecture.SM83,
+			"genesis" or "megadrive" or "md" or "68000" or "m68k" => TargetArchitecture.M68000,
+			"sms" or "mastersystem" or "z80" => TargetArchitecture.Z80,
+			"wonderswan" or "ws" or "wsc" or "v30mz" => TargetArchitecture.V30MZ,
+			"gba" or "gameboyadvance" or "arm" or "arm7tdmi" => TargetArchitecture.ARM7TDMI,
+			"spc700" => TargetArchitecture.SPC700,
+			"tg16" or "turbografx16" or "pcengine" or "huc6280" => TargetArchitecture.HuC6280,
 			_ => (TargetArchitecture?)null
 		};
 
@@ -1746,10 +1754,34 @@ public enum TargetArchitecture {
 	/// <summary>MOS 6502 (NES, Commodore 64, etc.)</summary>
 	MOS6502,
 
+	/// <summary>MOS 6507 (Atari 2600 - 6502 variant with 13-bit addressing)</summary>
+	MOS6507,
+
+	/// <summary>MOS 65SC02 (Atari Lynx - 65C02 without decimal mode)</summary>
+	MOS65SC02,
+
 	/// <summary>WDC 65816 (SNES)</summary>
 	WDC65816,
 
 	/// <summary>Sharp SM83 (Game Boy)</summary>
 	SM83,
+
+	/// <summary>Motorola 68000 (Sega Genesis/Mega Drive)</summary>
+	M68000,
+
+	/// <summary>Zilog Z80 (Sega Master System, Game Gear)</summary>
+	Z80,
+
+	/// <summary>NEC V30MZ (WonderSwan, WonderSwan Color - 80186 compatible)</summary>
+	V30MZ,
+
+	/// <summary>ARM7TDMI (Game Boy Advance)</summary>
+	ARM7TDMI,
+
+	/// <summary>Sony SPC700 (SNES Audio Processor)</summary>
+	SPC700,
+
+	/// <summary>Hudson HuC6280 (TurboGrafx-16/PC Engine - 65C02 variant)</summary>
+	HuC6280,
 }
 
