@@ -5,7 +5,11 @@ All notable changes to the Poppy Assembly extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-01-14
+## [1.0.0] - 2026-01-15
+
+### Released
+- 🎉 **First Stable Release** - Complete language support for Poppy Assembly
+- 📦 **Published to Marketplace** - Available for installation in VS Code
 
 ### Added
 
@@ -79,21 +83,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test framework: Mocha 10.0
 - TypeScript compilation target: ES2020
 
-### Known Issues
+### Documentation
+- Complete README with feature overview
+- Publishing guide with step-by-step instructions
+- Status tracking document
+- LICENSE file (Unlicense)
 
-- Extension not yet published to marketplace
-- Screenshot placeholders in README
+### Known Issues
+None - all planned features implemented and tested!
 
 ## [Unreleased]
 
-### Planned
-
+### Planned for v1.1.0
 - Extension icon and branding
-- Marketplace publication
-- Screenshot and GIF demos
+- Screenshot and GIF demos in README
 - Additional code snippets
-- Performance optimizations
+- Performance optimizations for large files
 - More comprehensive hover documentation
+- Workspace symbol search
 
 ---
 
