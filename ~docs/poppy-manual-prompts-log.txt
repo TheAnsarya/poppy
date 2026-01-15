@@ -129,8 +129,9 @@ Make sure to update issues, epics, todolists, chat/session logs, documentation (
 
 create even more sub-issues for both epics and regular issues, linked to their parent issue, then implement them; document everything!; create plans and roadmaps and issues and todolists for all of the efforts we want to work on, including creating a self-contained project file (`zip` archive of a folder that contains all of the code and assets, and meta files, etc. named `*.poppy`) based on (but not exact to) the custom project file in `https://github.com/TheAnsarya/GameInfo`; implement, document and continue;
 
-make sure each compikle and build and code type is separate so compiling an NES game or a WSC game or compilking a Genesis game or SNES game is separate compiler operation; continue with all the iussues that are needed; continue;
+make sure each compile and build and code type is separate so compiling an NES game or a WSC game or compilking a Genesis game or SNES game is separate compiler operation; continue with all the iussues that are needed; continue;
 
+just continue work;
 
 
 

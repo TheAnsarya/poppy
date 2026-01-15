@@ -52,11 +52,11 @@ public sealed class AtariLynxRomBuilder {
 		// Load address is $0200, so subtract to get ROM offset
 		// If address < $0200, treat it as a ROM offset already
 		const int LoadAddress = 0x0200;
-		
+
 		for (int i = 0; i < data.Length; i++) {
 			var addr = address + i;
 			var romAddress = addr >= LoadAddress ? addr - LoadAddress : addr;
-			
+
 			if (romAddress >= 0 && romAddress < _romSize) {
 				_rom[romAddress] = data[i];
 			}
