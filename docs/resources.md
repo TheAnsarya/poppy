@@ -2,7 +2,7 @@
 
 > Collection of URLs, documentation, and reference materials for development
 
-**Last Updated:** January 11, 2026
+**Last Updated:** January 16, 2026
 
 ---
 
@@ -27,13 +27,84 @@
 | 65816 Primer | <https://wiki.superfamicom.org/65816-reference> | SuperFamicom wiki reference |
 | Programming the 65816 | <https://www.westerndesigncenter.com/wdc/documentation/Programmingthe65816.pdf> | WDC programming guide |
 
-### Game Boy (Z80-like)
+### SM83 (Game Boy)
 
 | Resource | URL | Description |
 |----------|-----|-------------|
 | Pan Docs | <https://gbdev.io/pandocs/> | Comprehensive GB documentation |
 | GB CPU Manual | <https://gbdev.io/gb-opcodes/optables/> | Opcode tables |
 | GBDev Wiki | <https://gbdev.gg8.se/wiki/articles/Main_Page> | Community wiki |
+| Game Boy CPU Manual | <https://gbdev.io/pandocs/CPU_Instruction_Set.html> | CPU instruction details |
+
+### M68000 (Sega Genesis)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| M68000 Reference Manual | <https://www.nxp.com/docs/en/reference-manual/M68000PRM.pdf> | Official Motorola manual |
+| Genesis Dev Wiki | <https://segaretro.org/Sega_Mega_Drive/Technical_specifications> | Sega hardware specs |
+| Plutiedev | <https://plutiedev.com/> | Genesis programming tutorials |
+| 68k.hax.com | <https://68k.hax.com/> | 68000 instruction reference |
+| SGDK | <https://github.com/Stephane-D/SGDK> | Genesis development kit |
+
+### Z80 (Sega Master System / Game Gear)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| Z80 User Manual | <https://www.zilog.com/docs/z80/z80cpu_um.pdf> | Official Zilog manual |
+| Z80 Instruction Set | <http://z80-heaven.wikidot.com/instructions-set> | Complete opcode reference |
+| SMS Power | <https://www.smspower.org/Development/Index> | SMS development resources |
+| devkitSMS | <https://github.com/sverx/devkitSMS> | SMS development kit |
+
+### HuC6280 (TurboGrafx-16 / PC Engine)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| PCE Dev Wiki | <https://pcedev.blockos.org/> | PC Engine development wiki |
+| HuC6280 Reference | <https://pcedev.blockos.org/viewtopic.php?f=5&t=3> | CPU documentation |
+| MagicKit | <https://github.com/pce-devel/huc> | PCE assembler/compiler |
+| Ootake Source | <https://www.ouma.jp/ootake/> | Emulator with documentation |
+
+### ARM7TDMI (Game Boy Advance)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| ARM7TDMI Reference | <https://developer.arm.com/documentation/ddi0029/e> | Official ARM documentation |
+| GBATEK | <https://problemkaputt.de/gbatek.htm> | Comprehensive GBA reference |
+| Tonc | <https://www.coranac.com/tonc/text/toc.htm> | GBA programming tutorial |
+| devkitPro | <https://devkitpro.org/> | GBA development toolchain |
+
+### 6507 (Atari 2600)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| Stella Programming Guide | <https://alienbill.com/2600/101/docs/stella.html> | Classic 2600 programming |
+| AtariAge 2600 | <https://atariage.com/2600/programming/> | Programming resources |
+| 2600 TIA Reference | <https://problemkaputt.de/2k6specs.htm> | TIA chip documentation |
+| DASM | <https://github.com/dasm-assembler/dasm> | Popular 2600 assembler |
+
+### 65SC02 (Atari Lynx)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| Atari Lynx Dev | <https://www.monlynx.de/lynx/index.html> | Lynx development resources |
+| Lynx Programming Guide | <https://atarilynxdeveloper.wordpress.com/> | Developer blog |
+| cc65 Lynx | <https://cc65.github.io/doc/lynx.html> | cc65 Lynx support docs |
+
+### V30MZ (WonderSwan)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| WSdev Wiki | <https://ws.nesdev.org/wiki/Main_Page> | WonderSwan development wiki |
+| V30MZ Reference | <https://ws.nesdev.org/wiki/V30MZ> | CPU documentation |
+| WonderSwan Dev | <https://github.com/jounikor/wsdev> | Development resources |
+
+### SPC700 (SNES Audio)
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| SPC700 Reference | <https://wiki.superfamicom.org/spc700-reference> | SuperFamicom wiki |
+| SNES APU | <https://snes.nesdev.org/wiki/S-SMP> | Audio processor docs |
+| SPC Music Spec | <https://wiki.superfamicom.org/spc700> | SPC700 instruction set |
 
 ---
 

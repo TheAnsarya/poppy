@@ -2,8 +2,8 @@
 
 > Complete guide to using the Poppy multi-system assembly compiler
 
-**Version:** 1.0.0
-**Updated:** January 15, 2026
+**Version:** 2.0.0
+**Updated:** January 16, 2026
 
 ---
 
@@ -83,9 +83,20 @@
 
 **Poppy** is a modern multi-system assembly compiler targeting classic gaming platforms:
 
+### Primary Platforms
 - **NES** (MOS 6502 processor)
 - **SNES** (WDC 65816 processor)
 - **Game Boy** (Sharp SM83/LR35902 processor)
+
+### Extended Platforms (v2.0)
+- **Sega Genesis/Mega Drive** (Motorola 68000 processor)
+- **Game Boy Advance** (ARM7TDMI processor)
+- **Sega Master System** (Zilog Z80 processor)
+- **TurboGrafx-16/PC Engine** (HuC6280 processor)
+- **Atari 2600** (MOS 6507 processor)
+- **Atari Lynx** (WDC 65SC02 processor)
+- **WonderSwan/WonderSwan Color** (NEC V30MZ processor)
+- **SPC700** (Sony SPC700 - SNES audio coprocessor)
 
 ### Key Features
 
@@ -1062,7 +1073,7 @@ mvp $7f, $7e                ; Move positive (decrement)
     .word irq_handler       ; IRQ/BRK
 ```
 
-### SM83 (Game Boy) - Coming Soon
+### SM83 (Game Boy)
 
 ```bash
 poppy -t sm83 game.pasm
@@ -1070,9 +1081,337 @@ poppy -t sm83 game.pasm
 
 Features:
 
-- Game Boy specific instruction set
-- Z80-derived syntax
+- Game Boy specific instruction set (Sharp SM83/LR35902)
+- Z80-derived syntax with Game Boy extensions
 - CB-prefixed extended instructions
+- All 256 base opcodes + 256 CB-prefixed opcodes
+
+Example:
+
+```asm
+.target "gb"
+.cpu "sm83"
+
+.org $0100
+    nop
+    jp start
+
+.org $0150
+start:
+    di
+    ld sp, $fffe
+
+    ; Wait for VBlank
+@wait_vblank:
+    ldh a, [$44]        ; Read LY
+    cp 144
+    jr c, @wait_vblank
+
+    ; Disable LCD
+    xor a
+    ldh [$40], a        ; Write LCDC
+
+main_loop:
+    halt
+    nop
+    jr main_loop
+```
+
+### M68000 (Sega Genesis)
+
+```bash
+poppy -t m68000 game.pasm
+poppy --platform genesis game.pasm
+```
+
+Features:
+
+- Full Motorola 68000 instruction set
+- Big-endian byte order
+- 16/32-bit operations
+- Multiple addressing modes (14 total)
+- Auto-vectored interrupts
+
+Example:
+
+```asm
+.target "genesis"
+.cpu "m68000"
+
+.org $000000
+    ; Vector table
+    .dl $00ff0000       ; Initial SP
+    .dl start           ; Reset vector
+
+.org $000200
+start:
+    ; TMSS handshake
+    move.b  $a10001, d0
+    andi.b  #$0f, d0
+    beq.s   @no_tmss
+    move.l  #'SEGA', $a14000
+@no_tmss:
+
+    ; Initialize
+    move.w  #$2700, sr  ; Disable interrupts
+
+main_loop:
+    bra.s   main_loop
+```
+
+### Z80 (Sega Master System)
+
+```bash
+poppy -t z80 game.pasm
+poppy --platform sms game.pasm
+```
+
+Features:
+
+- Full Zilog Z80 instruction set
+- IX/IY index register instructions
+- ED-prefixed extended instructions
+- CB-prefixed bit manipulation
+- DD/FD-prefixed index operations
+
+Example:
+
+```asm
+.target "sms"
+.cpu "z80"
+
+.org $0000
+    di
+    im 1
+    jp start
+
+.org $0038
+    ; IRQ handler
+    reti
+
+.org $0100
+start:
+    ld sp, $dff0
+
+    ; Initialize VDP
+    ; ...
+
+main_loop:
+    halt
+    jr main_loop
+```
+
+### HuC6280 (TurboGrafx-16)
+
+```bash
+poppy -t huc6280 game.pasm
+poppy --platform tg16 game.pasm
+```
+
+Features:
+
+- Enhanced 65C02 core at 7.16 MHz
+- Block transfer instructions (TAI, TDD, TIA, TII, TIN)
+- Memory mapping with TAM/TMA
+- High-speed mode (CSH) and low-speed mode (CSL)
+- Zero-page addressing with 8 MPRs
+
+Example:
+
+```asm
+.target "tg16"
+.cpu "huc6280"
+
+.org $e000
+start:
+    sei
+    csh                 ; High-speed mode (7.16 MHz)
+    cld
+
+    ; Set up memory mapping
+    lda #$ff            ; I/O page
+    tam #$01            ; MPR0 = I/O
+    lda #$f8            ; RAM page
+    tam #$02            ; MPR1 = RAM
+
+    ldx #$ff
+    txs
+
+main_loop:
+    bra main_loop
+
+.org $fff6
+    .dw $0000           ; IRQ2
+    .dw $0000           ; IRQ1
+    .dw $0000           ; Timer
+    .dw $0000           ; NMI
+    .dw start           ; Reset
+```
+
+### ARM7TDMI (Game Boy Advance)
+
+```bash
+poppy -t arm7tdmi game.pasm
+poppy --platform gba game.pasm
+```
+
+Features:
+
+- Full ARM instruction set (32-bit)
+- Thumb instruction set (16-bit)
+- Conditional execution on all instructions
+- Barrel shifter operations
+- Block data transfer (LDM/STM)
+
+Example:
+
+```asm
+.target "gba"
+.cpu "arm7tdmi"
+.arm                    ; ARM mode (32-bit)
+
+.org $08000000          ; ROM start
+
+header:
+    b start             ; Branch to entry point
+    .ds 156, $00        ; Nintendo logo space
+
+.org $080000c0
+start:
+    ; Set up IRQ handler
+    ldr r0, =irq_handler
+    ldr r1, =$03007ffc
+    str r0, [r1]
+
+    ; Initialize stack
+    mov r0, #$1f        ; System mode
+    msr cpsr_c, r0
+    ldr sp, =$03007f00
+
+main_loop:
+    b main_loop
+
+irq_handler:
+    bx lr
+```
+
+### 6507 (Atari 2600)
+
+```bash
+poppy -t 6507 game.pasm
+poppy --platform a2600 game.pasm
+```
+
+Features:
+
+- 6502 core with 13-bit address bus
+- Racing the beam programming model
+- TIA register definitions
+- RIOT chip support
+
+Example:
+
+```asm
+.target "a2600"
+.cpu "6507"
+
+.org $f000
+start:
+    sei
+    cld
+    ldx #$ff
+    txs
+
+    ; Clear TIA and RAM
+    lda #$00
+@clear:
+    sta $00, x
+    dex
+    bne @clear
+
+main_loop:
+    ; VSYNC
+    lda #$02
+    sta $00             ; VSYNC
+    sta $02             ; WSYNC
+    sta $02
+    sta $02
+    lda #$00
+    sta $00
+
+    jmp main_loop
+
+.org $fffc
+    .dw start           ; Reset
+    .dw start           ; IRQ
+```
+
+### 65SC02 (Atari Lynx)
+
+```bash
+poppy -t 65sc02 game.pasm
+poppy --platform lynx game.pasm
+```
+
+Features:
+
+- Enhanced 65C02 instruction set
+- Additional addressing modes
+- BRA (branch always) instruction
+- PHX/PHY/PLX/PLY instructions
+- STZ (store zero) instruction
+
+### V30MZ (WonderSwan)
+
+```bash
+poppy -t v30mz game.pasm
+poppy --platform ws game.pasm
+```
+
+Features:
+
+- NEC V30MZ (80186-compatible) instruction set
+- 16-bit x86 architecture
+- Segmented memory model
+- I/O port access
+
+### SPC700 (SNES Audio)
+
+```bash
+poppy -t spc700 game.pasm
+```
+
+Features:
+
+- Sony SPC700 audio processor instruction set
+- 8-bit accumulator operations
+- Direct page addressing
+- DSP register access
+- Timer and communication ports
+
+Example:
+
+```asm
+.target "snes"
+.cpu "spc700"
+
+.org $0200
+start:
+    ; Clear ports
+    mov $f4, #$00
+    mov $f5, #$00
+
+    ; Initialize DSP
+    mov $f2, #$0c       ; MVOLL
+    mov $f3, #$7f       ; Master volume left
+
+main_loop:
+    ; Wait for timer
+    mov a, $fd
+    beq main_loop
+
+    bra main_loop
+```
 
 ---
 
@@ -1086,20 +1425,67 @@ Plain binary output with no headers.
 poppy -o output.bin source.pasm
 ```
 
-### iNES Format (Coming Soon)
+### iNES / iNES 2.0 Format
 
-NES ROM with iNES header.
+NES ROM with iNES header. Poppy supports both iNES 1.0 and iNES 2.0 header formats.
 
 ```asm
-; Configure ROM
-.ines_prg 2             ; 32KB PRG
-.ines_chr 1             ; 8KB CHR
-.ines_mapper 0          ; NROM
+; Enable NES target
+.target "nes"
+.cpu "6502"
 
-; Or use directives
-.nes
-.mapper 0
+; Configure iNES header
+.ines_prg 2             ; 32KB PRG ROM (2 x 16KB units)
+.ines_chr 1             ; 8KB CHR ROM (1 x 8KB unit)
+.ines_mapper 0          ; NROM mapper
+.ines_mirroring "v"     ; Vertical mirroring ("v" or "h")
+
+; iNES 2.0 specific options
+.ines2                  ; Enable iNES 2.0 format (default)
+.ines_submapper 0       ; Submapper variant
+.ines_prg_ram 8         ; PRG RAM in KB
+.ines_chr_ram 0         ; CHR RAM in KB
+.ines_battery           ; Enable battery-backed save
+.ines_region "ntsc"     ; Region: "ntsc" or "pal"
+
+.org $8000
+reset:
+    sei
+    cld
+    ldx #$ff
+    txs
+    ; ... initialization code ...
+
+nmi:
+    rti
+
+irq:
+    rti
+
+; Vector table
+.org $fffa
+    .dw nmi             ; NMI vector
+    .dw reset           ; Reset vector
+    .dw irq             ; IRQ vector
 ```
+
+iNES Header Directives:
+
+| Directive | Description |
+|-----------|-------------|
+| `.ines_prg <n>` | PRG ROM size in 16KB units |
+| `.ines_chr <n>` | CHR ROM size in 8KB units |
+| `.ines_mapper <n>` | Mapper number (0-255 for iNES 1.0, 0-4095 for 2.0) |
+| `.ines_submapper <n>` | Submapper variant (iNES 2.0 only) |
+| `.ines_mirroring "<v/h>"` | Vertical or horizontal mirroring |
+| `.ines_battery` | Enable battery-backed save RAM |
+| `.ines_trainer` | ROM has 512-byte trainer |
+| `.ines_four_screen` | Four-screen VRAM mode |
+| `.ines_prg_ram <kb>` | PRG RAM size in KB |
+| `.ines_chr_ram <kb>` | CHR RAM size in KB |
+| `.ines_region "<ntsc/pal>"` | TV system region |
+| `.ines2` | Force iNES 2.0 format |
+| `.ines1` | Force iNES 1.0 format |
 
 ### SFC Format
 
