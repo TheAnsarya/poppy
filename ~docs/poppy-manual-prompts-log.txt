@@ -133,6 +133,25 @@ make sure each compile and build and code type is separate so compiling an NES g
 
 just continue work;
 
+do the "Next steps": CLI Commands (Issue #96) - Add poppy pack, poppy unpack, poppy validate commands, Example Templates - Create starter templates for each platform, WonderSwan Platform (Issue #87) - Next platform per v2.0 roadmap, Continue v2.0 Roadmap - Follow 40-week implementation plan; continue;
+
+&&&
+install the `vsce` utils so we can publish the vscode extension by running:
+```
+cd vscode-extension
+vsce login TheAnsarya
+vsce publish  # Will publish poppy-assembly-1.0.0.vsix to marketplace
+```
+then continue working on previous prompt and work;
+&&&
+
+publish the vscode extension and then continue; if there are any manual steps for publishing, document them an dopen the file so I can follow the instructions;
+
+The vscode extension does not have an icon, put that flower emoji as the icon, and add links and descriptions and explanations to the github for poppy, and the extension and how to use both; republish; then update with the new systems and update documentation and continue work on poppy with the new systems; create sub issues for all of this work (with every issue linked to a parent issue (not just a comment, but an actual link)) ; then work all these issues; continue;
+
+no, what the fuck? that icon is insanely bad, just use the old icon, look into the git history, look at the old versions of the icon png/svg files, it's the `🌸` emjoi, revert/fix the icons, and make sure the vsix file has an icon that is `🌸`; continue;
+
+Make sure the vscode extension is linked and referenced and documented with it published at `https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly`; publish the extension with the corrected iconography; and then focus on Genesis and Sega Master System; continue;
 
 
 
@@ -147,6 +166,7 @@ just continue work;
 
 
 
+ create a plan for disassembling Atari2600 games, pick like 40 games, and make plans to 
 
 create code/project convertors to the the poppy format from xkas, asar, ophis, and ca65 and check if there are other other popular assemblers for these systems;
 

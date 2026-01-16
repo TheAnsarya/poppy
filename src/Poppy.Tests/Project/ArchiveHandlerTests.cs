@@ -52,7 +52,7 @@ public class ArchiveHandlerTests : IDisposable {
 	[Fact]
 	public void Pack_InvalidManifest_ThrowsException() {
 		Directory.CreateDirectory(_projectDir);
-		
+
 		// Create invalid manifest
 		var manifest = new ProjectManifest {
 			Name = "",  // Invalid
@@ -95,7 +95,7 @@ public class ArchiveHandlerTests : IDisposable {
 		var archivePath = ArchiveHandler.Pack(_projectDir);
 
 		using var archive = System.IO.Compression.ZipFile.OpenRead(archivePath);
-		
+
 		Assert.NotNull(archive.GetEntry(".poppy/version.txt"));
 		Assert.NotNull(archive.GetEntry(".poppy/checksums.txt"));
 		Assert.NotNull(archive.GetEntry(".poppy/build-info.json"));
@@ -215,7 +215,7 @@ public class ArchiveHandlerTests : IDisposable {
 	[Fact]
 	public void Validate_MissingManifest_ReturnsError() {
 		var archivePath = Path.Combine(_tempDir, "invalid.poppy");
-		
+
 		// Create empty archive
 		using (var archive = System.IO.Compression.ZipFile.Open(archivePath, System.IO.Compression.ZipArchiveMode.Create)) {
 			// Empty

@@ -1,6 +1,29 @@
 # 🌸 Poppy Assembly VS Code Extension
 
-Professional language support for Poppy Assembly (.pasm) files targeting NES, SNES, and Game Boy platforms.
+Professional language support for Poppy Assembly (.pasm) files - a multi-system assembly compiler for retro game development.
+
+## 🎮 Supported Platforms
+
+| Platform | CPU | Status |
+|----------|-----|--------|
+| **NES** | MOS 6502 | ✅ Full support |
+| **SNES** | WDC 65816 | ✅ Full support |
+| **Game Boy** | Sharp SM83 | ✅ Full support |
+| **Atari 2600** | MOS 6507 | ✅ Full support |
+| **Atari Lynx** | WDC 65C02 | ✅ Full support |
+| **Genesis** | Motorola 68000 | 🚧 In progress |
+| **GBA** | ARM7TDMI | 🚧 In progress |
+| **WonderSwan** | NEC V30MZ | 🚧 In progress |
+| **Master System** | Zilog Z80 | 🚧 Planned |
+| **TurboGrafx-16** | HuC6280 | 🚧 Planned |
+
+## 🔗 Links
+
+- **GitHub Repository:** [TheAnsarya/poppy](https://github.com/TheAnsarya/poppy)
+- **Compiler Documentation:** [User Manual](https://github.com/TheAnsarya/poppy/blob/main/docs/user-manual.md)
+- **Syntax Reference:** [Syntax Spec](https://github.com/TheAnsarya/poppy/blob/main/docs/syntax-spec.md)
+- **Issues & Bugs:** [GitHub Issues](https://github.com/TheAnsarya/poppy/issues)
+- **VS Code Marketplace:** [Poppy Assembly](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
 
 ## ✨ Features
 
@@ -67,14 +90,41 @@ Professional column-based alignment:
 
 - 13 integration and unit tests
 - Mocha + @vscode/test-electron framework
-- 885 compiler tests (all passing)
+- 1039+ compiler tests (all passing)
 
 ## 🚀 Installation
 
 ### From VS Code Marketplace
-_(Coming soon - extension pending publication)_
 
-Search for "Poppy Assembly" in VS Code Extensions marketplace.
+Search for "**Poppy Assembly**" in VS Code Extensions marketplace, or:
+
+1. Open VS Code
+2. Press `Ctrl+Shift+X` (Extensions)
+3. Search for `TheAnsarya.poppy-assembly`
+4. Click **Install**
+
+Or install from command line:
+```bash
+code --install-extension TheAnsarya.poppy-assembly
+```
+
+### Installing the Poppy Compiler
+
+The extension provides language support. For building, you need the Poppy compiler:
+
+1. **Download** from [GitHub Releases](https://github.com/TheAnsarya/poppy/releases)
+2. **Or build from source:**
+   ```bash
+   git clone https://github.com/TheAnsarya/poppy.git
+   cd poppy/src
+   dotnet build -c Release
+   ```
+3. **Configure** the compiler path in VS Code settings:
+   ```json
+   {
+     "poppy.compiler.path": "/path/to/poppy"
+   }
+   ```
 
 ### From VSIX (Local Development)
 

@@ -1,0 +1,17 @@
+{
+	"name": "atari2600-hello-world",
+	"version": "1.0.0",
+	"platform": "atari2600",
+	"compiler": {
+		"target": "atari2600",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for Atari 2600",
+		"author": "Poppy Examples",
+		"tags": ["example", "atari2600", "hello-world"]
+	}
+}

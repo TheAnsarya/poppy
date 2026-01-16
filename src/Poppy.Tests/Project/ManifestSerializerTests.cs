@@ -203,7 +203,7 @@ public class ManifestSerializerTests {
 
 	[Fact]
 	public void LoadFromFile_NonExistentFile_ThrowsException() {
-		Assert.Throws<FileNotFoundException>(() => 
+		Assert.Throws<FileNotFoundException>(() =>
 			ManifestSerializer.LoadFromFile("nonexistent.json"));
 	}
 
@@ -218,7 +218,7 @@ public class ManifestSerializerTests {
 		var tempFile = Path.GetTempFileName();
 		try {
 			ManifestSerializer.SaveToFile(manifest, tempFile);
-			
+
 			var success = ManifestSerializer.TryLoadFromFile(tempFile, out var loaded, out var error);
 
 			Assert.True(success);

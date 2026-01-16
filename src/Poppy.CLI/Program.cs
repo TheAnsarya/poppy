@@ -42,6 +42,21 @@ internal static class Program {
 			return CleanProject(options);
 		}
 
+		// Handle pack command
+		if (options.Command == CommandType.Pack) {
+			return PackProject(options);
+		}
+
+		// Handle unpack command
+		if (options.Command == CommandType.Unpack) {
+			return UnpackArchive(options);
+		}
+
+		// Handle validate command
+		if (options.Command == CommandType.Validate) {
+			return ValidateArchive(options);
+		}
+
 		// Project-based build
 		if (options.ProjectPath is not null) {
 			return BuildProject(options);
@@ -392,6 +407,125 @@ internal static class Program {
 	}
 
 	/// <summary>
+	/// Packs a project into a .poppy archive.
+	/// </summary>
+	private static int PackProject(CompilerOptions options) {
+		var projectPath = options.ProjectPath ?? ".";
+
+		if (options.Verbose) {
+			Console.WriteLine($"🌸 Packing project from: {projectPath}");
+		}
+
+		try {
+			var packOptions = new ArchiveHandler.PackOptions {
+				OutputPath = options.OutputFile,
+				IncludeBuild = false,  // Don't include build artifacts by default
+				CalculateChecksums = true
+			};
+
+			var archivePath = ArchiveHandler.Pack(projectPath, packOptions);
+
+			var fileInfo = new FileInfo(archivePath);
+			Console.WriteLine($"🌸 Created archive: {archivePath}");
+			Console.WriteLine($"   Size: {FormatFileSize(fileInfo.Length)}");
+
+			return 0;
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error packing project: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
+	/// Unpacks a .poppy archive.
+	/// </summary>
+	private static int UnpackArchive(CompilerOptions options) {
+		if (options.InputFile is null) {
+			Console.Error.WriteLine("Error: No archive file specified.");
+			Console.Error.WriteLine("Usage: poppy unpack <archive.poppy> [-o <directory>]");
+			return 1;
+		}
+
+		if (options.Verbose) {
+			Console.WriteLine($"🌸 Unpacking archive: {options.InputFile}");
+		}
+
+		try {
+			var unpackOptions = new ArchiveHandler.UnpackOptions {
+				TargetDirectory = options.OutputFile,  // Reuse -o flag for target directory
+				Overwrite = options.CleanAll,  // Reuse --all flag as overwrite
+				ValidateChecksums = true,
+				ValidateManifest = true
+			};
+
+			var extractPath = ArchiveHandler.Unpack(options.InputFile, unpackOptions);
+
+			Console.WriteLine($"🌸 Extracted to: {extractPath}");
+
+			// Count files
+			var fileCount = Directory.GetFiles(extractPath, "*", SearchOption.AllDirectories).Length;
+			Console.WriteLine($"   Files: {fileCount}");
+
+			return 0;
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error unpacking archive: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
+	/// Validates a .poppy archive.
+	/// </summary>
+	private static int ValidateArchive(CompilerOptions options) {
+		if (options.InputFile is null) {
+			Console.Error.WriteLine("Error: No archive file specified.");
+			Console.Error.WriteLine("Usage: poppy validate <archive.poppy>");
+			return 1;
+		}
+
+		if (options.Verbose) {
+			Console.WriteLine($"🌸 Validating archive: {options.InputFile}");
+		}
+
+		try {
+			var errors = ArchiveHandler.Validate(options.InputFile);
+
+			if (errors.Count == 0) {
+				Console.WriteLine("🌸 Archive is valid.");
+				return 0;
+			} else {
+				Console.Error.WriteLine($"❌ Archive validation failed with {errors.Count} error(s):");
+				foreach (var error in errors) {
+					Console.Error.WriteLine($"   - {error}");
+				}
+				return 1;
+			}
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error validating archive: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
+	/// Formats a file size for display.
+	/// </summary>
+	private static string FormatFileSize(long bytes) {
+		if (bytes < 1024) return $"{bytes} bytes";
+		if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+		if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F1} MB";
+		return $"{bytes / (1024.0 * 1024 * 1024):F1} GB";
+	}
+
+	/// <summary>
 	/// Adds output file paths to the set of files to clean.
 	/// </summary>
 	private static void AddOutputFiles(HashSet<string> files, string projectDir, params string?[] paths) {
@@ -598,10 +732,20 @@ internal static class Program {
 					options.Command = CommandType.Clean;
 					break;
 
-				case "--all":
-					// Clean all configurations
-					options.CleanAll = true;
-					break;
+			case "pack":
+				// Pack command
+				options.Command = CommandType.Pack;
+				break;
+
+			case "unpack":
+				// Unpack command
+				options.Command = CommandType.Unpack;
+				break;
+
+			case "validate":
+				// Validate command
+				options.Command = CommandType.Validate;
+				break;
 
 				case "-h":
 				case "--help":
@@ -722,9 +866,15 @@ internal static class Program {
 		Console.WriteLine("Usage: poppy [options] <input.pasm>");
 		Console.WriteLine("       poppy --project [path] [--config <name>]");
 		Console.WriteLine("       poppy clean --project [path] [--all]");
+		Console.WriteLine("       poppy pack [path] [-o <output.poppy>]");
+		Console.WriteLine("       poppy unpack <archive.poppy> [-o <directory>]");
+		Console.WriteLine("       poppy validate <archive.poppy>");
 		Console.WriteLine();
 		Console.WriteLine("Commands:");
 		Console.WriteLine("  clean                Remove build artifacts from a project");
+		Console.WriteLine("  pack                 Pack project into .poppy archive");
+		Console.WriteLine("  unpack               Extract .poppy archive");
+		Console.WriteLine("  validate             Validate .poppy archive integrity");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -740,6 +890,7 @@ internal static class Program {
 		Console.WriteLine("  -p, --project [path] Build from project file (poppy.json)");
 		Console.WriteLine("  -c, --config <name>  Build configuration (debug, release, etc.)");
 		Console.WriteLine("  --all                Clean all configurations (with clean command)");
+		Console.WriteLine("                       or overwrite when unpacking");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
 		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
 		Console.WriteLine("                         65816, snes   - WDC 65816");
@@ -754,6 +905,11 @@ internal static class Program {
 		Console.WriteLine("  poppy --project -c release         Build release configuration");
 		Console.WriteLine("  poppy clean --project              Clean default config outputs");
 		Console.WriteLine("  poppy clean --project --all        Clean all config outputs");
+		Console.WriteLine("  poppy pack my-game                 Pack project into my-game.poppy");
+		Console.WriteLine("  poppy pack . -o custom.poppy       Pack current directory");
+		Console.WriteLine("  poppy unpack game.poppy            Extract to ./game");
+		Console.WriteLine("  poppy unpack game.poppy -o mydir   Extract to ./mydir");
+		Console.WriteLine("  poppy validate game.poppy          Check archive integrity");
 	}
 
 	/// <summary>
@@ -774,7 +930,16 @@ internal enum CommandType {
 	Build,
 
 	/// <summary>Clean build artifacts.</summary>
-	Clean
+	Clean,
+
+	/// <summary>Pack project into .poppy archive.</summary>
+	Pack,
+
+	/// <summary>Unpack .poppy archive.</summary>
+	Unpack,
+
+	/// <summary>Validate .poppy archive.</summary>
+	Validate
 }
 
 /// <summary>

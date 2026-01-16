@@ -1,31 +1,26 @@
 {
-	"name": "HelloWorld",
+	"name": "hello-world",
 	"version": "1.0.0",
-	"target": "nes",
-	"output": "hello.nes",
-	"main": "main.pasm",
-	"includes": [
-		"include/"
-	],
-	"defines": {
-		"DEBUG": 0
-	},
-	"listing": "hello.lst",
-	"symbols": "hello.sym",
-	"mapfile": "hello.map",
-	"configurations": {
-		"debug": {
-			"output": "bin/debug/hello.nes",
-			"listing": "bin/debug/hello.lst",
-			"symbols": "bin/debug/hello.sym",
-			"defines": {
-				"DEBUG": 1
-			}
-		},
-		"release": {
-			"output": "bin/release/hello.nes",
-			"symbols": "bin/release/hello.sym"
+	"platform": "nes",
+	"compiler": {
+		"target": "nes",
+		"options": {
+			"optimize": true,
+			"debug": false,
+			"warnings": "all"
 		}
 	},
-	"defaultConfiguration": "debug"
+	"build": {
+		"includePaths": [
+			"include/"
+		],
+		"defines": {
+			"DEBUG": 0
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for NES",
+		"author": "Poppy Examples",
+		"tags": ["example", "nes", "hello-world"]
+	}
 }

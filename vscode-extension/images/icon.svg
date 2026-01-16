@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+	<!-- Dark background -->
+	<rect width="128" height="128" fill="#1e1e2e"/>
+	<!-- Cherry Blossom Emoji 🌸 rendered as text -->
+	<text x="64" y="96" font-size="96" text-anchor="middle" font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif">🌸</text>
+</svg>

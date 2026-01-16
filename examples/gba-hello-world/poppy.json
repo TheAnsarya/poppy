@@ -1,0 +1,17 @@
+{
+	"name": "gba-hello-world",
+	"version": "1.0.0",
+	"platform": "gba",
+	"compiler": {
+		"target": "gba",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for Game Boy Advance",
+		"author": "Poppy Examples",
+		"tags": ["example", "gba", "gameboy-advance", "hello-world"]
+	}
+}

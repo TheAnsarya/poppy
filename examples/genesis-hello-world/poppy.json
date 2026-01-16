@@ -1,0 +1,17 @@
+{
+	"name": "genesis-hello-world",
+	"version": "1.0.0",
+	"platform": "genesis",
+	"compiler": {
+		"target": "genesis",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for Sega Genesis/Mega Drive",
+		"author": "Poppy Examples",
+		"tags": ["example", "genesis", "megadrive", "hello-world"]
+	}
+}

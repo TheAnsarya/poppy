@@ -1,0 +1,17 @@
+{
+	"name": "lynx-hello-world",
+	"version": "1.0.0",
+	"platform": "lynx",
+	"compiler": {
+		"target": "lynx",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for Atari Lynx",
+		"author": "Poppy Examples",
+		"tags": ["example", "lynx", "atari", "hello-world"]
+	}
+}

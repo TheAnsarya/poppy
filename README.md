@@ -5,13 +5,13 @@
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-[![Tests](https://img.shields.io/badge/tests-942%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+[![Tests](https://img.shields.io/badge/tests-1039%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
 
 ---
 
 ## 🎉 v1.0.0 Released!
 
-**Poppy v1.0.0** is now available with complete support for three retro gaming platforms! [Download the release →](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
+**Poppy v1.0.0** is now available with complete support for multiple retro gaming platforms! [Download the release →](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 
 ---
 
@@ -19,11 +19,20 @@
 
 **Poppy** is a production-ready multi-system assembly compiler targeting classic gaming platforms:
 
-- **NES** (6502 processor) ✅ Complete
-- **SNES** (65816 processor) ✅ Complete
-- **Game Boy** (SM83 processor) ✅ Complete
+| Platform | CPU | Status |
+|----------|-----|--------|
+| **NES** | MOS 6502 | ✅ Complete |
+| **SNES** | WDC 65816 | ✅ Complete |
+| **Game Boy** | Sharp SM83 | ✅ Complete |
+| **Atari 2600** | MOS 6507 | ✅ Complete |
+| **Atari Lynx** | WDC 65C02 | ✅ Complete |
+| **Genesis** | Motorola 68000 | 🚧 In Progress |
+| **GBA** | ARM7TDMI | 🚧 In Progress |
+| **WonderSwan** | NEC V30MZ | 🚧 In Progress |
+| **Master System** | Zilog Z80 | 📋 Planned |
+| **TurboGrafx-16** | HuC6280 | 📋 Planned |
 
-The compiler supports real-world game development with comprehensive tooling, including a VS Code extension with IntelliSense, formatting, and build integration.
+The compiler supports real-world game development with comprehensive tooling, including a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly) with IntelliSense, formatting, and build integration.
 
 ---
 

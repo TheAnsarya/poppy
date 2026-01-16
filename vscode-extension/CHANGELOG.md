@@ -5,6 +5,23 @@ All notable changes to the Poppy Assembly extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-01-16
+
+### Fixed
+- 🌸 **Fixed Extension Icon** - Proper cherry blossom emoji icon for marketplace
+
+## [1.0.1] - 2026-01-16
+
+### Added
+- 🌸 **Extension Icon** - Beautiful pink flower icon for marketplace
+- 📝 **Enhanced Description** - Updated to include all supported platforms
+- 🔗 **Documentation Links** - Added links to GitHub, docs, and marketplace
+- 🏷️ **More Keywords** - Added 68000, Z80, ARM, V30MZ, GBA, Genesis, Atari, WonderSwan
+
+### Changed
+- Updated platform support table to show current development status
+- Improved installation instructions with compiler setup guide
+
 ## [1.0.0] - 2026-01-15
 
 ### Released

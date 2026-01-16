@@ -1,0 +1,17 @@
+{
+	"name": "wonderswan-hello-world",
+	"version": "1.0.0",
+	"platform": "wonderswan",
+	"compiler": {
+		"target": "wonderswan",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for WonderSwan",
+		"author": "Poppy Examples",
+		"tags": ["example", "wonderswan", "v30mz", "hello-world"]
+	}
+}

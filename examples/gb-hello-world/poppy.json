@@ -1,7 +1,17 @@
 {
 	"name": "gb-hello-world",
 	"version": "1.0.0",
-	"target": "gameboy",
-	"entry": "main.pasm",
-	"output": "hello.gb"
+	"platform": "gb",
+	"compiler": {
+		"target": "gb",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple Hello World demo for Game Boy",
+		"author": "Poppy Examples",
+		"tags": ["example", "gameboy", "hello-world"]
+	}
 }

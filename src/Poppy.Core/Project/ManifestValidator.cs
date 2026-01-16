@@ -10,7 +10,7 @@ public static class ManifestValidator {
 	/// Valid platform identifiers.
 	/// </summary>
 	private static readonly HashSet<string> ValidPlatforms = new(StringComparer.OrdinalIgnoreCase) {
-		"nes", "snes", "gb", "gbc", "atari2600", "lynx", 
+		"nes", "snes", "gb", "gbc", "atari2600", "lynx",
 		"genesis", "sms", "gba", "wonderswan", "tg16", "spc700"
 	};
 
