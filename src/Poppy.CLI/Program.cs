@@ -42,6 +42,11 @@ internal static class Program {
 			return CleanProject(options);
 		}
 
+		// Handle init command
+		if (options.Command == CommandType.Init) {
+			return InitProject(options);
+		}
+
 		// Handle pack command
 		if (options.Command == CommandType.Pack) {
 			return PackProject(options);
@@ -407,6 +412,439 @@ internal static class Program {
 	}
 
 	/// <summary>
+	/// Initializes a new project from a template.
+	/// </summary>
+	private static int InitProject(CompilerOptions options) {
+		// Available platforms and their templates
+		var platforms = new Dictionary<string, (string displayName, string cpu, string defaultExt)> {
+			["nes"] = ("NES", "6502", "nes"),
+			["snes"] = ("SNES", "65816", "sfc"),
+			["gb"] = ("Game Boy", "sm83", "gb"),
+			["genesis"] = ("Sega Genesis", "m68000", "bin"),
+			["gba"] = ("Game Boy Advance", "arm7tdmi", "gba"),
+			["sms"] = ("Sega Master System", "z80", "sms"),
+			["tg16"] = ("TurboGrafx-16", "huc6280", "pce"),
+			["a2600"] = ("Atari 2600", "6507", "a26"),
+			["lynx"] = ("Atari Lynx", "65sc02", "lnx"),
+			["ws"] = ("WonderSwan", "v30mz", "ws"),
+			["spc700"] = ("SPC700 (SNES Audio)", "spc700", "spc")
+		};
+
+		string projectName;
+		string platformKey;
+
+		// Interactive mode if no project name provided
+		if (options.InitProjectName is null) {
+			Console.WriteLine("🌸 Poppy Project Initializer");
+			Console.WriteLine();
+
+			// Get project name
+			Console.Write("Project name: ");
+			projectName = Console.ReadLine()?.Trim() ?? "";
+			if (string.IsNullOrEmpty(projectName)) {
+				Console.Error.WriteLine("Error: Project name is required.");
+				return 1;
+			}
+
+			// Show platform options
+			Console.WriteLine();
+			Console.WriteLine("Available platforms:");
+			var platformList = platforms.ToList();
+			for (int i = 0; i < platformList.Count; i++) {
+				Console.WriteLine($"  {i + 1,2}. {platformList[i].Value.displayName,-25} ({platformList[i].Key})");
+			}
+
+			Console.WriteLine();
+			Console.Write("Select platform (1-11 or name): ");
+			var input = Console.ReadLine()?.Trim() ?? "";
+
+			// Parse platform selection
+			if (int.TryParse(input, out int index) && index >= 1 && index <= platformList.Count) {
+				platformKey = platformList[index - 1].Key;
+			} else if (platforms.ContainsKey(input.ToLowerInvariant())) {
+				platformKey = input.ToLowerInvariant();
+			} else {
+				Console.Error.WriteLine($"Error: Invalid platform selection: {input}");
+				return 1;
+			}
+		} else {
+			projectName = options.InitProjectName;
+
+			// Platform from command line or default to NES
+			if (options.InitPlatform is not null) {
+				var key = options.InitPlatform.ToLowerInvariant();
+				if (!platforms.ContainsKey(key)) {
+					Console.Error.WriteLine($"Error: Unknown platform: {options.InitPlatform}");
+					Console.Error.WriteLine("Valid platforms: " + string.Join(", ", platforms.Keys));
+					return 1;
+				}
+				platformKey = key;
+			} else {
+				// Prompt for platform
+				Console.WriteLine("Available platforms:");
+				var platformList = platforms.ToList();
+				for (int i = 0; i < platformList.Count; i++) {
+					Console.WriteLine($"  {i + 1,2}. {platformList[i].Value.displayName,-25} ({platformList[i].Key})");
+				}
+
+				Console.WriteLine();
+				Console.Write("Select platform (1-11 or name): ");
+				var input = Console.ReadLine()?.Trim() ?? "";
+
+				if (int.TryParse(input, out int index) && index >= 1 && index <= platformList.Count) {
+					platformKey = platformList[index - 1].Key;
+				} else if (platforms.ContainsKey(input.ToLowerInvariant())) {
+					platformKey = input.ToLowerInvariant();
+				} else {
+					Console.Error.WriteLine($"Error: Invalid platform selection: {input}");
+					return 1;
+				}
+			}
+		}
+
+		var platform = platforms[platformKey];
+		var targetDir = Path.GetFullPath(projectName);
+
+		// Check if directory already exists
+		if (Directory.Exists(targetDir)) {
+			Console.Error.WriteLine($"Error: Directory already exists: {targetDir}");
+			return 1;
+		}
+
+		// Create project structure
+		try {
+			Console.WriteLine();
+			Console.WriteLine($"Creating {platform.displayName} project: {projectName}");
+
+			// Create directories
+			Directory.CreateDirectory(targetDir);
+			Directory.CreateDirectory(Path.Combine(targetDir, "src"));
+
+			// Create poppy.json
+			var projectJson = $$"""
+{
+	"name": "{{projectName}}",
+	"version": "1.0.0",
+	"description": "{{platform.displayName}} game project",
+	"target": "{{platformKey}}",
+	"cpu": "{{platform.cpu}}",
+	"output": {
+		"format": "{{platformKey}}",
+		"filename": "{{projectName}}.{{platform.defaultExt}}"
+	},
+	"sources": [
+		"src/main.pasm"
+	],
+	"defaultConfiguration": "debug",
+	"configurations": {
+		"debug": {
+			"listing": "{{projectName}}.lst",
+			"symbols": "{{projectName}}.sym"
+		},
+		"release": {}
+	}
+}
+""";
+			File.WriteAllText(Path.Combine(targetDir, "poppy.json"), projectJson);
+			Console.WriteLine("  Created poppy.json");
+
+			// Create main.pasm
+			var mainAsm = GetTemplateMainFile(platformKey, platform.cpu);
+			File.WriteAllText(Path.Combine(targetDir, "src", "main.pasm"), mainAsm);
+			Console.WriteLine("  Created src/main.pasm");
+
+			// Create README.md
+			var readme = $"""
+# {projectName}
+
+A {platform.displayName} project created with Poppy Compiler.
+
+## Building
+
+```bash
+poppy --project
+```
+
+Or with a specific configuration:
+
+```bash
+poppy --project -c release
+```
+
+## Project Structure
+
+- `poppy.json` - Project configuration
+- `src/main.pasm` - Main source file
+
+## Resources
+
+- [Poppy User Manual](https://github.com/TheAnsarya/poppy/blob/main/docs/user-manual.md)
+- [{platform.displayName} Reference](https://github.com/TheAnsarya/poppy/blob/main/docs/resources.md)
+""";
+			File.WriteAllText(Path.Combine(targetDir, "README.md"), readme);
+			Console.WriteLine("  Created README.md");
+
+			Console.WriteLine();
+			Console.WriteLine($"🌸 Project created successfully!");
+			Console.WriteLine();
+			Console.WriteLine("Next steps:");
+			Console.WriteLine($"  cd {projectName}");
+			Console.WriteLine("  poppy --project");
+			Console.WriteLine();
+
+			return 0;
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error creating project: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
+	/// Gets a basic template main.pasm file for the given platform.
+	/// </summary>
+	private static string GetTemplateMainFile(string platform, string cpu) {
+		return platform switch {
+			"nes" => """
+; =============================================================================
+; NES ROM Template
+; =============================================================================
+
+.target "nes"
+.cpu "6502"
+
+; iNES Header
+.db "NES", $1a	; Magic number
+.db $02			; 2 * 16KB PRG ROM
+.db $01			; 1 * 8KB CHR ROM
+.db $00			; Flags 6: Mapper 0, horizontal mirroring
+.db $00			; Flags 7
+.ds 8, $00		; Padding
+
+; =============================================================================
+; Vectors
+; =============================================================================
+
+.org $c000
+
+reset:
+	sei				; Disable interrupts
+	cld				; Clear decimal mode
+	ldx #$ff
+	txs				; Set up stack
+
+	; Wait for PPU to stabilize
+	bit $2002
+@wait1:
+	bit $2002
+	bpl @wait1
+@wait2:
+	bit $2002
+	bpl @wait2
+
+main_loop:
+	jmp main_loop
+
+nmi:
+	rti
+
+irq:
+	rti
+
+; =============================================================================
+; Vector Table
+; =============================================================================
+
+.org $fffa
+	.dw nmi			; NMI vector
+	.dw reset		; Reset vector
+	.dw irq			; IRQ vector
+""",
+
+			"snes" => """
+; =============================================================================
+; SNES ROM Template
+; =============================================================================
+
+.target "snes"
+.cpu "65816"
+
+; =============================================================================
+; ROM Header (LoROM)
+; =============================================================================
+
+.org $008000
+
+; Code starts here
+reset:
+	sei
+	clc
+	xce					; Switch to native mode
+	rep #$30			; 16-bit A, X, Y
+
+	; Initialize stack
+	lda #$1fff
+	tcs
+
+main_loop:
+	wai					; Wait for interrupt
+	bra main_loop
+
+nmi:
+	rti
+
+irq:
+	rti
+
+; =============================================================================
+; Vectors (Native mode)
+; =============================================================================
+
+.org $00ffe4
+	.dw $0000			; COP
+	.dw $0000			; BRK
+	.dw $0000			; ABORT
+	.dw nmi				; NMI
+	.dw $0000			; unused
+	.dw irq				; IRQ
+
+; =============================================================================
+; Vectors (Emulation mode)
+; =============================================================================
+
+.org $00fff4
+	.dw $0000			; COP
+	.dw $0000			; unused
+	.dw $0000			; ABORT
+	.dw nmi				; NMI
+	.dw reset			; RESET
+	.dw irq				; IRQ
+""",
+
+			"gb" => """
+; =============================================================================
+; Game Boy ROM Template
+; =============================================================================
+
+.target "gb"
+.cpu "sm83"
+
+; =============================================================================
+; Entry Point
+; =============================================================================
+
+.org $0100
+	nop
+	jp start
+
+; Nintendo logo (required)
+.org $0104
+	.db $ce, $ed, $66, $66, $cc, $0d, $00, $0b
+	.db $03, $73, $00, $83, $00, $0c, $00, $0d
+	.db $00, $08, $11, $1f, $88, $89, $00, $0e
+	.db $dc, $cc, $6e, $e6, $dd, $dd, $d9, $99
+	.db $bb, $bb, $67, $63, $6e, $0e, $ec, $cc
+	.db $dd, $dc, $99, $9f, $bb, $b9, $33, $3e
+
+.org $0134
+	.db "MYGAME", 0, 0, 0, 0, 0	; Title
+
+.org $0150
+
+start:
+	di
+	ld sp, $fffe
+
+	; Wait for VBlank
+@wait_vblank:
+	ldh a, [$44]
+	cp 144
+	jr c, @wait_vblank
+
+	; Disable LCD
+	xor a
+	ldh [$40], a
+
+main_loop:
+	halt
+	nop
+	jr main_loop
+""",
+
+			"genesis" => $$"""
+; =============================================================================
+; Sega Genesis ROM Template
+; =============================================================================
+
+.target "genesis"
+.cpu "m68000"
+
+; =============================================================================
+; Vector Table
+; =============================================================================
+
+.org $000000
+
+	.dl $00ff0000		; Initial stack pointer
+	.dl start			; Reset vector
+	.ds 62 * 4, 0		; Other vectors
+
+; =============================================================================
+; Header
+; =============================================================================
+
+.org $000100
+	.db "SEGA MEGA DRIVE "					; Console name
+	.db "(C)YOUR 2025.JAN"					; Copyright
+	.ds 96, ' '								; Game names
+	.db "GM 00000000-00"					; Product code
+	.dw $0000								; Checksum
+	.db "J               "					; I/O support
+	.dl $00000000, $000fffff				; ROM addresses
+	.dl $00ff0000, $00ffffff				; RAM addresses
+	.ds 52, ' '								; Reserved
+	.db "JUE             "					; Region
+
+; =============================================================================
+; Main Code
+; =============================================================================
+
+.org $000200
+
+start:
+	; TMSS
+	move.b	$a10001, d0
+	andi.b	#$0f, d0
+	beq.s	@no_tmss
+	move.l	#'SEGA', $a14000
+@no_tmss:
+
+main_loop:
+	bra.s	main_loop
+""",
+
+			_ => $$"""
+; =============================================================================
+; {{cpu.ToUpperInvariant()}} ROM Template
+; =============================================================================
+
+.target "{{platform}}"
+.cpu "{{cpu}}"
+
+; Main entry point
+start:
+	; TODO: Add initialization code
+
+main_loop:
+	; TODO: Add main loop
+	jmp main_loop
+"""
+		};
+	}
+
+	/// <summary>
 	/// Packs a project into a .poppy archive.
 	/// </summary>
 	private static int PackProject(CompilerOptions options) {
@@ -732,6 +1170,15 @@ internal static class Program {
 					options.Command = CommandType.Clean;
 					break;
 
+				case "init":
+					// Init command - next arg is project name
+					options.Command = CommandType.Init;
+					if (i + 1 < args.Length && !args[i + 1].StartsWith('-')) {
+						options.InitProjectName = args[++i];
+					}
+
+					break;
+
 			case "pack":
 				// Pack command
 				options.Command = CommandType.Pack;
@@ -845,6 +1292,20 @@ internal static class Program {
 
 					break;
 
+				case "--template":
+					if (i + 1 < args.Length) {
+						options.TemplateName = args[++i];
+					}
+
+					break;
+
+				case "--platform":
+					if (i + 1 < args.Length) {
+						options.InitPlatform = args[++i];
+					}
+
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -865,12 +1326,14 @@ internal static class Program {
 		Console.WriteLine();
 		Console.WriteLine("Usage: poppy [options] <input.pasm>");
 		Console.WriteLine("       poppy --project [path] [--config <name>]");
+		Console.WriteLine("       poppy init <name> [--platform <platform>]");
 		Console.WriteLine("       poppy clean --project [path] [--all]");
 		Console.WriteLine("       poppy pack [path] [-o <output.poppy>]");
 		Console.WriteLine("       poppy unpack <archive.poppy> [-o <directory>]");
 		Console.WriteLine("       poppy validate <archive.poppy>");
 		Console.WriteLine();
 		Console.WriteLine("Commands:");
+		Console.WriteLine("  init <name>          Create a new project from template");
 		Console.WriteLine("  clean                Remove build artifacts from a project");
 		Console.WriteLine("  pack                 Pack project into .poppy archive");
 		Console.WriteLine("  unpack               Extract .poppy archive");
@@ -889,6 +1352,7 @@ internal static class Program {
 		Console.WriteLine("  -I, --include <path> Add include search path");
 		Console.WriteLine("  -p, --project [path] Build from project file (poppy.json)");
 		Console.WriteLine("  -c, --config <name>  Build configuration (debug, release, etc.)");
+		Console.WriteLine("  --platform <name>    Platform for init (nes, snes, gb, genesis, etc.)");
 		Console.WriteLine("  --all                Clean all configurations (with clean command)");
 		Console.WriteLine("                       or overwrite when unpacking");
 		Console.WriteLine("  -t, --target <arch>  Target architecture:");
@@ -896,10 +1360,20 @@ internal static class Program {
 		Console.WriteLine("                         65816, snes   - WDC 65816");
 		Console.WriteLine("                         sm83, gb      - Sharp SM83 (Game Boy)");
 		Console.WriteLine();
+		Console.WriteLine("Platforms (for init):");
+		Console.WriteLine("  nes       NES (6502)              snes      SNES (65816)");
+		Console.WriteLine("  gb        Game Boy (SM83)         genesis   Sega Genesis (M68000)");
+		Console.WriteLine("  gba       Game Boy Advance (ARM)  sms       Master System (Z80)");
+		Console.WriteLine("  tg16      TurboGrafx-16           a2600     Atari 2600 (6507)");
+		Console.WriteLine("  lynx      Atari Lynx (65SC02)     ws        WonderSwan (V30MZ)");
+		Console.WriteLine("  spc700    SPC700 (SNES Audio)");
+		Console.WriteLine();
 		Console.WriteLine("Examples:");
 		Console.WriteLine("  poppy game.pasm                    Assemble to game.bin");
 		Console.WriteLine("  poppy -o rom.nes game.pasm         Assemble to rom.nes");
 		Console.WriteLine("  poppy -t snes -l game.lst game.pasm");
+		Console.WriteLine("  poppy init my-game                 Create project (interactive)");
+		Console.WriteLine("  poppy init my-game --platform nes  Create NES project");
 		Console.WriteLine("  poppy --project                    Build from ./poppy.json");
 		Console.WriteLine("  poppy --project path/to/game       Build from project directory");
 		Console.WriteLine("  poppy --project -c release         Build release configuration");
@@ -931,6 +1405,9 @@ internal enum CommandType {
 
 	/// <summary>Clean build artifacts.</summary>
 	Clean,
+
+	/// <summary>Initialize new project.</summary>
+	Init,
 
 	/// <summary>Pack project into .poppy archive.</summary>
 	Pack,
@@ -993,4 +1470,13 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Watch mode for automatic recompilation.</summary>
 	public bool Watch { get; set; }
+
+	/// <summary>Template name for init command.</summary>
+	public string? TemplateName { get; set; }
+
+	/// <summary>Project name for init command.</summary>
+	public string? InitProjectName { get; set; }
+
+	/// <summary>Platform/target for init command.</summary>
+	public string? InitPlatform { get; set; }
 }
