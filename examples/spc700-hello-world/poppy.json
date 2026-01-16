@@ -1,0 +1,22 @@
+{
+	"name": "spc700-hello-world",
+	"version": "1.0.0",
+	"description": "A simple SPC700 audio driver example for SNES",
+	"target": "spc700",
+	"cpu": "spc700",
+	"output": {
+		"format": "spc",
+		"filename": "hello.spc"
+	},
+	"files": [
+		"main.pasm"
+	],
+	"symbols": {
+		"DSPADDR": "$f2",
+		"DSPDATA": "$f3",
+		"CPUIO0": "$f4",
+		"CPUIO1": "$f5",
+		"CPUIO2": "$f6",
+		"CPUIO3": "$f7"
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"name": "turbografx-hello-world",
+	"version": "1.0.0",
+	"description": "A simple TurboGrafx-16/PC Engine hello world example",
+	"target": "turbografx16",
+	"cpu": "huc6280",
+	"output": {
+		"format": "pce",
+		"filename": "hello.pce"
+	},
+	"files": [
+		"main.pasm"
+	],
+	"symbols": {
+		"VDC_STATUS": "$0000",
+		"VDC_DATA_L": "$0002",
+		"VDC_DATA_H": "$0003",
+		"VCE_CONTROL": "$0400",
+		"VCE_ADDR_L": "$0402",
+		"VCE_ADDR_H": "$0403",
+		"VCE_DATA_L": "$0404",
+		"VCE_DATA_H": "$0405"
+	}
+}

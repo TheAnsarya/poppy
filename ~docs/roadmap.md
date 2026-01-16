@@ -3,21 +3,35 @@
 **Repository:** TheAnsarya/poppy
 **Purpose:** Multi-system assembly compiler for retro gaming platforms
 **Created:** December 25, 2025
-**Updated:** January 15, 2026
-**Current Version:** 1.0.0 (Released)
+**Updated:** January 16, 2026
+**Current Version:** 2.0.0-dev (v2.0 platforms complete)
 
 ---
 
 ## 🎉 Current Status
 
-**Poppy v1.0.0 is RELEASED!** (January 15, 2026)
+**Poppy v2.0 Platform Implementation COMPLETE!** (January 16, 2026)
 
-✅ **Complete NES Support** - Full 6502 with iNES 2.0
-✅ **Complete SNES Support** - Full 65816 with LoROM/HiROM
-✅ **Complete Game Boy Support** - Full SM83 with MBC/CGB
+✅ **11 Platforms Supported** - Full multi-system support
+✅ **1527+ Tests Passing** - Comprehensive test coverage
+✅ **All Example Projects** - Hello world for every platform
 ✅ **VS Code Extension** - Published to marketplace
-✅ **942 Tests Passing** - Comprehensive test coverage
-✅ **Full Documentation** - 5,800+ lines across 10 guides
+
+### Supported Platforms
+
+| Platform | CPU | ROM Format | Status |
+|----------|-----|------------|--------|
+| NES | 6502 | iNES 2.0 | ✅ Stable |
+| SNES | 65816 | LoROM/HiROM | ✅ Stable |
+| Game Boy | SM83 | DMG/CGB | ✅ Stable |
+| Genesis | M68000 | SEGA | ✅ Complete |
+| GBA | ARM7TDMI | GBA | ✅ Complete |
+| Master System | Z80 | SMS | ✅ Complete |
+| TurboGrafx-16 | HuC6280 | PCE | ✅ Complete |
+| Atari 2600 | 6507 | A26 | ✅ Complete |
+| Atari Lynx | 65SC02 | LNX | ✅ Complete |
+| WonderSwan | V30MZ | WS | ✅ Complete |
+| SPC700 | SPC700 | SPC | ✅ Complete |
 
 [📦 Download v1.0.0](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 
@@ -27,9 +41,17 @@
 
 Create a comprehensive assembly compiler supporting:
 
-- **NES** (6502) - Primary target
-- **SNES** (65816) - Primary target
-- **Game Boy** (Z80-like) - Secondary target
+- **NES** (6502) - ✅ Complete
+- **SNES** (65816) - ✅ Complete
+- **Game Boy** (SM83) - ✅ Complete
+- **Genesis** (M68000) - ✅ Complete
+- **GBA** (ARM7TDMI) - ✅ Complete
+- **Master System** (Z80) - ✅ Complete
+- **TurboGrafx-16** (HuC6280) - ✅ Complete
+- **Atari 2600** (6507) - ✅ Complete
+- **Atari Lynx** (65SC02) - ✅ Complete
+- **WonderSwan** (V30MZ) - ✅ Complete
+- **SPC700** (SNES Audio) - ✅ Complete
 
 Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3r.
 
@@ -39,8 +61,27 @@ Capable of compiling real-world projects like Dragon Warrior, FFMQ, DW4, and DQ3
 
 For detailed feature planning:
 
-- [v1.x Roadmap](../~plans/v1.x-roadmap.md) - v1.1.0 through v1.3.0 plans
-- [v2.0 Roadmap](../~plans/v2.0-roadmap.md) - Platform expansion and advanced features
+- [v2.0 Roadmap](../~plans/poppy-2.0-roadmap.md) - Platform expansion (COMPLETE)
+
+---
+
+## 📅 v2.0 Platform Expansion ✅ (January 2026)
+**Status:** Complete
+**Goal:** Expand to 11 retro gaming platforms
+
+#### Completed Platforms
+
+- ✅ Sega Genesis (M68000) - Full instruction set, SEGA header
+- ✅ Game Boy Advance (ARM7TDMI) - ARM + Thumb modes
+- ✅ Master System (Z80) - Full Z80 instruction set
+- ✅ TurboGrafx-16 (HuC6280) - 6502 variant with block transfer
+- ✅ Atari 2600 (6507) - 6502 subset for VCS
+- ✅ Atari Lynx (65SC02) - Enhanced 6502
+- ✅ WonderSwan (V30MZ) - 8086 compatible
+- ✅ SNES SPC700 - Audio coprocessor, .spc file output
+
+**GitHub Issues:** #84-#92, #107-#110, #116-#118 (All Closed)
+**Tests:** 1527+ passing
 
 ---
 
@@ -278,33 +319,27 @@ For detailed feature planning:
 
 ## 🚀 Future Roadmap
 
-### Planned: Project Build System (Phase 14)
-**Target:** v1.1.0 (Q1 2026)
-**Goal:** Implement project file support and build pipeline
+### In Progress: Documentation & Tooling (Phase 14)
+**Target:** v2.0.0 Release
+**Goal:** Complete documentation and developer tools
 
 #### Tasks
 
-- [ ] Define poppy.json project file format
-- [ ] Implement project file parser
-- [ ] Multi-file compilation support
-- [ ] Watch mode for auto-recompilation
-- [ ] Build configurations (debug/release)
+- ✅ Update v2.0 roadmap with platform timeline (#112)
+- [ ] Platform-specific migration guides (#111)
+- [ ] Create .poppy project templates (#113)
+- [ ] Implement poppy init command (#114)
 
-See [v1.x Roadmap](../~plans/v1.x-roadmap.md) for complete v1.1-1.3 plans.
-
----
-
-### Planned: Platform Expansion (Phase 15)
-**Target:** v2.0.0 (Q4 2026)
-**Goal:** Add additional retro platforms
+### Planned: Real-World Projects (Phase 15)
+**Target:** v2.1.0
+**Goal:** Support actual ROM hack projects
 
 #### Tasks
 
-- [ ] Game Boy Advance (ARM7TDMI)
-- [ ] Sega Genesis/Mega Drive (68000)
-- [ ] SNES SPC700 (Audio processor)
-
-See [v2.0 Roadmap](../~plans/v2.0-roadmap.md) for complete v2.0 plans.
+- [ ] DW1 Poppy project configuration (#51)
+- [ ] FFMQ Poppy project configuration (#52)
+- [ ] Performance optimization
+- [ ] Final testing with real projects
 
 ---
 
@@ -326,9 +361,10 @@ See [v2.0 Roadmap](../~plans/v2.0-roadmap.md) for complete v2.0 plans.
 | Game Boy Support | ✅ Complete | 100% |
 | SNES Support | ✅ Complete | 100% |
 | VS Code Extension | ✅ Complete | 100% |
-| **v1.0.0 Release** | ✅ **RELEASED** | **100%** |
+| v1.0.0 Release | ✅ Released | 100% |
+| **v2.0 Platforms** | ✅ **Complete** | **100%** |
 
-**v1.0.0:** 13/13 phases complete ✅
+**v2.0:** 14/14 phases complete ✅
 
 ---
 
@@ -339,65 +375,57 @@ See [v2.0 Roadmap](../~plans/v2.0-roadmap.md) for complete v2.0 plans.
 | NES | ✅ 6502 | ✅ iNES 2.0 | ✅ Complete | ✅ | **Stable** |
 | SNES | ✅ 65816 | ✅ LoROM/HiROM | ✅ Complete | ✅ | **Stable** |
 | Game Boy | ✅ SM83 | ✅ MBC/CGB | ✅ Complete | ✅ | **Stable** |
-| GBA | - | - | - | - | Planned v2.0 |
-| Genesis | - | - | - | - | Planned v2.0 |
+| Genesis | ✅ M68000 | ✅ SEGA | ✅ Example | ✅ | **Complete** |
+| GBA | ✅ ARM7TDMI | ✅ GBA | ✅ Example | ✅ | **Complete** |
+| SMS | ✅ Z80 | ✅ SMS | ✅ Example | ✅ | **Complete** |
+| TG16 | ✅ HuC6280 | ✅ PCE | ✅ Example | ✅ | **Complete** |
+| A2600 | ✅ 6507 | ✅ A26 | ✅ Example | ✅ | **Complete** |
+| Lynx | ✅ 65SC02 | ✅ LNX | ✅ Example | ✅ | **Complete** |
+| WonderSwan | ✅ V30MZ | ✅ WS | ✅ Example | ✅ | **Complete** |
+| SPC700 | ✅ SPC700 | ✅ SPC | ✅ Example | ✅ | **Complete** |
 
 ---
 
 ### Test Coverage
 
-- **Total Tests:** 942
+- **Total Tests:** 1527+
 - **Pass Rate:** 100%
 - **Coverage Areas:**
 	- Lexer (125+ tests)
 	- Parser (200+ tests)
-	- Code Generation (200+ tests)
+	- Code Generation (400+ tests)
 	- Semantics (150+ tests)
-	- Integration (100+ tests)
+	- Integration (200+ tests)
 	- Macros (60+ tests)
 	- Error Handling (30+ tests)
+	- Platform-specific (300+ tests)
 	- VS Code Extension (13 tests)
 
 ---
 
 ## 🎯 Next Steps
 
-1. **v1.1.0 Development** - Start implementing project system
-2. **Community Building** - Gather feedback on v1.0.0
-3. **Example Projects** - Create more complete game examples
-4. **v2.0 Planning** - Finalize GBA/Genesis architecture
+1. **Documentation** - Complete migration guides (#111)
+2. **Tooling** - Project templates and init command (#113, #114)
+3. **Real Projects** - DW1/FFMQ configurations (#51, #52)
+4. **v2.0 Release** - Package and release
 
 ---
 
 ## 📝 Related Documents
 
-- [Architecture Guide](architecture.md) - Compiler design details
-- [Syntax Specification](syntax-spec.md) - Language reference
-- [User Manual](user-manual.md) - Complete usage guide
-- [v1.x Roadmap](../~plans/v1.x-roadmap.md) - v1.1-1.3 plans
-- [v2.0 Roadmap](../~plans/v2.0-roadmap.md) - Future platform expansion
+- [Architecture Guide](../docs/architecture.md) - Compiler design details
+- [Syntax Specification](../docs/syntax-spec.md) - Language reference
+- [User Manual](../docs/user-manual.md) - Complete usage guide
+- [v2.0 Roadmap](../~plans/poppy-2.0-roadmap.md) - Platform expansion details
 
 ---
 
-**Last Updated:** January 15, 2026
-**Current Version:** v1.0.0 (Released)
-**Next Target:** v1.1.0 (Q1 2026)
+**Last Updated:** January 16, 2026
+**Current Version:** v2.0.0-dev (v1.0.0 released, v2.0 platforms complete)
+**Next Target:** v2.0.0 Release
 
-**GitHub Issues:** #46, #47 (Epics)
-
----
-
-### Phase 15: Release ⬜ (Not Started)
-**Status:** Not Started
-**Goal:** Version 1.0 release
-
-#### Tasks
-
-- ⬜ Performance optimization
-- ⬜ Final testing with real projects
-- ⬜ Package for distribution (NuGet, standalone)
-- ⬜ Release notes and changelog
-- ⬜ Version 1.0.0 tag
+**GitHub Issues:** #84 (v2.0 Epic), #111-#114
 
 ---
 

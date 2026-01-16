@@ -1,0 +1,22 @@
+{
+	"name": "mastersystem-hello-world",
+	"version": "1.0.0",
+	"description": "A simple Sega Master System hello world example",
+	"target": "mastersystem",
+	"cpu": "z80",
+	"output": {
+		"format": "sms",
+		"filename": "hello.sms"
+	},
+	"files": [
+		"main.pasm"
+	],
+	"symbols": {
+		"VDP_DATA": "$be",
+		"VDP_CTRL": "$bf",
+		"PSG": "$7f",
+		"IO_A": "$dc",
+		"IO_B": "$dd",
+		"RAM_START": "$c000"
+	}
+}
