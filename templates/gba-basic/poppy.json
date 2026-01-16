@@ -1,0 +1,22 @@
+{
+	"name": "gba-basic",
+	"version": "1.0.0",
+	"description": "Minimal Game Boy Advance ROM skeleton",
+	"target": "gba",
+	"cpu": "arm7tdmi",
+	"output": {
+		"format": "gba",
+		"filename": "game.gba"
+	},
+	"header": {
+		"title": "MYGAME",
+		"gameCode": "AXXX",
+		"makerCode": "01",
+		"unitCode": 0,
+		"deviceType": 0,
+		"softwareVersion": 0
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

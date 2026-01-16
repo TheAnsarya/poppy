@@ -1,0 +1,22 @@
+{
+	"name": "lynx-basic",
+	"version": "1.0.0",
+	"description": "Minimal Atari Lynx ROM skeleton",
+	"target": "lynx",
+	"cpu": "65sc02",
+	"output": {
+		"format": "lnx",
+		"filename": "game.lnx"
+	},
+	"header": {
+		"magic": "LYNX",
+		"bankSize0": 2048,
+		"bankSize1": 0,
+		"version": 1,
+		"cartName": "MYGAME",
+		"manufacturer": "HOMEBREW"
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

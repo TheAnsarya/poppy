@@ -1,0 +1,14 @@
+{
+	"name": "spc700-basic",
+	"version": "1.0.0",
+	"description": "Minimal SNES SPC700 sound program skeleton",
+	"target": "snes",
+	"cpu": "spc700",
+	"output": {
+		"format": "spc",
+		"filename": "sound.spc"
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

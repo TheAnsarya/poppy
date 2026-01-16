@@ -1,0 +1,14 @@
+{
+	"name": "tg16-basic",
+	"version": "1.0.0",
+	"description": "Minimal TurboGrafx-16/PC Engine ROM skeleton",
+	"target": "tg16",
+	"cpu": "huc6280",
+	"output": {
+		"format": "pce",
+		"filename": "game.pce"
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

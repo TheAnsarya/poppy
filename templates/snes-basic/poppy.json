@@ -1,0 +1,24 @@
+{
+	"name": "snes-basic",
+	"version": "1.0.0",
+	"description": "Minimal SNES ROM skeleton",
+	"target": "snes",
+	"cpu": "65816",
+	"output": {
+		"format": "sfc",
+		"filename": "game.sfc"
+	},
+	"header": {
+		"title": "MY SNES GAME",
+		"mapping": "lorom",
+		"romSpeed": "slow",
+		"chipset": "rom",
+		"romSize": 1,
+		"ramSize": 0,
+		"region": "ntsc",
+		"version": 0
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

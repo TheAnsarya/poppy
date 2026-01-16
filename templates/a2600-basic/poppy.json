@@ -1,0 +1,14 @@
+{
+	"name": "a2600-basic",
+	"version": "1.0.0",
+	"description": "Minimal Atari 2600 ROM skeleton",
+	"target": "a2600",
+	"cpu": "6507",
+	"output": {
+		"format": "a26",
+		"filename": "game.a26"
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

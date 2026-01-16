@@ -1,0 +1,20 @@
+{
+	"name": "sms-basic",
+	"version": "1.0.0",
+	"description": "Minimal Sega Master System ROM skeleton",
+	"target": "sms",
+	"cpu": "z80",
+	"output": {
+		"format": "sms",
+		"filename": "game.sms"
+	},
+	"header": {
+		"tmr": "TMR SEGA",
+		"productCode": 0,
+		"version": 0,
+		"regionAndSize": "4"
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

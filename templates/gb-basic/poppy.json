@@ -1,0 +1,22 @@
+{
+	"name": "gb-basic",
+	"version": "1.0.0",
+	"description": "Minimal Game Boy ROM skeleton",
+	"target": "gb",
+	"cpu": "sm83",
+	"output": {
+		"format": "gb",
+		"filename": "game.gb"
+	},
+	"header": {
+		"title": "MYGAME",
+		"cartridgeType": 0,
+		"romSize": 0,
+		"ramSize": 0,
+		"cgbFlag": 128,
+		"sgbFlag": 0
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

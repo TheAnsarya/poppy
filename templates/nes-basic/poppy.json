@@ -1,0 +1,27 @@
+{
+	"name": "nes-basic",
+	"version": "1.0.0",
+	"description": "Minimal NES ROM skeleton",
+	"target": "nes",
+	"cpu": "6502",
+	"output": {
+		"format": "ines",
+		"filename": "game.nes"
+	},
+	"header": {
+		"mapper": 0,
+		"prgRomSize": 1,
+		"chrRomSize": 1,
+		"mirroring": "horizontal",
+		"battery": false
+	},
+	"sources": [
+		"src/main.pasm"
+	],
+	"include": [
+		"src/constants.pasm"
+	],
+	"symbols": {
+		"outputPath": "build/debug.sym"
+	}
+}

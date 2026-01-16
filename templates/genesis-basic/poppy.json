@@ -1,0 +1,29 @@
+{
+	"name": "genesis-basic",
+	"version": "1.0.0",
+	"description": "Minimal Sega Genesis/Mega Drive ROM skeleton",
+	"target": "genesis",
+	"cpu": "m68000",
+	"output": {
+		"format": "genesis",
+		"filename": "game.bin"
+	},
+	"header": {
+		"consoleName": "SEGA MEGA DRIVE",
+		"copyrightHolder": "YOURNAME",
+		"domesticName": "MY GAME",
+		"overseasName": "MY GAME",
+		"productType": "GM",
+		"productCode": "00000000",
+		"productVersion": "00",
+		"ioSupport": "J",
+		"romStart": "0x000000",
+		"romEnd": "0x0fffff",
+		"ramStart": "0xff0000",
+		"ramEnd": "0xffffff",
+		"region": "JUE"
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}

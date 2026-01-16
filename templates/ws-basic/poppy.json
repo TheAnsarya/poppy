@@ -1,0 +1,23 @@
+{
+	"name": "ws-basic",
+	"version": "1.0.0",
+	"description": "Minimal WonderSwan ROM skeleton",
+	"target": "ws",
+	"cpu": "v30mz",
+	"output": {
+		"format": "ws",
+		"filename": "game.ws"
+	},
+	"header": {
+		"publisherId": 255,
+		"color": false,
+		"gameId": 0,
+		"version": 1,
+		"romSize": 1,
+		"saveType": 0,
+		"flags": 0
+	},
+	"sources": [
+		"src/main.pasm"
+	]
+}
