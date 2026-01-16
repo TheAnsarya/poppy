@@ -9,13 +9,14 @@ Professional language support for Poppy Assembly (.pasm) files - a multi-system 
 | **NES** | MOS 6502 | ✅ Full support |
 | **SNES** | WDC 65816 | ✅ Full support |
 | **Game Boy** | Sharp SM83 | ✅ Full support |
+| **Sega Genesis** | Motorola 68000 | ✅ Full support |
+| **Game Boy Advance** | ARM7TDMI | ✅ Full support |
+| **Master System** | Zilog Z80 | ✅ Full support |
+| **TurboGrafx-16** | HuC6280 | ✅ Full support |
 | **Atari 2600** | MOS 6507 | ✅ Full support |
-| **Atari Lynx** | WDC 65C02 | ✅ Full support |
-| **Genesis** | Motorola 68000 | 🚧 In progress |
-| **GBA** | ARM7TDMI | 🚧 In progress |
-| **WonderSwan** | NEC V30MZ | 🚧 In progress |
-| **Master System** | Zilog Z80 | 🚧 Planned |
-| **TurboGrafx-16** | HuC6280 | 🚧 Planned |
+| **Atari Lynx** | WDC 65SC02 | ✅ Full support |
+| **WonderSwan** | NEC V30MZ | ✅ Full support |
+| **SNES Audio** | Sony SPC700 | ✅ Full support |
 
 ## 🔗 Links
 
@@ -28,22 +29,27 @@ Professional language support for Poppy Assembly (.pasm) files - a multi-system 
 ## ✨ Features
 
 ### 🎨 **Syntax Highlighting**
-Comprehensive TextMate grammar with full support for:
+Comprehensive TextMate grammar with full support for 11 CPU architectures:
 
-- **6502 Instructions** - All NES opcodes (ADC, LDA, STA, etc.)
-- **65816 Instructions** - SNES-specific opcodes (REP, SEP, MVN, MVP, etc.)
+- **6502/65816 Instructions** - NES/SNES opcodes (ADC, LDA, STA, REP, SEP, etc.)
 - **SM83 Instructions** - Game Boy opcodes (LD, PUSH, POP, CB-prefixed, etc.)
-- **Directives** - `.org`, `.db`, `.word`, `.macro`, `.ines`, `.snes`, `.gb`, etc.
+- **M68000 Instructions** - Genesis opcodes (MOVE, LEA, DBRA, etc.)
+- **Z80 Instructions** - Master System opcodes (LD, DJNZ, LDIR, etc.)
+- **ARM7TDMI Instructions** - GBA opcodes (LDR, STR, B, BL, etc.)
+- **HuC6280 Instructions** - TurboGrafx-16 (6502 + TAM, TMA, CSH, etc.)
+- **V30MZ Instructions** - WonderSwan (MOV, PUSH, POP, REP, etc.)
+- **SPC700 Instructions** - SNES audio (MOV, MOVW, TCALL, etc.)
+- **Directives** - `.org`, `.db`, `.target`, `.cpu`, `.ines`, `.snes`, `.gb`, `.genesis`, etc.
 - **Labels** - Global, local (@), and anonymous (+/-) labels
-- **Macro System** - Definitions (`@macro`), invocations (`@name`), and parameters
+- **Macro System** - Definitions, invocations, and parameters
 - **Comments** - Single-line (`;`, `//`) and multi-line (`/* */`)
 - **Literals** - Hex (`$ff`), binary (`%10101010`), decimal, strings
-- **Addressing Modes** - Immediate (`#`), indirect (`[]`), indexed (`,x`, `,y`)
+- **Registers** - Architecture-specific register highlighting
 
 ### 💡 **IntelliSense Completion**
 Smart, context-aware code completion:
 
-- **Architecture-Specific Opcodes** - Automatically detects target (NES/SNES/GB) from directives
+- **Architecture-Specific Opcodes** - Automatically detects target from `.target` directive
 - **Directive Completion** - All assembler directives with documentation
 - **Register Completion** - Valid registers for each architecture
 - **Label Completion** - Shows all defined labels in current file
@@ -78,9 +84,9 @@ Professional column-based alignment:
 - Inline error messages with context
 
 ### 📝 **Code Snippets**
-40+ snippets for common patterns:
+50+ snippets for common patterns:
 
-- Project templates (NES, SNES, GB headers)
+- Project templates for all 11 platforms (NES, SNES, GB, Genesis, GBA, SMS, TG16, A2600, Lynx, WonderSwan, SPC700)
 - Common macros (wait_vblank, ppu_addr, dma_copy)
 - Control flow patterns (if/while/for/switch)
 - Data structures (tables, strings, tiles, palettes)
@@ -90,7 +96,7 @@ Professional column-based alignment:
 
 - 13 integration and unit tests
 - Mocha + @vscode/test-electron framework
-- 1039+ compiler tests (all passing)
+- 1527+ compiler tests (all passing)
 
 ## 🚀 Installation
 

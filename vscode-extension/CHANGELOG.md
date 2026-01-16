@@ -5,6 +5,44 @@ All notable changes to the Poppy Assembly extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-01-16
+
+### Added
+- 🎮 **11 Platform Support** - Full syntax highlighting for all Poppy v2.0 platforms:
+  - **M68000** (Sega Genesis/Mega Drive) - Full instruction set
+  - **Z80** (Master System/Game Gear) - Complete opcode support
+  - **HuC6280** (TurboGrafx-16/PC Engine) - 6502 + extensions
+  - **ARM7TDMI** (Game Boy Advance) - ARM and Thumb modes
+  - **6507** (Atari 2600) - 6502 variant support
+  - **65SC02** (Atari Lynx) - 65C02 instructions
+  - **V30MZ** (WonderSwan) - x86-like instruction set
+  - **SPC700** (SNES Audio) - Complete DSP opcodes
+- 📝 **Platform-Specific Snippets** - Project templates for all 11 platforms:
+  - `genesis-project` - Sega Genesis with vector table
+  - `gba-project` - GBA with ROM header
+  - `sms-project` - Master System with SEGA header
+  - `tg16-project` - TurboGrafx-16 with MPR setup
+  - `a2600-project` - Atari 2600 with proper timing loop
+  - `lynx-project` - Atari Lynx template
+  - `ws-project` - WonderSwan template
+  - `spc700-project` - SNES audio template
+- 🔤 **Register Highlighting** - CPU registers for all architectures:
+  - M68000: d0-d7, a0-a7, sp, sr, ccr
+  - Z80: a, b, c, d, e, h, l, ix, iy, af, bc, de, hl
+  - ARM: r0-r15, sp, lr, pc, cpsr, spsr
+  - V30MZ: ax, bx, cx, dx, si, di, bp, sp, cs, ds, es, ss
+  - SPC700: a, x, y, sp, ya, psw
+- 🏷️ **Platform Directives** - Highlighting for:
+  - `.target`, `.cpu`, `.platform`, `.arch`
+  - `.genesis_*`, `.gba_*`, `.sms_*`, `.tg16_*`
+  - `.a2600_*`, `.lynx_*`, `.ws_*`
+  - `.arm`, `.thumb` mode switching
+
+### Changed
+- 📦 **Version Bump to 2.0.0** - Major update for multi-platform support
+- 🎯 **Target Settings** - Extended to support all 11 platforms
+- 📝 **Updated Description** - Now lists all supported platforms
+
 ## [1.0.2] - 2026-01-16
 
 ### Fixed

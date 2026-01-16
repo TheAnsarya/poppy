@@ -1,8 +1,8 @@
 {
 	"name": "poppy-assembly",
 	"displayName": "🌸 Poppy Assembly",
-	"description": "Complete language support for Poppy Assembly (.pasm) - Multi-system retro game development for NES, SNES, Game Boy, Atari 2600, Genesis, GBA, Lynx, WonderSwan and more. Features IntelliSense, formatting, diagnostics, and build integration.",
-	"version": "1.0.2",
+	"description": "Complete language support for Poppy Assembly (.pasm) - Multi-system retro game development for NES, SNES, Game Boy, Genesis, GBA, Master System, TurboGrafx-16, Atari 2600, Lynx, WonderSwan, and SPC700. Features IntelliSense, formatting, diagnostics, and build integration.",
+	"version": "2.0.0",
 	"publisher": "TheAnsarya",
 	"icon": "images/icon.png",
 	"author": {
@@ -37,26 +37,33 @@
 		"65816",
 		"sm83",
 		"68000",
+		"m68k",
 		"z80",
 		"arm",
+		"arm7tdmi",
+		"huc6280",
 		"v30mz",
+		"spc700",
+		"6507",
+		"65sc02",
 		"nes",
 		"snes",
 		"gameboy",
 		"game boy",
 		"gba",
 		"genesis",
+		"mega drive",
+		"master system",
+		"turbografx",
+		"pc engine",
 		"atari",
+		"lynx",
 		"wonderswan",
 		"retro",
 		"retro gaming",
 		"pasm",
 		"poppy"
 	],
-	"galleryBanner": {
-		"color": "#1e1e1e",
-		"theme": "dark"
-	},
 	"activationEvents": [],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -121,9 +128,17 @@
 						"enum": [
 							"nes",
 							"snes",
-							"gb"
+							"gb",
+							"genesis",
+							"gba",
+							"sms",
+							"tg16",
+							"a2600",
+							"lynx",
+							"ws",
+							"spc700"
 						],
-						"description": "Target architecture"
+						"description": "Target platform"
 					},
 					"output": {
 						"type": "string",
@@ -164,9 +179,30 @@
 					"enum": [
 						"nes",
 						"snes",
-						"gb"
+						"gb",
+						"genesis",
+						"gba",
+						"sms",
+						"tg16",
+						"a2600",
+						"lynx",
+						"ws",
+						"spc700"
 					],
-					"description": "Default target architecture"
+					"enumDescriptions": [
+						"Nintendo Entertainment System (6502)",
+						"Super Nintendo (65816)",
+						"Game Boy / Game Boy Color (SM83)",
+						"Sega Genesis / Mega Drive (M68000)",
+						"Game Boy Advance (ARM7TDMI)",
+						"Sega Master System / Game Gear (Z80)",
+						"TurboGrafx-16 / PC Engine (HuC6280)",
+						"Atari 2600 (6507)",
+						"Atari Lynx (65SC02)",
+						"WonderSwan / WonderSwan Color (V30MZ)",
+						"SNES Audio Processor (SPC700)"
+					],
+					"description": "Default target platform"
 				},
 				"poppy.diagnostics.enabled": {
 					"type": "boolean",

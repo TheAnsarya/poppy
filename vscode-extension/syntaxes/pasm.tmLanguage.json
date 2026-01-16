@@ -93,20 +93,52 @@
 					"match": "(?i)\\.(segment|bank|section|endsection)\\b"
 				},
 				{
+					"name": "keyword.control.directive.target.pasm",
+					"match": "(?i)\\.(target|cpu|platform|arch)\\b"
+				},
+				{
 					"name": "keyword.control.directive.output.pasm",
-					"match": "(?i)\\.(ines|snes|gb|gameboy|header)\\b"
+					"match": "(?i)\\.(ines|ines2|ines1|snes|gb|gameboy|genesis|gba|sms|tg16|pce|a2600|lynx|ws|wonderswan|spc700|header)\\b"
 				},
 				{
 					"name": "keyword.control.directive.ines.pasm",
-					"match": "(?i)\\.(ines_prg_banks|ines_chr_banks|ines_mirroring|ines_battery|ines_trainer|ines_four_screen|ines_mapper|ines_submapper|ines_timing|ines_prg_ram|ines_chr_ram|ines_battery_prg_ram|ines_battery_chr_ram|ines_misc_roms|ines_default_expansion)\\b"
+					"match": "(?i)\\.(ines_prg|ines_chr|ines_prg_banks|ines_chr_banks|ines_mirroring|ines_battery|ines_trainer|ines_four_screen|ines_mapper|ines_submapper|ines_timing|ines_prg_ram|ines_chr_ram|ines_battery_prg_ram|ines_battery_chr_ram|ines_misc_roms|ines_default_expansion|ines_region)\\b"
 				},
 				{
 					"name": "keyword.control.directive.snes.pasm",
-					"match": "(?i)\\.(snes_title|snes_rom_layout|snes_cartridge_type|snes_rom_size|snes_ram_size|snes_region|snes_developer_id|snes_version)\\b"
+					"match": "(?i)\\.(snes_title|snes_rom_layout|snes_cartridge_type|snes_rom_size|snes_ram_size|snes_region|snes_developer_id|snes_version|lorom|hirom|exhirom|exlorom)\\b"
 				},
 				{
 					"name": "keyword.control.directive.gb.pasm",
 					"match": "(?i)\\.(gb_title|gb_cgb|gb_sgb|gb_cartridge_type|gb_rom_size|gb_ram_size|gb_region|gb_version)\\b"
+				},
+				{
+					"name": "keyword.control.directive.genesis.pasm",
+					"match": "(?i)\\.(genesis_title|genesis_copyright|genesis_region|genesis_io|genesis_rom_start|genesis_rom_end|genesis_ram|sega)\\b"
+				},
+				{
+					"name": "keyword.control.directive.gba.pasm",
+					"match": "(?i)\\.(gba_title|gba_code|gba_maker|gba_version|arm|thumb)\\b"
+				},
+				{
+					"name": "keyword.control.directive.sms.pasm",
+					"match": "(?i)\\.(sms_region|sms_version|sms_checksum)\\b"
+				},
+				{
+					"name": "keyword.control.directive.tg16.pasm",
+					"match": "(?i)\\.(tg16_region|pce_region)\\b"
+				},
+				{
+					"name": "keyword.control.directive.a2600.pasm",
+					"match": "(?i)\\.(a2600_format|tia)\\b"
+				},
+				{
+					"name": "keyword.control.directive.lynx.pasm",
+					"match": "(?i)\\.(lynx_title|lynx_manufacturer|lynx_rotation)\\b"
+				},
+				{
+					"name": "keyword.control.directive.ws.pasm",
+					"match": "(?i)\\.(ws_publisher|ws_color|ws_title|ws_orientation|ws_rom_size|ws_save_size)\\b"
 				},
 				{
 					"name": "keyword.control.directive.mode.pasm",
@@ -253,6 +285,171 @@
 					"comment": "Game Boy (SM83) control",
 					"name": "keyword.mnemonic.gameboy.control.pasm",
 					"match": "(?i)\\b(halt|stop|di|ei|nop)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) data movement",
+					"name": "keyword.mnemonic.m68k.move.pasm",
+					"match": "(?i)\\b(move|movea|movem|moveq|movep|lea|pea|exg|link|unlk)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) arithmetic",
+					"name": "keyword.mnemonic.m68k.arithmetic.pasm",
+					"match": "(?i)\\b(add|adda|addi|addq|addx|sub|suba|subi|subq|subx|mulu|muls|divu|divs|neg|negx|clr|ext|extb)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) logic",
+					"name": "keyword.mnemonic.m68k.logic.pasm",
+					"match": "(?i)\\b(and|andi|or|ori|eor|eori|not|tst|cmp|cmpa|cmpi|cmpm)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) shift/rotate",
+					"name": "keyword.mnemonic.m68k.shift.pasm",
+					"match": "(?i)\\b(asl|asr|lsl|lsr|rol|ror|roxl|roxr|swap)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) bit operations",
+					"name": "keyword.mnemonic.m68k.bit.pasm",
+					"match": "(?i)\\b(bchg|bclr|bset|btst)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) branch/jump",
+					"name": "keyword.mnemonic.m68k.branch.pasm",
+					"match": "(?i)\\b(bra|bsr|bcc|bcs|beq|bne|bge|bgt|ble|blt|bhi|bls|bmi|bpl|bvc|bvs|jmp|jsr|rts|rte|rtr|dbcc|dbcs|dbeq|dbne|dbge|dbgt|dble|dblt|dbhi|dbls|dbmi|dbpl|dbvc|dbvs|dbra|dbf|dbt)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) set/trap/misc",
+					"name": "keyword.mnemonic.m68k.misc.pasm",
+					"match": "(?i)\\b(scc|scs|seq|sne|sge|sgt|sle|slt|shi|sls|smi|spl|svc|svs|sf|st|trap|trapv|chk|tas|nop|reset|stop|illegal)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) load",
+					"name": "keyword.mnemonic.z80.load.pasm",
+					"match": "(?i)\\b(ld|ldi|ldir|ldd|lddr|ex|exx)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) arithmetic",
+					"name": "keyword.mnemonic.z80.arithmetic.pasm",
+					"match": "(?i)\\b(add|adc|sub|sbc|inc|dec|cp|cpi|cpir|cpd|cpdr|daa|cpl|neg)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) logic",
+					"name": "keyword.mnemonic.z80.logic.pasm",
+					"match": "(?i)\\b(and|or|xor|ccf|scf)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) rotate/shift",
+					"name": "keyword.mnemonic.z80.rotate.pasm",
+					"match": "(?i)\\b(rlca|rla|rrca|rra|rlc|rl|rrc|rr|sla|sra|srl|sll|rld|rrd)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) bit",
+					"name": "keyword.mnemonic.z80.bit.pasm",
+					"match": "(?i)\\b(bit|set|res)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) jump/call",
+					"name": "keyword.mnemonic.z80.jump.pasm",
+					"match": "(?i)\\b(jp|jr|call|ret|reti|retn|rst|djnz)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) I/O and misc",
+					"name": "keyword.mnemonic.z80.io.pasm",
+					"match": "(?i)\\b(in|ini|inir|ind|indr|out|outi|otir|outd|otdr|push|pop|im|di|ei|halt|nop)\\b"
+				},
+				{
+					"comment": "HuC6280 (TG16/PCE) - 6502 plus extensions",
+					"name": "keyword.mnemonic.huc6280.ext.pasm",
+					"match": "(?i)\\b(cla|clx|cly|csh|csl|sax|say|set|st0|st1|st2|tam|tma|tst|sxy|bsr|tii|tdd|tin|tia|tai)\\b"
+				},
+				{
+					"comment": "ARM7TDMI (GBA) data processing",
+					"name": "keyword.mnemonic.arm.data.pasm",
+					"match": "(?i)\\b(mov|mvn|add|adc|sub|sbc|rsb|rsc|mul|mla|umull|umlal|smull|smlal|and|orr|eor|bic|tst|teq|cmp|cmn)\\b"
+				},
+				{
+					"comment": "ARM7TDMI (GBA) load/store",
+					"name": "keyword.mnemonic.arm.loadstore.pasm",
+					"match": "(?i)\\b(ldr|ldrb|ldrh|ldrsb|ldrsh|str|strb|strh|ldm|stm|push|pop|swp|swpb)\\b"
+				},
+				{
+					"comment": "ARM7TDMI (GBA) branch",
+					"name": "keyword.mnemonic.arm.branch.pasm",
+					"match": "(?i)\\b(b|bl|bx|blx|beq|bne|bcs|bcc|bmi|bpl|bvs|bvc|bhi|bls|bge|blt|bgt|ble|bal)\\b"
+				},
+				{
+					"comment": "ARM7TDMI (GBA) misc",
+					"name": "keyword.mnemonic.arm.misc.pasm",
+					"match": "(?i)\\b(mrs|msr|swi|nop|cdp|ldc|stc|mcr|mrc)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) load/store",
+					"name": "keyword.mnemonic.spc700.load.pasm",
+					"match": "(?i)\\b(mov|movw|push|pop)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) arithmetic",
+					"name": "keyword.mnemonic.spc700.arithmetic.pasm",
+					"match": "(?i)\\b(adc|addw|sbc|subw|cmp|cmpw|inc|incw|dec|decw|mul|div|daa|das)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) logic",
+					"name": "keyword.mnemonic.spc700.logic.pasm",
+					"match": "(?i)\\b(and|and1|or|or1|eor|eor1|not1|mov1|clr1|set1|tclr1|tset1)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) shift",
+					"name": "keyword.mnemonic.spc700.shift.pasm",
+					"match": "(?i)\\b(asl|lsr|rol|ror|xcn)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) branch",
+					"name": "keyword.mnemonic.spc700.branch.pasm",
+					"match": "(?i)\\b(bra|beq|bne|bcs|bcc|bvs|bvc|bmi|bpl|bbs|bbc|cbne|dbnz|jmp|call|pcall|tcall|brk|ret|reti)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) misc",
+					"name": "keyword.mnemonic.spc700.misc.pasm",
+					"match": "(?i)\\b(nop|sleep|stop|clrc|setc|notc|clrv|clrp|setp|ei|di)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) - x86-like",
+					"name": "keyword.mnemonic.v30mz.data.pasm",
+					"match": "(?i)\\b(mov|movs|movsb|movsw|lods|lodsb|lodsw|stos|stosb|stosw|xchg|xlat|lea|lds|les|lahf|sahf|pushf|popf|push|pop|pusha|popa)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) arithmetic",
+					"name": "keyword.mnemonic.v30mz.arithmetic.pasm",
+					"match": "(?i)\\b(add|adc|sub|sbb|inc|dec|neg|cmp|mul|imul|div|idiv|cbw|cwd|aaa|aas|aam|aad|daa|das)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) logic",
+					"name": "keyword.mnemonic.v30mz.logic.pasm",
+					"match": "(?i)\\b(and|or|xor|not|test)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) shift",
+					"name": "keyword.mnemonic.v30mz.shift.pasm",
+					"match": "(?i)\\b(shl|sal|shr|sar|rol|ror|rcl|rcr)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) string/rep",
+					"name": "keyword.mnemonic.v30mz.string.pasm",
+					"match": "(?i)\\b(rep|repe|repz|repne|repnz|cmps|cmpsb|cmpsw|scas|scasb|scasw)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) control",
+					"name": "keyword.mnemonic.v30mz.control.pasm",
+					"match": "(?i)\\b(jmp|call|ret|retf|iret|int|into|jz|jnz|je|jne|jc|jnc|jo|jno|js|jns|jp|jnp|jpe|jpo|ja|jae|jb|jbe|jg|jge|jl|jle|loop|loope|loopne|loopz|loopnz|jcxz)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) flags/misc",
+					"name": "keyword.mnemonic.v30mz.flags.pasm",
+					"match": "(?i)\\b(clc|stc|cmc|cld|std|cli|sti|hlt|wait|lock|nop|in|out|insb|insw|outsb|outsw)\\b"
+				},
+				{
+					"comment": "6507/65SC02 (Atari 2600/Lynx) - same as 6502 plus extras",
+					"name": "keyword.mnemonic.65c02.ext.pasm",
+					"match": "(?i)\\b(bra|phx|phy|plx|ply|stz|trb|tsb|bbr0|bbr1|bbr2|bbr3|bbr4|bbr5|bbr6|bbr7|bbs0|bbs1|bbs2|bbs3|bbs4|bbs5|bbs6|bbs7|rmb0|rmb1|rmb2|rmb3|rmb4|rmb5|rmb6|rmb7|smb0|smb1|smb2|smb3|smb4|smb5|smb6|smb7|wai|stp)\\b"
 				}
 			]
 		},
@@ -308,9 +505,44 @@
 					"match": "(?i)\\b(a|x|y|s|sp|dp|db|pbr|dbr)\\b"
 				},
 				{
-					"comment": "Game Boy registers",
+					"comment": "Game Boy (SM83) registers",
 					"name": "variable.language.register.gameboy.pasm",
 					"match": "(?i)\\b(af|bc|de|hl|sp|pc|b|c|d|e|h|l|\\[hl\\]|\\[bc\\]|\\[de\\]|\\[c\\])\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) data registers",
+					"name": "variable.language.register.m68k.data.pasm",
+					"match": "(?i)\\b(d0|d1|d2|d3|d4|d5|d6|d7)\\b"
+				},
+				{
+					"comment": "M68000 (Genesis) address registers",
+					"name": "variable.language.register.m68k.addr.pasm",
+					"match": "(?i)\\b(a0|a1|a2|a3|a4|a5|a6|a7|sp|usp|ssp|fp|pc|sr|ccr)\\b"
+				},
+				{
+					"comment": "Z80 (SMS/GG) registers",
+					"name": "variable.language.register.z80.pasm",
+					"match": "(?i)\\b(a|b|c|d|e|h|l|f|i|r|af|bc|de|hl|ix|iy|sp|pc|af'|bc'|de'|hl'|ixh|ixl|iyh|iyl)\\b"
+				},
+				{
+					"comment": "HuC6280 (TG16) registers - same as 6502",
+					"name": "variable.language.register.huc6280.pasm",
+					"match": "(?i)\\b(a|x|y|s|sp|p)\\b"
+				},
+				{
+					"comment": "ARM7TDMI (GBA) registers",
+					"name": "variable.language.register.arm.pasm",
+					"match": "(?i)\\b(r0|r1|r2|r3|r4|r5|r6|r7|r8|r9|r10|r11|r12|r13|r14|r15|sp|lr|pc|cpsr|spsr)\\b"
+				},
+				{
+					"comment": "SPC700 (SNES Audio) registers",
+					"name": "variable.language.register.spc700.pasm",
+					"match": "(?i)\\b(a|x|y|sp|ya|psw)\\b"
+				},
+				{
+					"comment": "V30MZ (WonderSwan) registers",
+					"name": "variable.language.register.v30mz.pasm",
+					"match": "(?i)\\b(ax|bx|cx|dx|si|di|bp|sp|cs|ds|es|ss|ip|al|ah|bl|bh|cl|ch|dl|dh)\\b"
 				}
 			]
 		}
