@@ -1415,11 +1415,36 @@ Error: Cannot evaluate operand for instruction 'lda'
 
 ## 🔗 Resources
 
+### Poppy Documentation
+
 - [GitHub Repository](https://github.com/TheAnsarya/poppy)
+- [Architecture Guide](architecture.md)
+- [Syntax Specification](syntax-spec.md)
+- [Game Boy Guide](gameboy-guide.md)
+- [SNES Guide](snes-guide.md)
+
+### Migration Guides
+
+Coming from another assembler? Check our migration guides:
+
+- [Migration from ASAR](migration-from-asar.md) - SNES (65816)
+- [Migration from ca65](migration-from-ca65.md) - NES/SNES (6502/65816)
+- [Migration from RGBDS](migration-from-rgbds.md) - Game Boy (SM83)
+- [Migration from DASM](migration-from-dasm.md) - Atari 2600 (6507)
+- [Migration from WLA-DX](migration-from-wla-dx.md) - SMS/Genesis (Z80/M68000)
+- [Migration from devkitARM](migration-from-devkitarm.md) - GBA (ARM7TDMI)
+- [Migration from ASM68K](migration-from-asm68k.md) - Genesis (M68000)
+
+### External Resources
+
 - [6502 Reference](http://www.obelisk.me.uk/6502/)
 - [NES Development Wiki](https://www.nesdev.org/wiki/)
+- [GBATEK](https://problemkaputt.de/gbatek.htm) - GBA Reference
+- [SMS Power!](https://www.smspower.org/) - Master System
+- [Sega Retro](https://segaretro.org/) - Genesis
 
 ---
 
 **Happy coding! 🌸**
+
 
