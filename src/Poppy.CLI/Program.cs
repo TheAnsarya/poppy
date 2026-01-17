@@ -1129,6 +1129,39 @@ main_loop:
 			}
 		}
 
+		// Write CDL (Code/Data Log) file if requested
+		if (options.CdlFile is not null) {
+			try {
+				var cdlFormat = options.CdlFormat.ToLowerInvariant() switch {
+					"fceux" or "fce" => CdlGenerator.CdlFormat.FCEUX,
+					_ => CdlGenerator.CdlFormat.Mesen
+				};
+				var cdlGenerator = new CdlGenerator(analyzer.SymbolTable, analyzer.Target, generator.Segments);
+				cdlGenerator.Export(options.CdlFile, code.Length, cdlFormat);
+				if (options.Verbose) {
+					Console.WriteLine($"  CDL: {options.CdlFile} ({options.CdlFormat} format)");
+				}
+			} catch (Exception ex) {
+				Console.Error.WriteLine($"Error writing CDL file: {ex.Message}");
+				return 1;
+			}
+		}
+
+		// Write DIZ (DiztinGUIsh) project file if requested
+		if (options.DizFile is not null) {
+			try {
+				var projectName = Path.GetFileNameWithoutExtension(options.DizFile);
+				var dizGenerator = new DizGenerator(analyzer.SymbolTable, analyzer.Target, generator.Segments, projectName);
+				dizGenerator.Export(options.DizFile, code);
+				if (options.Verbose) {
+					Console.WriteLine($"  DIZ: {options.DizFile}");
+				}
+			} catch (Exception ex) {
+				Console.Error.WriteLine($"Error writing DIZ file: {ex.Message}");
+				return 1;
+			}
+		}
+
 		Console.WriteLine($"Assembled {inputFile} -> {outputFile} ({code.Length} bytes)");
 		return 0;
 	}
@@ -1241,6 +1274,27 @@ main_loop:
 
 					break;
 
+				case "--cdl":
+					if (i + 1 < args.Length) {
+						options.CdlFile = args[++i];
+					}
+
+					break;
+
+				case "--cdl-format":
+					if (i + 1 < args.Length) {
+						options.CdlFormat = args[++i].ToLowerInvariant();
+					}
+
+					break;
+
+				case "--diz":
+					if (i + 1 < args.Length) {
+						options.DizFile = args[++i];
+					}
+
+					break;
+
 				case "-t":
 				case "--target":
 					if (i + 1 < args.Length) {
@@ -1347,6 +1401,9 @@ main_loop:
 		Console.WriteLine("  -l, --listing <file> Generate listing file");
 		Console.WriteLine("  -s, --symbols <file> Generate symbol file (.nl, .mlb, .sym)");
 		Console.WriteLine("  -m, --mapfile <file> Generate memory map file");
+		Console.WriteLine("  --cdl <file>         Generate CDL (Code/Data Log) file");
+		Console.WriteLine("  --cdl-format <fmt>   CDL format: mesen (default), fceux");
+		Console.WriteLine("  --diz <file>         Generate DiztinGUIsh project file (.diz)");
 		Console.WriteLine("  -a, --auto-labels    Auto-generate labels for JSR/JMP targets");
 		Console.WriteLine("  -w, --watch          Watch mode: recompile on file changes");
 		Console.WriteLine("  -I, --include <path> Add include search path");
@@ -1440,6 +1497,15 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Memory map file path.</summary>
 	public string? MapFile { get; set; }
+
+	/// <summary>CDL (Code/Data Log) output file path.</summary>
+	public string? CdlFile { get; set; }
+
+	/// <summary>CDL format (mesen or fceux).</summary>
+	public string CdlFormat { get; set; } = "mesen";
+
+	/// <summary>DIZ (DiztinGUIsh) project file path.</summary>
+	public string? DizFile { get; set; }
 
 	/// <summary>Project file or directory path.</summary>
 	public string? ProjectPath { get; set; }
