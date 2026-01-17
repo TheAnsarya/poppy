@@ -1,4 +1,4 @@
-﻿# 🌸 Poppy v1.0.0 Release Notes
+﻿﻿# 🌸 Poppy v1.0.0 Release Notes
 
 **Release Date:** January 15, 2026
 **Status:** ✅ STABLE RELEASE

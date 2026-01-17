@@ -153,6 +153,21 @@ no, what the fuck? that icon is insanely bad, just use the old icon, look into t
 
 Make sure the vscode extension is linked and referenced and documented with it published at `https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly`; publish the extension with the corrected iconography; and then focus on Genesis and Sega Master System; continue;
 
+continue; work through those issues;
+
+we're closing a lot of issues, should be closed, is all the code done?
+
+continue;
+
+create a plan for disassembling Atari2600 games, pick like 40 games, and make plans to document them, what they're about, get images, and document them and link to them and disassemble them and extract assets and creae build pipe line and create project files; do all of them and work the queue;
+
+continue working on the remaining issues (migration guides, templates, or init command)
+
+make sub issues and todolists to update everything (documentation, todos) fo all the genesis and tg-16 stuff; implement or if already done, then fix docs to reflect this; continue;
+
+update the vscode xtension with all of the new qork and support the new systems for syntax highlighting and all the rest; continue;
+
+publish the extension;
 
 
 
@@ -161,12 +176,6 @@ Make sure the vscode extension is linked and referenced and documented with it p
 
 
 
-
-
-
-
-
- create a plan for disassembling Atari2600 games, pick like 40 games, and make plans to 
 
 create code/project convertors to the the poppy format from xkas, asar, ophis, and ca65 and check if there are other other popular assemblers for these systems;
 
