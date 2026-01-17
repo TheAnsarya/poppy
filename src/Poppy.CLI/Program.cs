@@ -1275,6 +1275,7 @@ main_loop:
 					break;
 
 				case "--cdl":
+				case "--code-data-log":
 					if (i + 1 < args.Length) {
 						options.CdlFile = args[++i];
 					}
@@ -1282,6 +1283,7 @@ main_loop:
 					break;
 
 				case "--cdl-format":
+				case "--code-data-log-format":
 					if (i + 1 < args.Length) {
 						options.CdlFormat = args[++i].ToLowerInvariant();
 					}
@@ -1289,6 +1291,7 @@ main_loop:
 					break;
 
 				case "--diz":
+				case "--diztinguish":
 					if (i + 1 < args.Length) {
 						options.DizFile = args[++i];
 					}
@@ -1397,25 +1400,25 @@ main_loop:
 		Console.WriteLine("  -h, --help           Show this help message");
 		Console.WriteLine("  -v, --version        Show version information");
 		Console.WriteLine("  -V, --verbose        Enable verbose output");
-		Console.WriteLine("  -o, --output <file>  Output file (default: input.bin)");
-		Console.WriteLine("  -l, --listing <file> Generate listing file");
-		Console.WriteLine("  -s, --symbols <file> Generate symbol file (.nl, .mlb, .sym)");
-		Console.WriteLine("  -m, --mapfile <file> Generate memory map file");
-		Console.WriteLine("  --cdl <file>         Generate CDL (Code/Data Log) file");
-		Console.WriteLine("  --cdl-format <fmt>   CDL format: mesen (default), fceux");
-		Console.WriteLine("  --diz <file>         Generate DiztinGUIsh project file (.diz)");
-		Console.WriteLine("  -a, --auto-labels    Auto-generate labels for JSR/JMP targets");
-		Console.WriteLine("  -w, --watch          Watch mode: recompile on file changes");
-		Console.WriteLine("  -I, --include <path> Add include search path");
-		Console.WriteLine("  -p, --project [path] Build from project file (poppy.json)");
-		Console.WriteLine("  -c, --config <name>  Build configuration (debug, release, etc.)");
-		Console.WriteLine("  --platform <name>    Platform for init (nes, snes, gb, genesis, etc.)");
-		Console.WriteLine("  --all                Clean all configurations (with clean command)");
-		Console.WriteLine("                       or overwrite when unpacking");
-		Console.WriteLine("  -t, --target <arch>  Target architecture:");
-		Console.WriteLine("                         6502, nes     - MOS 6502 (default)");
-		Console.WriteLine("                         65816, snes   - WDC 65816");
-		Console.WriteLine("                         sm83, gb      - Sharp SM83 (Game Boy)");
+		Console.WriteLine("  -o, --output <file>           Output file (default: input.bin)");
+		Console.WriteLine("  -l, --listing <file>          Generate listing file");
+		Console.WriteLine("  -s, --symbols <file>          Generate symbol file (.nl, .mlb, .sym)");
+		Console.WriteLine("  -m, --mapfile <file>          Generate memory map file");
+		Console.WriteLine("  --cdl, --code-data-log <file> Generate CDL (Code/Data Log) file");
+		Console.WriteLine("  --cdl-format <fmt>            CDL format: mesen (default), fceux");
+		Console.WriteLine("  --diz, --diztinguish <file>   Generate DiztinGUIsh project file (.diz)");
+		Console.WriteLine("  -a, --auto-labels             Auto-generate labels for JSR/JMP targets");
+		Console.WriteLine("  -w, --watch                   Watch mode: recompile on file changes");
+		Console.WriteLine("  -I, --include <path>          Add include search path");
+		Console.WriteLine("  -p, --project [path]          Build from project file (poppy.json)");
+		Console.WriteLine("  -c, --config <name>           Build configuration (debug, release, etc.)");
+		Console.WriteLine("  --platform <name>             Platform for init (nes, snes, gb, genesis, etc.)");
+		Console.WriteLine("  --all                         Clean all configurations (with clean command)");
+		Console.WriteLine("                                or overwrite when unpacking");
+		Console.WriteLine("  -t, --target <arch>           Target architecture:");
+		Console.WriteLine("                                  6502, nes     - MOS 6502 (default)");
+		Console.WriteLine("                                  65816, snes   - WDC 65816");
+		Console.WriteLine("                                  sm83, gb      - Sharp SM83 (Game Boy)");
 		Console.WriteLine();
 		Console.WriteLine("Platforms (for init):");
 		Console.WriteLine("  nes       NES (6502)              snes      SNES (65816)");

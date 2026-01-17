@@ -6,35 +6,35 @@ This document describes the roundtrip workflow between **Poppy** (assembler) and
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                    CDL/DIZ Roundtrip Workflow                      │
+│					CDL/DIZ Roundtrip Workflow					  │
 ├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  ┌─────────┐        ┌─────────┐        ┌─────────┐                │
-│  │  Poppy  │───────►│  ROM    │───────►│ Emulator│                │
-│  │Assembler│        │  File   │        │(Mesen)  │                │
-│  └─────────┘        └─────────┘        └────┬────┘                │
-│       │                                     │                     │
-│       │ --cdl game.cdl                      │ Generate CDL        │
-│       │ --diz game.diz                      │ while playing       │
-│       ▼                                     ▼                     │
-│  ┌─────────┐                          ┌─────────┐                 │
-│  │  CDL    │◄─────────────────────────│  CDL    │                 │
-│  │  File   │      Same format!        │  File   │                 │
-│  └─────────┘                          └─────────┘                 │
-│       │                                     │                     │
-│       └──────────────┬──────────────────────┘                     │
-│                      ▼                                            │
-│                 ┌─────────┐                                       │
-│                 │  Peony  │                                       │
-│                 │Disasm   │                                       │
-│                 └─────────┘                                       │
-│                      │                                            │
-│                      ▼                                            │
-│                 ┌─────────┐                                       │
-│                 │  .pasm  │ Enhanced disassembly with             │
-│                 │  Source │ accurate code/data separation         │
-│                 └─────────┘                                       │
-│                                                                   │
+│																	│
+│  ┌─────────┐		┌─────────┐		┌─────────┐				│
+│  │  Poppy  │───────►│  ROM	│───────►│ Emulator│				│
+│  │Assembler│		│  File   │		│(Mesen)  │				│
+│  └─────────┘		└─────────┘		└────┬────┘				│
+│	   │									 │					 │
+│	   │ --cdl game.cdl					  │ Generate CDL		│
+│	   │ --diz game.diz					  │ while playing	   │
+│	   ▼									 ▼					 │
+│  ┌─────────┐						  ┌─────────┐				 │
+│  │  CDL	│◄─────────────────────────│  CDL	│				 │
+│  │  File   │	  Same format!		│  File   │				 │
+│  └─────────┘						  └─────────┘				 │
+│	   │									 │					 │
+│	   └──────────────┬──────────────────────┘					 │
+│					  ▼											│
+│				 ┌─────────┐									   │
+│				 │  Peony  │									   │
+│				 │Disasm   │									   │
+│				 └─────────┘									   │
+│					  │											│
+│					  ▼											│
+│				 ┌─────────┐									   │
+│				 │  .pasm  │ Enhanced disassembly with			 │
+│				 │  Source │ accurate code/data separation		 │
+│				 └─────────┘									   │
+│																   │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -84,61 +84,61 @@ DIZ files are gzip-compressed JSON containing rich disassembly metadata.
 
 ```bash
 # Generate ROM with CDL and DIZ files
-poppy game.pasm -o game.nes --cdl game.cdl --diz game.diz
+poppy game.pasm --output game.nes --code-data-log game.cdl --diztinguish game.diz
 
 # Specify FCEUX format for CDL
-poppy game.pasm -o game.nes --cdl game.cdl --cdl-format fceux
+poppy game.pasm --output game.nes --code-data-log game.cdl --cdl-format fceux
 
 # Full build with all outputs
 poppy game.pasm \
-  -o game.nes \
-  --cdl game.cdl \
-  --diz game.diz \
-  -s game.sym \
-  -l game.lst \
-  -m game.map
+	--output game.nes \
+	--code-data-log game.cdl \
+	--diztinguish game.diz \
+	--symbols game.sym \
+	--listing game.lst \
+	--mapfile game.map
 ```
 
 ### 2. Enhance CDL with Emulator Trace
 
 ```bash
 # 1. Build your ROM
-poppy game.pasm -o game.nes --cdl initial.cdl
+poppy game.pasm --output game.nes --code-data-log initial.cdl
 
 # 2. Play in Mesen, generate comprehensive CDL
-#    (Mesen: Debug → CDL → Save CDL File)
+#	(Mesen: Debug → CDL → Save CDL File)
 
 # 3. Use emulator CDL for disassembly
-peony game.nes -c traced.cdl -o enhanced.pasm
+peony disasm game.nes --cdl traced.cdl --output enhanced.pasm
 ```
 
 ### 3. Disassemble with CDL/DIZ Hints
 
 ```bash
 # Use CDL file for code/data hints
-peony game.nes -c game.cdl -o output.pasm
+peony disasm game.nes --cdl game.cdl --output output.pasm
 
 # Use DIZ file for labels and data types
-peony game.nes -d game.diz -o output.pasm
+peony disasm game.nes --diz game.diz --output output.pasm
 
 # Combine multiple hint sources
-peony game.nes -c game.cdl -d game.diz -s labels.sym -o output.pasm
+peony disasm game.nes --cdl game.cdl --diz game.diz --symbols labels.sym --output output.pasm
 ```
 
 ### 4. Complete Roundtrip
 
 ```bash
 # Step 1: Initial assembly
-poppy original.pasm -o game.nes --cdl build.cdl --diz build.diz
+poppy original.pasm --output game.nes --code-data-log build.cdl --diztinguish build.diz
 
 # Step 2: Test in emulator, generate play CDL
-#    (Play game thoroughly to mark code/data)
+#	(Play game thoroughly to mark code/data)
 
 # Step 3: Merge CDLs and disassemble
-peony game.nes -c play.cdl -d build.diz -o disasm.pasm
+peony disasm game.nes --cdl play.cdl --diz build.diz --output disasm.pasm
 
 # Step 4: Verify roundtrip
-poppy disasm.pasm -o rebuilt.nes
+poppy disasm.pasm --output rebuilt.nes
 diff game.nes rebuilt.nes  # Should be identical
 ```
 
@@ -153,17 +153,17 @@ var code = generator.Generate(program);
 
 // Generate CDL file (Mesen format)
 var cdlGen = new CdlGenerator(
-    analyzer.SymbolTable,
-    analyzer.Target,
-    generator.Segments);
+	analyzer.SymbolTable,
+	analyzer.Target,
+	generator.Segments);
 cdlGen.Export("output.cdl", code.Length, CdlGenerator.CdlFormat.Mesen);
 
 // Generate DIZ file (gzip compressed)
 var dizGen = new DizGenerator(
-    analyzer.SymbolTable,
-    analyzer.Target,
-    generator.Segments,
-    "MyProject");
+	analyzer.SymbolTable,
+	analyzer.Target,
+	generator.Segments,
+	"MyProject");
 dizGen.Export("output.diz", code, compress: true);
 ```
 
@@ -184,7 +184,7 @@ var result = engine.Disassemble(romData, entryPoints);
 
 // Check CDL/DIZ data directly
 if (symbols.IsCode(offset) == true) {
-    // CDL/DIZ says this is code
+	// CDL/DIZ says this is code
 }
 
 // Get coverage statistics
