@@ -16,7 +16,7 @@
 ; iNES Header Configuration
 ; ============================================================================
 ; This generates the 16-byte iNES header automatically
-.nes
+.system:nes
 .ines_mapper 0           ; NROM mapper
 .ines_prg 2              ; 32KB PRG-ROM (2 x 16KB)
 .ines_chr 1              ; 8KB CHR-ROM

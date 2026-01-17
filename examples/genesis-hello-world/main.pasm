@@ -1,7 +1,7 @@
 ; 🌸 Sega Genesis Hello World - Poppy Compiler Example
 ; Displays "HELLO WORLD" using VDP text mode
 
-	.target genesis
+	.system:genesis
 	.org $000000
 
 ; ═══════════════════════════════════════════════════════════════════════════

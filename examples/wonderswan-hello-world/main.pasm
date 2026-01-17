@@ -1,7 +1,7 @@
 ; 🌸 WonderSwan Hello World - Poppy Compiler Example
 ; Basic hardware initialization for WonderSwan
 
-	.target wonderswan
+	.system:wonderswan
 	.org $0000
 
 ; ═══════════════════════════════════════════════════════════════════════════

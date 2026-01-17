@@ -1,7 +1,7 @@
 ; 🌸 Atari 2600 Hello World - Poppy Compiler Example
 ; Displays colored bars on screen using TIA
 
-	.target atari2600
+	.system:atari2600
 	.org $f000
 
 ; ═══════════════════════════════════════════════════════════════════════════

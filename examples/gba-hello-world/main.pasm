@@ -1,7 +1,7 @@
 ; 🌸 Game Boy Advance Hello World - Poppy Compiler Example
 ; Displays a colored screen using Mode 3 bitmap
 
-	.target gba
+	.system:gameboya
 	.thumb			; Use Thumb mode for efficiency
 
 ; ═══════════════════════════════════════════════════════════════════════════

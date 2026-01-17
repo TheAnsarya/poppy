@@ -7,7 +7,7 @@
 ; - CPU speed control: csl, csh
 ; - I/O control: st0, st1, st2
 
-.target "turbografx16"
+.system:turbografx16
 .cpu "huc6280"
 
 ; =============================================================================

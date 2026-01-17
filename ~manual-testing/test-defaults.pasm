@@ -1,4 +1,4 @@
-.target nes
+.system:nes
 
 .org $8000
 

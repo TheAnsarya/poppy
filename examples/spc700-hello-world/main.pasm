@@ -4,7 +4,7 @@
 ; The SPC700 is the audio CPU in the SNES, similar to 6502 but different.
 ; It runs at 1.024 MHz and has 64KB of RAM shared with DSP registers.
 
-.target "spc700"
+.system:spc700
 .cpu "spc700"
 
 ; =============================================================================

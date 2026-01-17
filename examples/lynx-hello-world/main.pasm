@@ -1,7 +1,7 @@
 ; 🌸 Atari Lynx Hello World - Poppy Compiler Example
 ; Displays colored screen using Suzy/Mikey hardware
 
-	.target lynx
+	.system:lynx
 	.org $0200		; RAM start
 
 ; ═══════════════════════════════════════════════════════════════════════════

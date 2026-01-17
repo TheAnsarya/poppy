@@ -3,7 +3,7 @@
 ;
 ; The SMS uses a Z80 CPU and a VDP derived from the TMS9918
 
-.target "mastersystem"
+.system:mastersystem
 .cpu "z80"
 
 ; =============================================================================
