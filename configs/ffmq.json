@@ -1,0 +1,95 @@
+{
+	"name": "ffmq",
+	"version": "1.0.0",
+	"description": "Final Fantasy Mystic Quest (SNES) - Complete ROM disassembly",
+	"target": "snes",
+	"cpu": "65816",
+	"output": {
+		"format": "sfc",
+		"filename": "ffmq.sfc"
+	},
+	"header": {
+		"mapping": "lorom",
+		"romSize": 1048576,
+		"romSizeMB": 1,
+		"ramSize": 8192,
+		"region": "USA",
+		"version": "1.1",
+		"licensee": "Square"
+	},
+	"memory": {
+		"mapping": "lorom",
+		"banks": [
+			{ "id": "00", "start": "0x008000", "end": "0x00ffff", "size": 32768 },
+			{ "id": "01", "start": "0x018000", "end": "0x01ffff", "size": 32768 },
+			{ "id": "02", "start": "0x028000", "end": "0x02ffff", "size": 32768 },
+			{ "id": "03", "start": "0x038000", "end": "0x03ffff", "size": 32768 },
+			{ "id": "04", "start": "0x048000", "end": "0x04ffff", "size": 32768 },
+			{ "id": "05", "start": "0x058000", "end": "0x05ffff", "size": 32768 },
+			{ "id": "06", "start": "0x068000", "end": "0x06ffff", "size": 32768 },
+			{ "id": "07", "start": "0x078000", "end": "0x07ffff", "size": 32768 },
+			{ "id": "08", "start": "0x088000", "end": "0x08ffff", "size": 32768 },
+			{ "id": "09", "start": "0x098000", "end": "0x09ffff", "size": 32768 },
+			{ "id": "0a", "start": "0x0a8000", "end": "0x0affff", "size": 32768 },
+			{ "id": "0b", "start": "0x0b8000", "end": "0x0bffff", "size": 32768 },
+			{ "id": "0c", "start": "0x0c8000", "end": "0x0cffff", "size": 32768 },
+			{ "id": "0d", "start": "0x0d8000", "end": "0x0dffff", "size": 32768 },
+			{ "id": "0e", "start": "0x0e8000", "end": "0x0effff", "size": 32768 },
+			{ "id": "0f", "start": "0x0f8000", "end": "0x0fffff", "size": 32768 }
+		],
+		"ram": {
+			"wram": {
+				"start": "0x7e0000",
+				"end": "0x7fffff",
+				"size": 131072
+			},
+			"sram": {
+				"start": "0x700000",
+				"end": "0x701fff",
+				"size": 8192,
+				"battery": true
+			}
+		}
+	},
+	"sources": [
+		"src/asm/ffmq_main.pasm"
+	],
+	"include": [
+		"src/asm/snes_registers.pasm",
+		"src/asm/ram_defines.pasm"
+	],
+	"assets": {
+		"graphics": {
+			"tiles": "assets/graphics/",
+			"format": "4bpp",
+			"compressed": true
+		},
+		"data": {
+			"enemies": "assets/data/enemies.json",
+			"items": "assets/data/items.json",
+			"spells": "assets/data/spells.json",
+			"characters": "assets/data/characters.json"
+		},
+		"text": {
+			"dialog": "assets/text/dialog/",
+			"encoding": "complex.tbl"
+		},
+		"audio": {
+			"music": "assets/music/",
+			"format": "spc"
+		}
+	},
+	"symbols": {
+		"outputPath": "build/ffmq.sym",
+		"format": "mesen"
+	},
+	"cdl": {
+		"outputPath": "build/ffmq.cdl"
+	},
+	"reference": {
+		"repo": "ffmq-info",
+		"assembler": "asar",
+		"wiki": "https://datacrystal.romhacking.net/wiki/Final_Fantasy_Mystic_Quest",
+		"notes": "Currently uses asar assembler format, conversion to Poppy format in progress"
+	}
+}

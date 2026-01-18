@@ -1,0 +1,112 @@
+{
+	"name": "dragon-warrior-1",
+	"version": "1.0.0",
+	"description": "Dragon Warrior (NES) - Complete ROM disassembly",
+	"target": "nes",
+	"cpu": "6502",
+	"output": {
+		"format": "ines",
+		"filename": "dragon_warrior.nes"
+	},
+	"header": {
+		"mapper": 1,
+		"mapperName": "MMC1",
+		"prgRomSize": 4,
+		"chrRomSize": 2,
+		"prgRomBytes": 65536,
+		"chrRomBytes": 16384,
+		"mirroring": "horizontal",
+		"battery": true
+	},
+	"memory": {
+		"prgBanks": [
+			{
+				"id": 0,
+				"name": "Bank 0 - Switchable",
+				"size": 16384,
+				"fileOffset": "0x0010",
+				"cpuAddress": "0x8000"
+			},
+			{
+				"id": 1,
+				"name": "Bank 1 - Switchable",
+				"size": 16384,
+				"fileOffset": "0x4010",
+				"cpuAddress": "0x8000"
+			},
+			{
+				"id": 2,
+				"name": "Bank 2 - Switchable",
+				"size": 16384,
+				"fileOffset": "0x8010",
+				"cpuAddress": "0x8000"
+			},
+			{
+				"id": 3,
+				"name": "Bank 3 - Fixed",
+				"size": 16384,
+				"fileOffset": "0xc010",
+				"cpuAddress": "0xc000",
+				"fixed": true
+			}
+		],
+		"chrBanks": [
+			{
+				"id": 0,
+				"name": "CHR Bank 0",
+				"size": 8192,
+				"fileOffset": "0x10010"
+			},
+			{
+				"id": 1,
+				"name": "CHR Bank 1",
+				"size": 8192,
+				"fileOffset": "0x12010"
+			}
+		],
+		"ram": {
+			"wram": {
+				"start": "0x6000",
+				"end": "0x7fff",
+				"size": 8192,
+				"battery": true
+			}
+		}
+	},
+	"sources": [
+		"src/header.pasm",
+		"src/banks/bank0.pasm",
+		"src/banks/bank1.pasm",
+		"src/banks/bank2.pasm",
+		"src/banks/bank3.pasm"
+	],
+	"include": [
+		"src/defines.pasm",
+		"src/constants.pasm",
+		"src/ram.pasm"
+	],
+	"assets": {
+		"graphics": {
+			"chr": "assets/chr/",
+			"format": "2bpp"
+		},
+		"data": {
+			"monsters": "assets/data/monsters.json",
+			"items": "assets/data/items.json",
+			"spells": "assets/data/spells.json",
+			"text": "assets/text/"
+		}
+	},
+	"symbols": {
+		"outputPath": "build/dragon_warrior.sym",
+		"format": "mesen"
+	},
+	"cdl": {
+		"outputPath": "build/dragon_warrior.cdl"
+	},
+	"reference": {
+		"repo": "dragon-warrior-info",
+		"wiki": "https://datacrystal.romhacking.net/wiki/Dragon_Warrior",
+		"notes": "Uses Ophis assembler format in source repo, convert to Poppy format"
+	}
+}
