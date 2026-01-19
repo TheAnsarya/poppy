@@ -6,6 +6,25 @@ This guide helps users transition from ca65 (part of the cc65 suite) to Poppy As
 
 ca65 is a powerful macro assembler commonly used for NES, SNES, and other 6502/65816 development. Poppy aims to provide similar functionality with a more streamlined syntax.
 
+## Quick Start
+
+### Automated Conversion
+
+Poppy includes a built-in converter that can automatically migrate ca65 projects:
+
+```bash
+# Convert a single file
+poppy convert game.s -o game.pasm --from ca65
+
+# Convert an entire project directory
+poppy convert project/ --convert-project --from ca65 -o output/
+
+# Auto-detect format (works for most ca65 files)
+poppy convert game.s -o game.pasm --auto
+```
+
+Note: ca65 projects typically use a linker (ld65) with configuration files. You'll need to translate linker configuration to Poppy's project file format separately.
+
 ## Key Philosophical Differences
 
 | Aspect | ca65 | Poppy |

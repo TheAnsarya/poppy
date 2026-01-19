@@ -6,6 +6,23 @@ This guide helps users transition from ASAR (Asar Super-Famicom Assembler) to Po
 
 ASAR and Poppy share many similarities as both target SNES/65816 development. However, there are syntax and feature differences to be aware of.
 
+## Quick Start
+
+### Automated Conversion
+
+Poppy includes a built-in converter that can automatically migrate ASAR projects:
+
+```bash
+# Convert a single file
+poppy convert game.asm -o game.pasm --from asar
+
+# Convert an entire project directory
+poppy convert project/ --convert-project --from asar -o output/
+
+# Auto-detect format (works for most ASAR files)
+poppy convert game.asm -o game.pasm --auto
+```
+
 ## Directive Equivalents
 
 | ASAR | Poppy | Notes |
