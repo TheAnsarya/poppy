@@ -1539,6 +1539,27 @@ main_loop:
 			}
 		}
 
+		// Write Pansy (Program ANalysis SYstem) file if requested
+		if (options.PansyFile is not null) {
+			try {
+				var projectName = Path.GetFileNameWithoutExtension(options.PansyFile);
+				var pansyGenerator = new PansyGenerator(
+					analyzer.SymbolTable,
+					analyzer.Target,
+					generator.Segments,
+					listing: null, // TODO: Pass listing when available
+					cdlGenerator);
+				pansyGenerator.ProjectName = projectName;
+				pansyGenerator.Export(options.PansyFile, code.Length, 0, compress: true);
+				if (options.Verbose) {
+					Console.WriteLine($"  Pansy: {options.PansyFile}");
+				}
+			} catch (Exception ex) {
+				Console.Error.WriteLine($"Error writing Pansy file: {ex.Message}");
+				return 1;
+			}
+		}
+
 		Console.WriteLine($"Assembled {inputFile} -> {outputFile} ({code.Length} bytes)");
 		return 0;
 	}
@@ -1695,6 +1716,13 @@ main_loop:
 				case "--diztinguish":
 					if (i + 1 < args.Length) {
 						options.DizFile = args[++i];
+					}
+
+					break;
+
+				case "--pansy":
+					if (i + 1 < args.Length) {
+						options.PansyFile = args[++i];
 					}
 
 					break;
@@ -1905,6 +1933,7 @@ main_loop:
 		Console.WriteLine("  --cdl-format <fmt>            CDL format: mesen (default), fceux");
 		Console.WriteLine("  --cdl-detailed                Enable detailed CDL with instruction tracking");
 		Console.WriteLine("  --diz, --diztinguish <file>   Generate DiztinGUIsh project file (.diz)");
+		Console.WriteLine("  --pansy <file>                Generate Pansy metadata file (.pansy)");
 		Console.WriteLine("  -a, --auto-labels             Auto-generate labels for JSR/JMP targets");
 		Console.WriteLine("  -w, --watch                   Watch mode: recompile on file changes");
 		Console.WriteLine("  -I, --include <path>          Add include search path");
@@ -2037,6 +2066,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>DIZ (DiztinGUIsh) project file path.</summary>
 	public string? DizFile { get; set; }
+
+	/// <summary>Pansy (Program ANalysis SYstem) file path.</summary>
+	public string? PansyFile { get; set; }
 
 	/// <summary>Project file or directory path.</summary>
 	public string? ProjectPath { get; set; }
