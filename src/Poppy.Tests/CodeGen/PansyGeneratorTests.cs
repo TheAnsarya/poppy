@@ -266,8 +266,27 @@ public sealed class PansyGeneratorTests {
 		Assert.Equal(0x07, PansyGenerator.PLATFORM_PCE);
 		Assert.Equal(0x08, PansyGenerator.PLATFORM_ATARI_2600);
 		Assert.Equal(0x09, PansyGenerator.PLATFORM_LYNX);
-		Assert.Equal(0x0A, PansyGenerator.PLATFORM_WONDERSWAN);
-		Assert.Equal(0x0B, PansyGenerator.PLATFORM_NEOGEO);
-		Assert.Equal(0x0C, PansyGenerator.PLATFORM_SPC700);
+		Assert.Equal(0x0a, PansyGenerator.PLATFORM_WONDERSWAN);
+		Assert.Equal(0x0b, PansyGenerator.PLATFORM_NEOGEO);
+		Assert.Equal(0x0c, PansyGenerator.PLATFORM_SPC700);
+		Assert.Equal(0x0d, PansyGenerator.PLATFORM_C64);
+		Assert.Equal(0x0e, PansyGenerator.PLATFORM_MSX);
+		Assert.Equal(0x0f, PansyGenerator.PLATFORM_ATARI_7800);
+		Assert.Equal(0x10, PansyGenerator.PLATFORM_ATARI_8BIT);
+		Assert.Equal(0x11, PansyGenerator.PLATFORM_APPLE_II);
+		Assert.Equal(0x12, PansyGenerator.PLATFORM_ZX_SPECTRUM);
+		Assert.Equal(0x13, PansyGenerator.PLATFORM_COLECO);
+		Assert.Equal(0x14, PansyGenerator.PLATFORM_INTELLIVISION);
+		Assert.Equal(0x15, PansyGenerator.PLATFORM_VECTREX);
+		Assert.Equal(0x16, PansyGenerator.PLATFORM_GAMEGEAR);
+		Assert.Equal(0x17, PansyGenerator.PLATFORM_32X);
+		Assert.Equal(0x18, PansyGenerator.PLATFORM_SEGACD);
+		Assert.Equal(0x19, PansyGenerator.PLATFORM_VIRTUALBOY);
+		Assert.Equal(0x1a, PansyGenerator.PLATFORM_AMSTRAD_CPC);
+		Assert.Equal(0x1b, PansyGenerator.PLATFORM_BBC_MICRO);
+		Assert.Equal(0x1c, PansyGenerator.PLATFORM_VIC20);
+		Assert.Equal(0x1d, PansyGenerator.PLATFORM_PLUS4);
+		Assert.Equal(0x1e, PansyGenerator.PLATFORM_C128);
+		Assert.Equal(0xff, PansyGenerator.PLATFORM_CUSTOM);
 	}
 }

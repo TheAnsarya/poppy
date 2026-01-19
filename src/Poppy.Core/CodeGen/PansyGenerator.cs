@@ -45,11 +45,49 @@ public sealed class PansyGenerator {
 	/// <summary>Platform ID for Atari Lynx (WDC 65SC02).</summary>
 	public const byte PLATFORM_LYNX = 0x09;
 	/// <summary>Platform ID for WonderSwan (NEC V30MZ).</summary>
-	public const byte PLATFORM_WONDERSWAN = 0x0A;
+	public const byte PLATFORM_WONDERSWAN = 0x0a;
 	/// <summary>Platform ID for Neo Geo (Motorola 68000).</summary>
-	public const byte PLATFORM_NEOGEO = 0x0B;
+	public const byte PLATFORM_NEOGEO = 0x0b;
 	/// <summary>Platform ID for SPC700 audio processor.</summary>
-	public const byte PLATFORM_SPC700 = 0x0C;
+	public const byte PLATFORM_SPC700 = 0x0c;
+	/// <summary>Platform ID for Commodore 64 (MOS 6510).</summary>
+	public const byte PLATFORM_C64 = 0x0d;
+	/// <summary>Platform ID for MSX (Zilog Z80).</summary>
+	public const byte PLATFORM_MSX = 0x0e;
+	/// <summary>Platform ID for Atari 7800 (6502C/SALLY).</summary>
+	public const byte PLATFORM_ATARI_7800 = 0x0f;
+	/// <summary>Platform ID for Atari 8-bit (400/800/XL/XE) (MOS 6502).</summary>
+	public const byte PLATFORM_ATARI_8BIT = 0x10;
+	/// <summary>Platform ID for Apple II (MOS 6502).</summary>
+	public const byte PLATFORM_APPLE_II = 0x11;
+	/// <summary>Platform ID for ZX Spectrum (Zilog Z80).</summary>
+	public const byte PLATFORM_ZX_SPECTRUM = 0x12;
+	/// <summary>Platform ID for ColecoVision (Zilog Z80).</summary>
+	public const byte PLATFORM_COLECO = 0x13;
+	/// <summary>Platform ID for Intellivision (GI CP1610).</summary>
+	public const byte PLATFORM_INTELLIVISION = 0x14;
+	/// <summary>Platform ID for Vectrex (Motorola 6809).</summary>
+	public const byte PLATFORM_VECTREX = 0x15;
+	/// <summary>Platform ID for Sega Game Gear (Zilog Z80).</summary>
+	public const byte PLATFORM_GAMEGEAR = 0x16;
+	/// <summary>Platform ID for Sega 32X (SH-2).</summary>
+	public const byte PLATFORM_32X = 0x17;
+	/// <summary>Platform ID for Sega CD (Motorola 68000).</summary>
+	public const byte PLATFORM_SEGACD = 0x18;
+	/// <summary>Platform ID for Nintendo Virtual Boy (NEC V810).</summary>
+	public const byte PLATFORM_VIRTUALBOY = 0x19;
+	/// <summary>Platform ID for Amstrad CPC (Zilog Z80).</summary>
+	public const byte PLATFORM_AMSTRAD_CPC = 0x1a;
+	/// <summary>Platform ID for BBC Micro (MOS 6502).</summary>
+	public const byte PLATFORM_BBC_MICRO = 0x1b;
+	/// <summary>Platform ID for Commodore VIC-20 (MOS 6502).</summary>
+	public const byte PLATFORM_VIC20 = 0x1c;
+	/// <summary>Platform ID for Commodore Plus/4 (MOS 7501/8501).</summary>
+	public const byte PLATFORM_PLUS4 = 0x1d;
+	/// <summary>Platform ID for Commodore 128 (MOS 8502 + Zilog Z80).</summary>
+	public const byte PLATFORM_C128 = 0x1e;
+	/// <summary>Platform ID for custom/unknown platform.</summary>
+	public const byte PLATFORM_CUSTOM = 0xff;
 	#endregion
 
 	#region Pansy Flags
