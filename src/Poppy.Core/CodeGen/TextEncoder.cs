@@ -90,6 +90,187 @@ public class TextEncoder {
 	}
 
 	/// <summary>
+	/// Create Pokemon Red/Blue style encoder (Game Boy)
+	/// </summary>
+	public static TextEncoder CreatePokemonEncoder() {
+		var encoder = new TextEncoder { Name = "Pokemon" };
+		encoder.EndByte = 0x50;
+
+		// Uppercase A-Z at 0x80-0x99
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)(0x80 + i);
+		}
+
+		// Lowercase a-z at 0xa0-0xb9
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('a' + i)).ToString()] = (byte)(0xa0 + i);
+		}
+
+		// Numbers 0-9 at 0xf6-0xff
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)(0xf6 + i);
+		}
+
+		// Common punctuation
+		encoder._charToByte[" "] = 0x7f;
+		encoder._charToByte["!"] = 0xe7;
+		encoder._charToByte["."] = 0xe8;
+		encoder._charToByte[","] = 0xf4;
+		encoder._charToByte["-"] = 0xf2;
+		encoder._charToByte["'"] = 0xf3;
+
+		// Control codes
+		encoder._controlCodes["[LINE]"] = [0x4f];
+		encoder._controlCodes["[END]"] = [0x50];
+		encoder._controlCodes["[PARA]"] = [0x51];
+		encoder._controlCodes["[CONT]"] = [0x55];
+		encoder._controlCodes["[DONE]"] = [0x57];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Create Dragon Quest/Warrior style encoder (NES/SNES)
+	/// </summary>
+	public static TextEncoder CreateDragonQuestEncoder() {
+		var encoder = new TextEncoder { Name = "Dragon Quest" };
+		encoder.EndByte = 0xff;
+
+		// Uppercase A-Z at 0x80
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)(0x80 + i);
+		}
+
+		// Lowercase a-z at 0x9a
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('a' + i)).ToString()] = (byte)(0x9a + i);
+		}
+
+		// Numbers 0-9 at 0xb4
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)(0xb4 + i);
+		}
+
+		// Common characters
+		encoder._charToByte[" "] = 0xbe;
+		encoder._charToByte["."] = 0xbf;
+		encoder._charToByte[","] = 0xc0;
+		encoder._charToByte["-"] = 0xc1;
+		encoder._charToByte["!"] = 0xc2;
+		encoder._charToByte["?"] = 0xc3;
+		encoder._charToByte["'"] = 0xc4;
+		encoder._charToByte["\""] = 0xc5;
+		encoder._charToByte[":"] = 0xc6;
+
+		// Control codes
+		encoder._controlCodes["[NAME]"] = [0xf0];
+		encoder._controlCodes["[ITEM]"] = [0xf1];
+		encoder._controlCodes["[NUM]"] = [0xf2];
+		encoder._controlCodes["[LINE]"] = [0xfc];
+		encoder._controlCodes["[PARA]"] = [0xfd];
+		encoder._controlCodes["[WAIT]"] = [0xfe];
+		encoder._controlCodes["[END]"] = [0xff];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Create Final Fantasy style encoder (NES/SNES)
+	/// </summary>
+	public static TextEncoder CreateFinalFantasyEncoder() {
+		var encoder = new TextEncoder { Name = "Final Fantasy" };
+		encoder.EndByte = 0x00;
+
+		// Uppercase A-Z at 0x8a
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)(0x8a + i);
+		}
+
+		// Lowercase a-z at 0xa4
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('a' + i)).ToString()] = (byte)(0xa4 + i);
+		}
+
+		// Numbers 0-9 at 0x80
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)(0x80 + i);
+		}
+
+		// Common punctuation
+		encoder._charToByte[" "] = 0xff;
+		encoder._charToByte["."] = 0xc0;
+		encoder._charToByte[","] = 0xc1;
+		encoder._charToByte["-"] = 0xc2;
+		encoder._charToByte["'"] = 0xc3;
+		encoder._charToByte["!"] = 0xc4;
+		encoder._charToByte["?"] = 0xc5;
+		encoder._charToByte[":"] = 0xbe;
+
+		// Control codes
+		encoder._controlCodes["[END]"] = [0x00];
+		encoder._controlCodes["[LINE]"] = [0x01];
+		encoder._controlCodes["[NAME]"] = [0x02];
+		encoder._controlCodes["[ITEM]"] = [0x03];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Create EarthBound/Mother style encoder (SNES)
+	/// </summary>
+	public static TextEncoder CreateEarthBoundEncoder() {
+		var encoder = new TextEncoder { Name = "EarthBound" };
+		encoder.EndByte = 0x02;
+
+		// Uppercase A-Z at 0x30
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)(0x30 + i);
+		}
+
+		// Lowercase a-z at 0x4a
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('a' + i)).ToString()] = (byte)(0x4a + i);
+		}
+
+		// Numbers 0-9 at 0x60
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)(0x60 + i);
+		}
+
+		// Space and punctuation
+		encoder._charToByte[" "] = 0x00;
+		encoder._charToByte["-"] = 0x1e;
+		encoder._charToByte["'"] = 0x1f;
+		encoder._charToByte["!"] = 0x6a;
+		encoder._charToByte["?"] = 0x6b;
+		encoder._charToByte["."] = 0x6c;
+		encoder._charToByte[","] = 0x6d;
+
+		// Control codes
+		encoder._controlCodes["[END]"] = [0x02];
+		encoder._controlCodes["[LINE]"] = [0x03];
+		encoder._controlCodes["[PAGE]"] = [0x04];
+		encoder._controlCodes["[NAME]"] = [0x1c];
+		encoder._controlCodes["[ITEM]"] = [0x1d];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Get encoder by template name
+	/// </summary>
+	public static TextEncoder GetTemplate(string name) {
+		return name.ToLowerInvariant() switch {
+			"ascii" => CreateAsciiEncoder(),
+			"pokemon" or "pkmn" => CreatePokemonEncoder(),
+			"dw" or "dq" or "dragonquest" or "dragonwarrior" => CreateDragonQuestEncoder(),
+			"ff" or "finalfantasy" => CreateFinalFantasyEncoder(),
+			"eb" or "earthbound" or "mother" => CreateEarthBoundEncoder(),
+			_ => CreateAsciiEncoder()
+		};
+	}
+
+	/// <summary>
 	/// Load DTE (Dual Tile Encoding) dictionary from content.
 	/// Format: XX=ab (byte XX encodes the string "ab")
 	/// </summary>

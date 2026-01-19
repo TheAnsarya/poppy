@@ -62,6 +62,11 @@ internal static class Program {
 			return ValidateArchive(options);
 		}
 
+		// Handle text encode command
+		if (options.Command == CommandType.TextEncode) {
+			return EncodeText(options);
+		}
+
 		// Project-based build
 		if (options.ProjectPath is not null) {
 			return BuildProject(options);
@@ -954,6 +959,131 @@ main_loop:
 	}
 
 	/// <summary>
+	/// Encodes text using a TBL table file.
+	/// </summary>
+	private static int EncodeText(CompilerOptions options) {
+		Console.WriteLine($"🌸 {AppName} v{Version} - Text Encoder");
+
+		TextEncoder encoder;
+
+		// Load encoder from table file or template
+		if (options.TableFile is not null) {
+			if (!File.Exists(options.TableFile)) {
+				Console.Error.WriteLine($"Error: Table file not found: {options.TableFile}");
+				return 1;
+			}
+			encoder = TextEncoder.LoadFromFile(options.TableFile);
+			Console.WriteLine($"  Table: {options.TableFile} ({encoder.Name})");
+		} else if (options.TemplateName is not null) {
+			encoder = TextEncoder.GetTemplate(options.TemplateName);
+			Console.WriteLine($"  Template: {options.TemplateName} ({encoder.Name})");
+		} else {
+			encoder = TextEncoder.CreateAsciiEncoder();
+			Console.WriteLine($"  Template: ASCII (default)");
+		}
+
+		// Load DTE dictionary if specified
+		if (options.DteFile is not null) {
+			if (!File.Exists(options.DteFile)) {
+				Console.Error.WriteLine($"Error: DTE file not found: {options.DteFile}");
+				return 1;
+			}
+			encoder.LoadDteDictionaryFromFile(options.DteFile);
+			Console.WriteLine($"  DTE: {options.DteFile} ({encoder.DteMappings.Count} entries)");
+		}
+
+		// Read input text
+		string text;
+		if (options.InputFile is not null) {
+			if (!File.Exists(options.InputFile)) {
+				Console.Error.WriteLine($"Error: Input file not found: {options.InputFile}");
+				return 1;
+			}
+			text = File.ReadAllText(options.InputFile);
+			Console.WriteLine($"  Input: {options.InputFile}");
+		} else if (options.TextInput is not null) {
+			text = options.TextInput;
+		} else {
+			Console.Error.WriteLine("Error: No input text specified.");
+			Console.Error.WriteLine("Usage: poppy text-encode -i <input.txt> -t <table.tbl> -o <output.bin>");
+			Console.Error.WriteLine("   or: poppy text-encode --text \"Hello\" --template dw -o output.bin");
+			return 1;
+		}
+
+		// Encode the text
+		var encoded = encoder.Encode(text);
+
+		// Add end byte if needed
+		if (encoder.EndByte.HasValue && (encoded.Length == 0 || encoded[^1] != encoder.EndByte.Value)) {
+			var withEnd = new byte[encoded.Length + 1];
+			encoded.CopyTo(withEnd, 0);
+			withEnd[^1] = encoder.EndByte.Value;
+			encoded = withEnd;
+		}
+
+		Console.WriteLine($"  Text length: {text.Length} chars");
+		Console.WriteLine($"  Encoded: {encoded.Length} bytes");
+
+		// Output based on format
+		if (options.OutputFile is not null) {
+			var outputFormat = options.OutputFormat?.ToLowerInvariant() ?? "bin";
+
+			switch (outputFormat) {
+				case "asm":
+				case "inc":
+					// Assembly format
+					using (var writer = new StreamWriter(options.OutputFile)) {
+						writer.WriteLine($"; Encoded text: {EscapeForComment(text.Length > 50 ? text[..50] + "..." : text)}");
+						writer.WriteLine($"; {encoded.Length} bytes");
+						writer.Write(".byte ");
+						for (int i = 0; i < encoded.Length; i++) {
+							writer.Write(i > 0 ? ", " : "");
+							writer.Write($"${encoded[i]:x2}");
+							// Line wrap every 16 bytes
+							if (i > 0 && (i + 1) % 16 == 0 && i < encoded.Length - 1) {
+								writer.WriteLine();
+								writer.Write(".byte ");
+							}
+						}
+						writer.WriteLine();
+					}
+					break;
+
+				case "hex":
+					// Hex string format
+					File.WriteAllText(options.OutputFile, BitConverter.ToString(encoded).Replace("-", " ").ToLowerInvariant());
+					break;
+
+				default:
+					// Binary format
+					File.WriteAllBytes(options.OutputFile, encoded);
+					break;
+			}
+
+			Console.WriteLine($"  Output: {options.OutputFile} ({outputFormat} format)");
+		} else {
+			// Output to console as hex
+			Console.WriteLine();
+			Console.WriteLine("  Encoded bytes:");
+			Console.Write("  ");
+			for (int i = 0; i < Math.Min(encoded.Length, 64); i++) {
+				Console.Write($"{encoded[i]:x2} ");
+				if ((i + 1) % 16 == 0) Console.Write("\n  ");
+			}
+			if (encoded.Length > 64) {
+				Console.Write($"... and {encoded.Length - 64} more bytes");
+			}
+			Console.WriteLine();
+		}
+
+		return 0;
+	}
+
+	private static string EscapeForComment(string text) {
+		return text.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+	}
+
+	/// <summary>
 	/// Formats a file size for display.
 	/// </summary>
 	private static string FormatFileSize(long bytes) {
@@ -1227,6 +1357,12 @@ main_loop:
 				options.Command = CommandType.Validate;
 				break;
 
+			case "text-encode":
+			case "encode":
+				// Text encode command
+				options.Command = CommandType.TextEncode;
+				break;
+
 				case "-h":
 				case "--help":
 					options.ShowHelp = true;
@@ -1363,6 +1499,35 @@ main_loop:
 
 					break;
 
+				case "--table":
+				case "--tbl":
+					if (i + 1 < args.Length) {
+						options.TableFile = args[++i];
+					}
+
+					break;
+
+				case "--dte":
+					if (i + 1 < args.Length) {
+						options.DteFile = args[++i];
+					}
+
+					break;
+
+				case "--text":
+					if (i + 1 < args.Length) {
+						options.TextInput = args[++i];
+					}
+
+					break;
+
+				case "--format":
+					if (i + 1 < args.Length) {
+						options.OutputFormat = args[++i];
+					}
+
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -1476,7 +1641,10 @@ internal enum CommandType {
 	Unpack,
 
 	/// <summary>Validate .poppy archive.</summary>
-	Validate
+	Validate,
+
+	/// <summary>Encode text using TBL table.</summary>
+	TextEncode
 }
 
 /// <summary>
@@ -1540,7 +1708,7 @@ internal sealed class CompilerOptions {
 	/// <summary>Watch mode for automatic recompilation.</summary>
 	public bool Watch { get; set; }
 
-	/// <summary>Template name for init command.</summary>
+	/// <summary>Template name for init command or text encoding.</summary>
 	public string? TemplateName { get; set; }
 
 	/// <summary>Project name for init command.</summary>
@@ -1548,4 +1716,16 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Platform/target for init command.</summary>
 	public string? InitPlatform { get; set; }
+
+	/// <summary>Table file (.tbl) for text encoding.</summary>
+	public string? TableFile { get; set; }
+
+	/// <summary>DTE dictionary file for text encoding.</summary>
+	public string? DteFile { get; set; }
+
+	/// <summary>Direct text input for encoding.</summary>
+	public string? TextInput { get; set; }
+
+	/// <summary>Output format (bin, asm, hex).</summary>
+	public string? OutputFormat { get; set; }
 }
