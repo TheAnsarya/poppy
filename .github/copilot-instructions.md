@@ -29,6 +29,7 @@
 - Never use `0x` prefix unless required by the language
 
 ### Assembly Code
+- **Poppy uses `*.pasm` files, NOT `*.asm`** - This is the Poppy Assembly format
 - All opcodes/operands in **lowercase** (e.g., `lda`, `sta`, `jsr`, `inc`, `tya`)
 - All hex values in **lowercase** with `$` prefix
 - Example:
@@ -115,4 +116,5 @@
 4. **Always** add BOM to UTF-8 files
 5. **Always** ensure documentation is linked from README
 6. **Always use Yarn** for JavaScript/TypeScript - never npm/npx
+7. **Always use `.pasm` file extension** - Poppy Assembly files, never `.asm`
 

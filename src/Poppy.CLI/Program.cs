@@ -1040,6 +1040,7 @@ main_loop:
 
 			switch (outputFormat) {
 				case "asm":
+				case "pasm":
 				case "inc":
 					// Assembly format
 					using (var writer = new StreamWriter(options.OutputFile)) {
@@ -1101,8 +1102,8 @@ main_loop:
 
 		if (options.InputFile is null) {
 			Console.Error.WriteLine("Error: No input JSON file specified.");
-			Console.Error.WriteLine("Usage: poppy data-gen <input.json> -o <output.asm> --name <table_name>");
-			Console.Error.WriteLine("   or: poppy json-to-asm monsters.json -o monsters.asm --name Monsters");
+			Console.Error.WriteLine("Usage: poppy data-gen <input.json> -o <output.pasm> --name <table_name>");
+			Console.Error.WriteLine("   or: poppy json-to-asm monsters.json -o monsters.pasm --name Monsters");
 			return 1;
 		}
 
@@ -1202,7 +1203,7 @@ main_loop:
 		if (options.InputFile is null) {
 			Console.Error.WriteLine("Error: No input image file specified.");
 			Console.Error.WriteLine("Usage: poppy gfx-convert <input.bmp> -o <output.chr> [--tile-format nes]");
-			Console.Error.WriteLine("   or: poppy png-to-chr tiles.bmp -o tiles.asm --format asm");
+			Console.Error.WriteLine("   or: poppy png-to-chr tiles.bmp -o tiles.pasm --format pasm");
 			return 1;
 		}
 
@@ -1250,7 +1251,7 @@ main_loop:
 		try {
 			var outputFormat = options.OutputFormat?.ToLowerInvariant() ?? "bin";
 
-			if (outputFormat == "asm" || outputFormat == "inc") {
+			if (outputFormat == "asm" || outputFormat == "pasm" || outputFormat == "inc") {
 				// Generate assembly source
 				var tableName = options.DataName ?? Path.GetFileNameWithoutExtension(options.InputFile);
 				var asm = ImageToChrConverter.ConvertToAsm(imageData, tableName, conversionOptions);
@@ -1929,13 +1930,13 @@ main_loop:
 		Console.WriteLine("  Templates: pokemon, dw, ff, earthbound, zelda, metroid, castlevania, megaman, sjis");
 		Console.WriteLine();
 		Console.WriteLine("Data Generation:");
-		Console.WriteLine("  poppy data-gen monsters.json -o monsters.asm --name Monsters");
-		Console.WriteLine("  poppy json-to-asm items.json -o items.inc --prefix game_");
+		Console.WriteLine("  poppy data-gen monsters.json -o monsters.pasm --name Monsters");
+		Console.WriteLine("  poppy json-to-asm items.json -o items.pasm --prefix game_");
 		Console.WriteLine("  poppy data-gen spells.json --no-comments --no-record-labels");
 		Console.WriteLine();
 		Console.WriteLine("Graphics Conversion:");
 		Console.WriteLine("  poppy gfx-convert tiles.bmp -o tiles.chr --tile-format nes");
-		Console.WriteLine("  poppy png-to-chr sprites.bmp -o sprites.asm --format asm --name Sprites");
+		Console.WriteLine("  poppy png-to-chr sprites.bmp -o sprites.pasm --format pasm --name Sprites");
 		Console.WriteLine("  poppy gfx-convert bg.bmp -o bg.chr --tile-format snes4 --bpp 4");
 		Console.WriteLine("  Tile formats: nes, snes2, snes4, gba4, gba8, gb");
 	}

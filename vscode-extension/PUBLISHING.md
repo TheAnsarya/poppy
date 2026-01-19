@@ -9,7 +9,7 @@ This guide covers packaging and publishing the Poppy Assembly VS Code extension.
 ### Required Tools
 ```bash
 # Install vsce (Visual Studio Code Extension manager)
-npm install -g @vscode/vsce
+yarn global add @vscode/vsce
 
 # Verify installation
 vsce --version
@@ -37,7 +37,7 @@ Ensure all requirements are met:
 - [ ] `package.json` version number updated
 - [ ] `CHANGELOG.md` updated with new features
 - [ ] All TypeScript code compiles without errors
-- [ ] All tests pass (`npm test`)
+- [ ] All tests pass (`yarn test`)
 - [ ] README.md is complete and accurate
 - [ ] Icon file exists (if specified in package.json)
 - [ ] License file exists
@@ -52,10 +52,10 @@ rm -rf out/
 rm -rf *.vsix
 
 # Install dependencies
-npm install
+yarn install
 
 # Compile TypeScript
-npm run compile
+yarn compile
 
 # Verify compilation
 ls out/
@@ -181,8 +181,8 @@ Follow semver (<https://semver.org/>):
 
 ```bash
 # 1. Make changes
-npm run compile
-npm test
+yarn compile
+yarn test
 
 # 2. Update version and changelog
 # Edit package.json (version)
