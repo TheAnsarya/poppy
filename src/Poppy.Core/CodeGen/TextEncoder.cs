@@ -257,6 +257,130 @@ public class TextEncoder {
 	}
 
 	/// <summary>
+	/// Create a Legend of Zelda style encoder (NES)
+	/// </summary>
+	public static TextEncoder CreateZeldaEncoder() {
+		var encoder = new TextEncoder { Name = "Zelda" };
+		encoder.EndByte = 0xff;
+
+		// Uppercase A-Z at 0x0a-0x23
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)(0x0a + i);
+		}
+
+		// Numbers 0-9 at 0x00-0x09
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)i;
+		}
+
+		// Space and punctuation
+		encoder._charToByte[" "] = 0x24;
+		encoder._charToByte[","] = 0x28;
+		encoder._charToByte["!"] = 0x29;
+		encoder._charToByte["'"] = 0x2a;
+		encoder._charToByte["&"] = 0x2b;
+		encoder._charToByte["."] = 0x2c;
+		encoder._charToByte["\""] = 0x2d;
+		encoder._charToByte["?"] = 0x2e;
+		encoder._charToByte["-"] = 0x2f;
+
+		// Control codes
+		encoder._controlCodes["[LINE]"] = [0xe0];
+		encoder._controlCodes["[ITEM]"] = [0xe1];
+		encoder._controlCodes["[RUPEE]"] = [0xe2];
+		encoder._controlCodes["[END]"] = [0xff];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Create a Metroid style encoder (NES)
+	/// </summary>
+	public static TextEncoder CreateMetroidEncoder() {
+		var encoder = new TextEncoder { Name = "Metroid" };
+		encoder.EndByte = 0xff;
+
+		// Uppercase A-Z at 0x0a-0x23
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)(0x0a + i);
+		}
+
+		// Numbers 0-9 at 0x00-0x09
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)i;
+		}
+
+		// Space
+		encoder._charToByte[" "] = 0x24;
+		encoder._charToByte["."] = 0xfe;
+
+		// Control codes
+		encoder._controlCodes["[END]"] = [0xff];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Create a Castlevania style encoder (NES)
+	/// </summary>
+	public static TextEncoder CreateCastlevaniaEncoder() {
+		var encoder = new TextEncoder { Name = "Castlevania" };
+		encoder.EndByte = 0x40;
+
+		// Uppercase A-Z at 0x00-0x19
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)i;
+		}
+
+		// Numbers 0-9 at 0x1a-0x23
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)(0x1a + i);
+		}
+
+		// Space and punctuation
+		encoder._charToByte[" "] = 0x24;
+		encoder._charToByte["."] = 0x28;
+		encoder._charToByte["-"] = 0x2c;
+		encoder._charToByte["!"] = 0x2d;
+		encoder._charToByte["'"] = 0x2e;
+
+		// Control codes
+		encoder._controlCodes["[END]"] = [0x40];
+		encoder._controlCodes["[LINE]"] = [0x41];
+
+		return encoder;
+	}
+
+	/// <summary>
+	/// Create a Mega Man style encoder (NES)
+	/// </summary>
+	public static TextEncoder CreateMegaManEncoder() {
+		var encoder = new TextEncoder { Name = "Mega Man" };
+		encoder.EndByte = 0xff;
+
+		// Uppercase A-Z at 0x00-0x19
+		for (int i = 0; i < 26; i++) {
+			encoder._charToByte[((char)('A' + i)).ToString()] = (byte)i;
+		}
+
+		// Numbers 0-9 at 0x50-0x59
+		for (int i = 0; i < 10; i++) {
+			encoder._charToByte[((char)('0' + i)).ToString()] = (byte)(0x50 + i);
+		}
+
+		// Space and punctuation
+		encoder._charToByte[" "] = 0x40;
+		encoder._charToByte["."] = 0x1a;
+		encoder._charToByte["-"] = 0x1b;
+		encoder._charToByte["!"] = 0x1c;
+
+		// Control codes
+		encoder._controlCodes["[END]"] = [0xff];
+
+		return encoder;
+	}
+
+	/// <summary>
 	/// Get encoder by template name
 	/// </summary>
 	public static TextEncoder GetTemplate(string name) {
@@ -266,6 +390,10 @@ public class TextEncoder {
 			"dw" or "dq" or "dragonquest" or "dragonwarrior" => CreateDragonQuestEncoder(),
 			"ff" or "finalfantasy" => CreateFinalFantasyEncoder(),
 			"eb" or "earthbound" or "mother" => CreateEarthBoundEncoder(),
+			"zelda" or "loz" => CreateZeldaEncoder(),
+			"metroid" => CreateMetroidEncoder(),
+			"castlevania" or "cv" => CreateCastlevaniaEncoder(),
+			"megaman" or "mm" or "rockman" => CreateMegaManEncoder(),
 			_ => CreateAsciiEncoder()
 		};
 	}
