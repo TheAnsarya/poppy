@@ -19,6 +19,10 @@ public sealed class CdlGenerator {
 	private readonly IReadOnlyList<OutputSegment> _segments;
 	private readonly ListingGenerator? _listing;
 
+	// Track jump and call targets from instruction analysis
+	private readonly HashSet<long> _jsrTargets = []; // JSR/JSL/CALL targets (subroutine entry points)
+	private readonly HashSet<long> _jmpTargets = []; // JMP/JML/BRA/BRL targets (jump targets)
+
 	// CDL Flag definitions (FCEUX format)
 	private const byte FCEUX_CODE = 0x01;
 	private const byte FCEUX_DATA = 0x02;
@@ -120,6 +124,32 @@ public sealed class CdlGenerator {
 			cdl[romOffset] = flags;
 		}
 
+		// Mark tracked JSR targets as subroutine entry points
+		foreach (var targetAddress in _jsrTargets) {
+			var romOffset = CpuToRomAddress((int)targetAddress);
+			if (romOffset >= 0 && romOffset < romSize) {
+				var flags = cdl[romOffset];
+				if (format == CdlFormat.Mesen) {
+					flags |= MESEN_SUB_ENTRY_POINT;
+				} else {
+					flags |= FCEUX_INDIRECT_CODE;
+				}
+				cdl[romOffset] = flags;
+			}
+		}
+
+		// Mark tracked JMP targets as jump targets
+		foreach (var targetAddress in _jmpTargets) {
+			var romOffset = CpuToRomAddress((int)targetAddress);
+			if (romOffset >= 0 && romOffset < romSize) {
+				var flags = cdl[romOffset];
+				if (format == CdlFormat.Mesen) {
+					flags |= MESEN_JUMP_TARGET;
+				}
+				cdl[romOffset] = flags;
+			}
+		}
+
 		// Use listing data if available for more precise tracking
 		if (_listing is not null) {
 			foreach (var entry in _listing.Entries) {
@@ -219,5 +249,23 @@ public sealed class CdlGenerator {
 
 		// Default to Mesen format (more modern, includes header)
 		return CdlFormat.Mesen;
+	}
+
+	/// <summary>
+	/// Registers a JSR/JSL/CALL target address as a subroutine entry point.
+	/// Call this during code generation when emitting JSR-type instructions.
+	/// </summary>
+	/// <param name="targetAddress">The CPU address being called.</param>
+	public void RegisterSubroutineEntry(long targetAddress) {
+		_jsrTargets.Add(targetAddress);
+	}
+
+	/// <summary>
+	/// Registers a JMP/JML/BRA/BRL target address as a jump target.
+	/// Call this during code generation when emitting JMP-type instructions.
+	/// </summary>
+	/// <param name="targetAddress">The CPU address being jumped to.</param>
+	public void RegisterJumpTarget(long targetAddress) {
+		_jmpTargets.Add(targetAddress);
 	}
 }

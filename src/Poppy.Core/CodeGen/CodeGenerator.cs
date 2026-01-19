@@ -21,6 +21,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	private OutputSegment? _currentSegment;
 	private long _currentAddress;
 
+	// Optional CDL generator for tracking jump/call targets
+	private readonly CdlGenerator? _cdlGenerator;
+
 	// 65816 M/X flag tracking for correct immediate operand sizes
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
 	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
@@ -45,9 +48,11 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// </summary>
 	/// <param name="analyzer">The semantic analyzer with symbol table.</param>
 	/// <param name="target">The target architecture.</param>
-	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502) {
+	/// <param name="cdlGenerator">Optional CDL generator for tracking jump/call targets.</param>
+	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502, CdlGenerator? cdlGenerator = null) {
 		_analyzer = analyzer;
 		_target = target;
+		_cdlGenerator = cdlGenerator;
 		_errors = [];
 		_segments = [];
 		_macroExpander = new MacroExpander(analyzer.MacroTable);
@@ -211,6 +216,20 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 					$"Cannot evaluate operand for instruction '{mnemonic}'",
 					node.Location));
 				return null;
+			}
+
+			// Track JSR/JMP targets in CDL generator
+			if (_cdlGenerator is not null) {
+				var mnemonicLower = mnemonic.ToLowerInvariant();
+
+				// JSR-type instructions (subroutine calls)
+				if (mnemonicLower is "jsr" or "jsl" or "call" or "bsr") {
+					_cdlGenerator.RegisterSubroutineEntry(operandValue.Value);
+				}
+				// JMP-type instructions (jumps)
+				else if (mnemonicLower is "jmp" or "jml" or "bra" or "brl") {
+					_cdlGenerator.RegisterJumpTarget(operandValue.Value);
+				}
 			}
 
 			// Handle branch instructions (relative addressing)
