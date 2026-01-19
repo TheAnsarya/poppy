@@ -72,6 +72,11 @@ internal static class Program {
 			return GenerateDataAsm(options);
 		}
 
+		// Handle graphics conversion command
+		if (options.Command == CommandType.GfxConvert) {
+			return ConvertGraphics(options);
+		}
+
 		// Project-based build
 		if (options.ProjectPath is not null) {
 			return BuildProject(options);
@@ -1189,6 +1194,126 @@ main_loop:
 	}
 
 	/// <summary>
+	/// Converts PNG/BMP images to CHR tile data.
+	/// </summary>
+	private static int ConvertGraphics(CompilerOptions options) {
+		Console.WriteLine($"🌸 {AppName} v{Version} - Graphics Converter");
+
+		if (options.InputFile is null) {
+			Console.Error.WriteLine("Error: No input image file specified.");
+			Console.Error.WriteLine("Usage: poppy gfx-convert <input.bmp> -o <output.chr> [--tile-format nes]");
+			Console.Error.WriteLine("   or: poppy png-to-chr tiles.bmp -o tiles.asm --format asm");
+			return 1;
+		}
+
+		if (!File.Exists(options.InputFile)) {
+			Console.Error.WriteLine($"Error: Input file not found: {options.InputFile}");
+			return 1;
+		}
+
+		Console.WriteLine($"  Input: {options.InputFile}");
+
+		// Parse tile format
+		var tileFormat = (options.TileFormat?.ToLowerInvariant()) switch {
+			"nes" or "nes2bpp" => ImageToChrConverter.TileFormat.NesPlanar,
+			"snes2" or "snes2bpp" => ImageToChrConverter.TileFormat.Snes2bpp,
+			"snes4" or "snes4bpp" => ImageToChrConverter.TileFormat.Snes4bpp,
+			"gba4" or "gba4bpp" => ImageToChrConverter.TileFormat.Gba4bpp,
+			"gba8" or "gba8bpp" => ImageToChrConverter.TileFormat.Gba8bpp,
+			"gb" or "gameboy" => ImageToChrConverter.TileFormat.GameBoy2bpp,
+			_ => ImageToChrConverter.TileFormat.NesPlanar
+		};
+
+		Console.WriteLine($"  Format: {tileFormat}");
+		Console.WriteLine($"  Tile size: {options.TileWidth}x{options.TileHeight}");
+
+		// Configure conversion options
+		var conversionOptions = new ImageToChrConverter.ConversionOptions {
+			Format = tileFormat,
+			BitsPerPixel = options.BitsPerPixel,
+			TileWidth = options.TileWidth,
+			TileHeight = options.TileHeight,
+			LowercaseHex = true,
+			LabelPrefix = options.LabelPrefix ?? "chr_"
+		};
+
+		// Read input file
+		byte[] imageData;
+		try {
+			imageData = File.ReadAllBytes(options.InputFile);
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error reading input file: {ex.Message}");
+			return 1;
+		}
+
+		// Convert
+		try {
+			var outputFormat = options.OutputFormat?.ToLowerInvariant() ?? "bin";
+
+			if (outputFormat == "asm" || outputFormat == "inc") {
+				// Generate assembly source
+				var tableName = options.DataName ?? Path.GetFileNameWithoutExtension(options.InputFile);
+				var asm = ImageToChrConverter.ConvertToAsm(imageData, tableName, conversionOptions);
+
+				if (options.OutputFile is not null) {
+					File.WriteAllText(options.OutputFile, asm);
+					Console.WriteLine($"  Output: {options.OutputFile}");
+					Console.WriteLine($"  Size: {FormatFileSize(new FileInfo(options.OutputFile).Length)}");
+				} else {
+					// Output to console
+					Console.WriteLine();
+					var lines = asm.Split('\n');
+					int maxLines = Math.Min(lines.Length, 40);
+					for (int i = 0; i < maxLines; i++) {
+						Console.WriteLine(lines[i].TrimEnd());
+					}
+					if (lines.Length > maxLines) {
+						Console.WriteLine($"... and {lines.Length - maxLines} more lines");
+					}
+				}
+			} else {
+				// Generate binary CHR data
+				var chrData = ImageToChrConverter.ConvertBmpToChr(imageData, conversionOptions);
+
+				int bytesPerTile = ImageToChrConverter.GetBytesPerTile(tileFormat, options.BitsPerPixel);
+				int tileCount = chrData.Length / bytesPerTile;
+				Console.WriteLine($"  Tiles: {tileCount}");
+
+				if (options.OutputFile is not null) {
+					Directory.CreateDirectory(Path.GetDirectoryName(options.OutputFile) ?? ".");
+					File.WriteAllBytes(options.OutputFile, chrData);
+					Console.WriteLine($"  Output: {options.OutputFile}");
+					Console.WriteLine($"  Size: {FormatFileSize(chrData.Length)}");
+				} else {
+					// Output hex to console
+					Console.WriteLine();
+					Console.WriteLine("  CHR data (first 64 bytes):");
+					Console.Write("  ");
+					for (int i = 0; i < Math.Min(chrData.Length, 64); i++) {
+						Console.Write($"{chrData[i]:x2} ");
+						if ((i + 1) % 16 == 0) Console.Write("\n  ");
+					}
+					if (chrData.Length > 64) {
+						Console.Write($"... and {chrData.Length - 64} more bytes");
+					}
+					Console.WriteLine();
+				}
+			}
+
+			Console.WriteLine();
+			Console.WriteLine($"🌸 Graphics conversion complete");
+			return 0;
+
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error converting image: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
 	/// Formats a file size for display.
 	/// </summary>
 	private static string FormatFileSize(long bytes) {
@@ -1475,6 +1600,13 @@ main_loop:
 				options.Command = CommandType.DataGen;
 				break;
 
+			case "gfx-convert":
+			case "png-to-chr":
+			case "chr-gen":
+				// Graphics conversion command
+				options.Command = CommandType.GfxConvert;
+				break;
+
 				case "-h":
 				case "--help":
 					options.ShowHelp = true;
@@ -1671,6 +1803,36 @@ main_loop:
 					options.NoComments = true;
 					break;
 
+				case "--tile-format":
+				case "--chr-format":
+					if (i + 1 < args.Length) {
+						options.TileFormat = args[++i];
+					}
+
+					break;
+
+				case "--bpp":
+				case "--bits-per-pixel":
+					if (i + 1 < args.Length && int.TryParse(args[++i], out int bpp)) {
+						options.BitsPerPixel = bpp;
+					}
+
+					break;
+
+				case "--tile-width":
+					if (i + 1 < args.Length && int.TryParse(args[++i], out int tw)) {
+						options.TileWidth = tw;
+					}
+
+					break;
+
+				case "--tile-height":
+					if (i + 1 < args.Length && int.TryParse(args[++i], out int th)) {
+						options.TileHeight = th;
+					}
+
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -1698,6 +1860,7 @@ main_loop:
 		Console.WriteLine("       poppy validate <archive.poppy>");
 		Console.WriteLine("       poppy text-encode [options]");
 		Console.WriteLine("       poppy data-gen <input.json> [options]");
+		Console.WriteLine("       poppy gfx-convert <input.bmp> [options]");
 		Console.WriteLine();
 		Console.WriteLine("Commands:");
 		Console.WriteLine("  init <name>          Create a new project from template");
@@ -1707,6 +1870,7 @@ main_loop:
 		Console.WriteLine("  validate             Validate .poppy archive integrity");
 		Console.WriteLine("  text-encode          Encode text using TBL table file");
 		Console.WriteLine("  data-gen             Convert JSON data to assembly source");
+		Console.WriteLine("  gfx-convert          Convert PNG/BMP to CHR tile data");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -1767,6 +1931,12 @@ main_loop:
 		Console.WriteLine("  poppy data-gen monsters.json -o monsters.asm --name Monsters");
 		Console.WriteLine("  poppy json-to-asm items.json -o items.inc --prefix game_");
 		Console.WriteLine("  poppy data-gen spells.json --no-comments --no-record-labels");
+		Console.WriteLine();
+		Console.WriteLine("Graphics Conversion:");
+		Console.WriteLine("  poppy gfx-convert tiles.bmp -o tiles.chr --tile-format nes");
+		Console.WriteLine("  poppy png-to-chr sprites.bmp -o sprites.asm --format asm --name Sprites");
+		Console.WriteLine("  poppy gfx-convert bg.bmp -o bg.chr --tile-format snes4 --bpp 4");
+		Console.WriteLine("  Tile formats: nes, snes2, snes4, gba4, gba8, gb");
 	}
 
 	/// <summary>
@@ -1805,7 +1975,10 @@ internal enum CommandType {
 	TextEncode,
 
 	/// <summary>Convert JSON data to assembly source.</summary>
-	DataGen
+	DataGen,
+
+	/// <summary>Convert PNG/BMP to CHR tile data.</summary>
+	GfxConvert
 }
 
 /// <summary>
@@ -1907,4 +2080,16 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Skip generating comments.</summary>
 	public bool NoComments { get; set; }
+
+	/// <summary>Tile format for graphics conversion (nes, snes2, snes4, gba4, gba8, gb).</summary>
+	public string? TileFormat { get; set; }
+
+	/// <summary>Bits per pixel for graphics conversion.</summary>
+	public int BitsPerPixel { get; set; } = 2;
+
+	/// <summary>Tile width in pixels.</summary>
+	public int TileWidth { get; set; } = 8;
+
+	/// <summary>Tile height in pixels.</summary>
+	public int TileHeight { get; set; } = 8;
 }
