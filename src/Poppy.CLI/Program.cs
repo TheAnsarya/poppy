@@ -1925,7 +1925,8 @@ main_loop:
 		Console.WriteLine("  poppy text-encode --template dw --text \"Hello\" -o msg.bin");
 		Console.WriteLine("  poppy text-encode -i dialog.txt --table game.tbl -o output.bin");
 		Console.WriteLine("  poppy text-encode --template pokemon --text \"RED\" --format asm");
-		Console.WriteLine("  Templates: pokemon, dw, ff, earthbound, zelda, metroid, castlevania, megaman");
+		Console.WriteLine("  poppy text-encode --template sjis --text \"こんにちは\" -o japanese.bin");
+		Console.WriteLine("  Templates: pokemon, dw, ff, earthbound, zelda, metroid, castlevania, megaman, sjis");
 		Console.WriteLine();
 		Console.WriteLine("Data Generation:");
 		Console.WriteLine("  poppy data-gen monsters.json -o monsters.asm --name Monsters");

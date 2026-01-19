@@ -381,6 +381,45 @@ public class TextEncoder {
 	}
 
 	/// <summary>
+	/// Create a Shift-JIS compatible encoder for Japanese text
+	/// </summary>
+	public static TextEncoder CreateShiftJisEncoder() {
+		var encoder = new TextEncoder { Name = "Shift-JIS" };
+
+		// ASCII range (single byte)
+		for (int i = 0x20; i <= 0x7e; i++) {
+			encoder._charToByte[((char)i).ToString()] = (byte)i;
+		}
+
+		// Half-width katakana (0xa1-0xdf)
+		var katakana = "。「」、・ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン゛゜";
+		for (int i = 0; i < katakana.Length && i < 63; i++) {
+			encoder._charToByte[katakana[i].ToString()] = (byte)(0xa1 + i);
+		}
+
+		// Common two-byte hiragana (82xx range)
+		var hiragana = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをん";
+		for (int i = 0; i < hiragana.Length && i < 83; i++) {
+			ushort code = (ushort)(0x829f + i);
+			// Skip gaps in Shift-JIS encoding
+			if (i >= 31) code++;
+			encoder._charToWord[hiragana[i].ToString()] = code;
+		}
+
+		// Common two-byte katakana (83xx range)
+		var fullKatakana = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶ";
+		for (int i = 0; i < fullKatakana.Length && i < 86; i++) {
+			ushort code = (ushort)(0x8340 + i);
+			// Skip gaps in Shift-JIS encoding
+			if (i >= 31) code++;
+			if (i >= 63) code++;
+			encoder._charToWord[fullKatakana[i].ToString()] = code;
+		}
+
+		return encoder;
+	}
+
+	/// <summary>
 	/// Get encoder by template name
 	/// </summary>
 	public static TextEncoder GetTemplate(string name) {
@@ -394,6 +433,7 @@ public class TextEncoder {
 			"metroid" => CreateMetroidEncoder(),
 			"castlevania" or "cv" => CreateCastlevaniaEncoder(),
 			"megaman" or "mm" or "rockman" => CreateMegaManEncoder(),
+			"sjis" or "shiftjis" or "shift-jis" => CreateShiftJisEncoder(),
 			_ => CreateAsciiEncoder()
 		};
 	}
