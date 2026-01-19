@@ -381,4 +381,116 @@ public class TextEncoderTests {
 
 		Assert.Equal(new byte[] { 0x00 }, result);
 	}
+
+	#region DTE/MTE Encoding Tests
+
+	[Fact]
+	public void LoadDteDictionary_ParsesDteEntries() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		var dte = """
+		80=th
+		81=he
+		82=the
+		""";
+
+		encoder.LoadDteDictionary(dte);
+
+		Assert.Equal(3, encoder.DteMappings.Count);
+		Assert.Equal((byte)0x80, encoder.DteMappings["th"]);
+		Assert.Equal((byte)0x81, encoder.DteMappings["he"]);
+		Assert.Equal((byte)0x82, encoder.DteMappings["the"]);
+	}
+
+	[Fact]
+	public void Encode_WithDte_CompressesPairs() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		encoder.LoadDteDictionary("80=th");
+
+		var result = encoder.Encode("the");
+
+		// "th" -> 0x80, "e" -> 0x65
+		Assert.Equal(new byte[] { 0x80, 0x65 }, result);
+	}
+
+	[Fact]
+	public void Encode_WithDte_LongestMatchFirst() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		var dte = """
+		80=th
+		81=the
+		""";
+		encoder.LoadDteDictionary(dte);
+
+		var result = encoder.Encode("the");
+
+		// Should use "the" (0x81) not "th" (0x80) + "e"
+		Assert.Equal(new byte[] { 0x81 }, result);
+	}
+
+	[Fact]
+	public void Encode_WithDte_CompressesMultipleOccurrences() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		encoder.LoadDteDictionary("80=th");
+
+		var result = encoder.Encode("the path");
+
+		// "th" -> 0x80, "e" -> 0x65, " " -> 0x20, "pa" -> 0x70 0x61, "th" -> 0x80
+		Assert.Equal(new byte[] { 0x80, 0x65, 0x20, 0x70, 0x61, 0x80 }, result);
+	}
+
+	[Fact]
+	public void Encode_WithDte_ControlCodesTakePrecedence() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		encoder.LoadDteDictionary("80=[E");
+		encoder.AddControlCode("END", [0xFF]);
+
+		var result = encoder.Encode("[END]");
+
+		// Control code should take precedence
+		Assert.Equal(new byte[] { 0xFF }, result);
+	}
+
+	[Fact]
+	public void Encode_WithDte_MixedCompression() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		var dte = """
+		80=th
+		81=in
+		82=er
+		""";
+		encoder.LoadDteDictionary(dte);
+
+		var result = encoder.Encode("thinking");
+
+		// "th" -> 0x80, "in" -> 0x81, "k" -> 0x6B, "in" -> 0x81, "g" -> 0x67
+		Assert.Equal(new byte[] { 0x80, 0x81, 0x6B, 0x81, 0x67 }, result);
+	}
+
+	[Fact]
+	public void LoadDteDictionary_SkipsComments() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		var dte = """
+		; This is a comment
+		80=th
+		# Another comment
+		81=he
+		""";
+
+		encoder.LoadDteDictionary(dte);
+
+		Assert.Equal(2, encoder.DteMappings.Count);
+	}
+
+	[Fact]
+	public void Encode_WithDte_EmptyDictionary() {
+		var encoder = TextEncoder.CreateAsciiEncoder();
+		encoder.LoadDteDictionary("");
+
+		var result = encoder.Encode("test");
+
+		// Should fall back to normal encoding
+		Assert.Equal(new byte[] { 0x74, 0x65, 0x73, 0x74 }, result);
+	}
+
+	#endregion
 }

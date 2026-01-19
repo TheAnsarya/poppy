@@ -9,6 +9,7 @@ public class TextEncoder {
 	private readonly Dictionary<string, byte> _charToByte = [];
 	private readonly Dictionary<string, ushort> _charToWord = [];
 	private readonly Dictionary<string, byte[]> _controlCodes = [];
+	private readonly Dictionary<string, byte> _dteEntries = [];
 
 	/// <summary>Table name/description</summary>
 	public string Name { get; set; } = "Unnamed";
@@ -89,6 +90,50 @@ public class TextEncoder {
 	}
 
 	/// <summary>
+	/// Load DTE (Dual Tile Encoding) dictionary from content.
+	/// Format: XX=ab (byte XX encodes the string "ab")
+	/// </summary>
+	public void LoadDteDictionary(string content) {
+		var lines = content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+
+		foreach (var line in lines) {
+			var trimmed = line.Trim();
+
+			// Skip comments
+			if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith(';') || trimmed.StartsWith('#')) {
+				continue;
+			}
+
+			// Parse XX=text format (DTE/MTE)
+			var eqIndex = trimmed.IndexOf('=');
+			if (eqIndex < 2) continue;
+
+			var hexPart = trimmed[..eqIndex];
+			var textPart = trimmed[(eqIndex + 1)..];
+
+			if (hexPart.Length == 2 && byte.TryParse(hexPart, System.Globalization.NumberStyles.HexNumber, null, out byte b)) {
+				// DTE: one byte encodes multiple characters
+				if (textPart.Length >= 2 && !_charToByte.ContainsKey(textPart)) {
+					_dteEntries[textPart] = b;
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Load DTE dictionary from file
+	/// </summary>
+	public void LoadDteDictionaryFromFile(string path) {
+		var content = File.ReadAllText(path);
+		LoadDteDictionary(content);
+	}
+
+	/// <summary>
+	/// Get all DTE mappings
+	/// </summary>
+	public IReadOnlyDictionary<string, byte> DteMappings => _dteEntries;
+
+	/// <summary>
 	/// Add a control code
 	/// </summary>
 	public void AddControlCode(string name, byte[] bytes) {
@@ -114,6 +159,20 @@ public class TextEncoder {
 				}
 			}
 			if (found) continue;
+
+			// Try DTE/MTE entries (longest match first for MTE)
+			if (_dteEntries.Count > 0) {
+				bool dteFound = false;
+				foreach (var dte in _dteEntries.OrderByDescending(d => d.Key.Length)) {
+					if (text.AsSpan(pos).StartsWith(dte.Key)) {
+						result.Add(dte.Value);
+						pos += dte.Key.Length;
+						dteFound = true;
+						break;
+					}
+				}
+				if (dteFound) continue;
+			}
 
 			// Try word mappings (2-char strings first)
 			if (_charToWord.Count > 0 && pos + 1 < text.Length) {
