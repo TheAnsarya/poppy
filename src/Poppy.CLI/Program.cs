@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Poppy.Core.CodeGen;
+using Poppy.Core.Converters;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Project;
@@ -75,6 +76,11 @@ internal static class Program {
 		// Handle graphics conversion command
 		if (options.Command == CommandType.GfxConvert) {
 			return ConvertGraphics(options);
+		}
+
+		// Handle project conversion command
+		if (options.Command == CommandType.Convert) {
+			return ConvertFromAssembler(options);
 		}
 
 		// Project-based build
@@ -1315,6 +1321,209 @@ main_loop:
 	}
 
 	/// <summary>
+	/// Converts source files from another assembler format to PASM.
+	/// </summary>
+	private static int ConvertFromAssembler(CompilerOptions options) {
+		Console.WriteLine($"🌸 {AppName} v{Version} - Project Converter");
+
+		// Determine source assembler
+		string? assemblerFormat = options.SourceAssembler;
+
+		// Create converter options
+		var converterOptions = new ConversionOptions {
+			PreserveComments = options.PreserveComments
+		};
+
+		// If converting a project directory
+		if (options.ConvertProject || (options.InputFile is not null && Directory.Exists(options.InputFile))) {
+			return ConvertProjectDirectory(options, converterOptions);
+		}
+
+		// Single file conversion
+		if (options.InputFile is null) {
+			Console.Error.WriteLine("Error: No input file or directory specified.");
+			Console.Error.WriteLine("Usage: poppy convert <input.asm> -o <output.pasm> [--from asar|ca65|xkas]");
+			Console.Error.WriteLine("   or: poppy convert <project-dir> --convert-project [--from asar]");
+			return 1;
+		}
+
+		if (!File.Exists(options.InputFile)) {
+			Console.Error.WriteLine($"Error: Input file not found: {options.InputFile}");
+			return 1;
+		}
+
+		Console.WriteLine($"  Input: {options.InputFile}");
+
+		// Auto-detect or use specified assembler
+		IProjectConverter converter;
+		if (options.AutoDetectAssembler || assemblerFormat is null) {
+			Console.WriteLine("  Auto-detecting source assembler...");
+			var detected = ConverterFactory.DetectAssembler(options.InputFile);
+			if (detected is null) {
+				Console.Error.WriteLine("  Could not detect source assembler format.");
+				Console.Error.WriteLine("  Use --from to specify: asar, ca65, or xkas");
+				return 1;
+			}
+			converter = ConverterFactory.Create(detected);
+			Console.WriteLine($"  Detected: {converter.SourceAssembler}");
+		} else {
+			converter = ConverterFactory.Create(assemblerFormat);
+			Console.WriteLine($"  Source format: {converter.SourceAssembler}");
+		}
+
+		// Perform conversion
+		try {
+			var result = converter.ConvertFile(options.InputFile, converterOptions);
+
+			// Report errors
+			foreach (var error in result.Errors) {
+				Console.WriteLine($"  ❌ Error ({error.FilePath}:{error.Line}): {error.Message}");
+			}
+
+			// Report warnings
+			foreach (var warning in result.Warnings) {
+				Console.WriteLine($"  ⚠️ Warning ({warning.FilePath}:{warning.Line}): {warning.Message}");
+			}
+
+			if (!result.Success) {
+				Console.Error.WriteLine($"  Conversion failed with {result.Errors.Count} error(s).");
+				return 1;
+			}
+
+			// Write output
+			string outputPath = options.OutputFile ?? Path.ChangeExtension(options.InputFile, ".pasm");
+			Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
+			File.WriteAllText(outputPath, result.Content);
+
+			Console.WriteLine($"  Output: {outputPath}");
+
+			var lineCount = result.Content.Split('\n').Length;
+			Console.WriteLine($"  Converted lines: {lineCount}");
+
+			if (result.Warnings.Count > 0) {
+				Console.WriteLine($"  Warnings: {result.Warnings.Count}");
+			}
+
+			Console.WriteLine();
+			Console.WriteLine($"🌸 Conversion complete");
+			return 0;
+
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error converting file: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
+	/// Converts an entire project directory from another assembler format to PASM.
+	/// </summary>
+	private static int ConvertProjectDirectory(CompilerOptions options, ConversionOptions converterOptions) {
+		var projectDir = options.InputFile ?? ".";
+
+		if (!Directory.Exists(projectDir)) {
+			Console.Error.WriteLine($"Error: Project directory not found: {projectDir}");
+			return 1;
+		}
+
+		Console.WriteLine($"  Project directory: {Path.GetFullPath(projectDir)}");
+		Console.WriteLine($"  Extensions: {string.Join(", ", options.ConvertExtensions)}");
+		Console.WriteLine($"  Recursive: {options.ConvertRecursive}");
+
+		// Collect files to convert
+		var searchOption = options.ConvertRecursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+		var filesToConvert = new List<string>();
+
+		foreach (var ext in options.ConvertExtensions) {
+			var pattern = "*" + ext;
+			filesToConvert.AddRange(Directory.GetFiles(projectDir, pattern, searchOption));
+		}
+
+		if (filesToConvert.Count == 0) {
+			Console.WriteLine("  No files found to convert.");
+			return 0;
+		}
+
+		Console.WriteLine($"  Files to convert: {filesToConvert.Count}");
+		Console.WriteLine();
+
+		// Auto-detect assembler from first file if needed
+		IProjectConverter converter;
+		if (options.AutoDetectAssembler || options.SourceAssembler is null) {
+			var detected = ConverterFactory.DetectAssembler(filesToConvert[0]);
+			if (detected is null) {
+				Console.Error.WriteLine("  Could not detect source assembler format.");
+				Console.Error.WriteLine("  Use --from to specify: asar, ca65, or xkas");
+				return 1;
+			}
+			converter = ConverterFactory.Create(detected);
+			Console.WriteLine($"  Auto-detected format: {converter.SourceAssembler}");
+		} else {
+			converter = ConverterFactory.Create(options.SourceAssembler);
+			Console.WriteLine($"  Source format: {converter.SourceAssembler}");
+		}
+
+		// Determine output directory
+		string outputDir = options.OutputFile ?? projectDir;
+
+		// Convert all files
+		int successCount = 0;
+		int errorCount = 0;
+		int totalWarnings = 0;
+
+		foreach (var inputFile in filesToConvert) {
+			var relativePath = Path.GetRelativePath(projectDir, inputFile);
+			Console.Write($"  Converting: {relativePath}...");
+
+			try {
+				var result = converter.ConvertFile(inputFile, converterOptions);
+
+				if (result.Success) {
+					// Determine output path
+					var outputPath = Path.Combine(outputDir, Path.ChangeExtension(relativePath, ".pasm"));
+					Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
+					File.WriteAllText(outputPath, result.Content);
+
+					var lineCount = result.Content.Split('\n').Length;
+					Console.WriteLine($" ✓ ({lineCount} lines)");
+					successCount++;
+					totalWarnings += result.Warnings.Count;
+				} else {
+					Console.WriteLine($" ✗ ({result.Errors.Count} errors)");
+					errorCount++;
+
+					// Show first error
+					var firstError = result.Errors.FirstOrDefault();
+					if (firstError is not null) {
+						Console.WriteLine($"    → {firstError.Message}");
+					}
+				}
+			} catch (Exception ex) {
+				Console.WriteLine($" ✗ (exception)");
+				Console.WriteLine($"    → {ex.Message}");
+				errorCount++;
+			}
+		}
+
+		Console.WriteLine();
+		Console.WriteLine($"  Results: {successCount} succeeded, {errorCount} failed");
+		if (totalWarnings > 0) {
+			Console.WriteLine($"  Total warnings: {totalWarnings}");
+		}
+
+		Console.WriteLine();
+		if (errorCount > 0) {
+			Console.WriteLine($"🌸 Conversion completed with errors");
+			return 1;
+		}
+
+		Console.WriteLine($"🌸 Project conversion complete");
+		return 0;
+	}
+
+	/// <summary>
 	/// Formats a file size for display.
 	/// </summary>
 	private static string FormatFileSize(long bytes) {
@@ -1645,6 +1854,12 @@ main_loop:
 				options.Command = CommandType.GfxConvert;
 				break;
 
+			case "convert":
+			case "migrate":
+				// Project conversion command (convert other assembler formats to PASM)
+				options.Command = CommandType.Convert;
+				break;
+
 				case "-h":
 				case "--help":
 					options.ShowHelp = true;
@@ -1882,6 +2097,50 @@ main_loop:
 
 					break;
 
+				// === Converter Options ===
+				case "--from":
+				case "--source-assembler":
+					if (i + 1 < args.Length) {
+						options.SourceAssembler = args[++i].ToLowerInvariant();
+					}
+
+					break;
+
+				case "--auto":
+				case "--auto-detect":
+					options.AutoDetectAssembler = true;
+					break;
+
+				case "--no-preserve-comments":
+					options.PreserveComments = false;
+					break;
+
+				case "--preserve-comments":
+					options.PreserveComments = true;
+					break;
+
+				case "--project-convert":
+				case "--convert-project":
+					options.ConvertProject = true;
+					break;
+
+				case "--no-recursive":
+					options.ConvertRecursive = false;
+					break;
+
+				case "--ext":
+				case "--extensions":
+					if (i + 1 < args.Length) {
+						// Parse comma-separated extensions
+						var exts = args[++i].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+						options.ConvertExtensions.Clear();
+						foreach (var ext in exts) {
+							options.ConvertExtensions.Add(ext.StartsWith('.') ? ext : "." + ext);
+						}
+					}
+
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -1907,6 +2166,7 @@ main_loop:
 		Console.WriteLine("       poppy pack [path] [-o <output.poppy>]");
 		Console.WriteLine("       poppy unpack <archive.poppy> [-o <directory>]");
 		Console.WriteLine("       poppy validate <archive.poppy>");
+		Console.WriteLine("       poppy convert <input> [--from <format>] [-o <output>]");
 		Console.WriteLine("       poppy text-encode [options]");
 		Console.WriteLine("       poppy data-gen <input.json> [options]");
 		Console.WriteLine("       poppy gfx-convert <input.bmp> [options]");
@@ -1917,6 +2177,7 @@ main_loop:
 		Console.WriteLine("  pack                 Pack project into .poppy archive");
 		Console.WriteLine("  unpack               Extract .poppy archive");
 		Console.WriteLine("  validate             Validate .poppy archive integrity");
+		Console.WriteLine("  convert              Convert from ASAR/ca65/xkas to PASM format");
 		Console.WriteLine("  text-encode          Encode text using TBL table file");
 		Console.WriteLine("  data-gen             Convert JSON data to assembly source");
 		Console.WriteLine("  gfx-convert          Convert PNG/BMP to CHR tile data");
@@ -1989,6 +2250,15 @@ main_loop:
 		Console.WriteLine("  poppy png-to-chr sprites.bmp -o sprites.pasm --format pasm --name Sprites");
 		Console.WriteLine("  poppy gfx-convert bg.bmp -o bg.chr --tile-format snes4 --bpp 4");
 		Console.WriteLine("  Tile formats: nes, snes2, snes4, gba4, gba8, gb");
+		Console.WriteLine();
+		Console.WriteLine("Project Conversion (ASAR/ca65/xkas to PASM):");
+		Console.WriteLine("  poppy convert game.asm -o game.pasm           Convert with auto-detect");
+		Console.WriteLine("  poppy convert game.asm --from asar            Convert from ASAR format");
+		Console.WriteLine("  poppy convert game.s --from ca65 -o game.pasm Convert from ca65 format");
+		Console.WriteLine("  poppy convert project/ --convert-project      Convert entire project");
+		Console.WriteLine("  poppy convert . --from asar -o output/        Convert current dir to output");
+		Console.WriteLine("  poppy convert src/ --ext .asm,.s,.inc         Specify file extensions");
+		Console.WriteLine("  Supported formats: asar, ca65, xkas");
 	}
 
 	/// <summary>
@@ -2030,7 +2300,10 @@ internal enum CommandType {
 	DataGen,
 
 	/// <summary>Convert PNG/BMP to CHR tile data.</summary>
-	GfxConvert
+	GfxConvert,
+
+	/// <summary>Convert project from another assembler format to PASM.</summary>
+	Convert
 }
 
 /// <summary>
@@ -2150,4 +2423,24 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Tile height in pixels.</summary>
 	public int TileHeight { get; set; } = 8;
+
+	// === Converter Options ===
+
+	/// <summary>Source assembler format for conversion (asar, ca65, xkas).</summary>
+	public string? SourceAssembler { get; set; }
+
+	/// <summary>Auto-detect source assembler format.</summary>
+	public bool AutoDetectAssembler { get; set; }
+
+	/// <summary>Preserve comments during conversion.</summary>
+	public bool PreserveComments { get; set; } = true;
+
+	/// <summary>Convert entire project directory.</summary>
+	public bool ConvertProject { get; set; }
+
+	/// <summary>Recursive conversion for project directories.</summary>
+	public bool ConvertRecursive { get; set; } = true;
+
+	/// <summary>File extensions to convert when converting projects.</summary>
+	public List<string> ConvertExtensions { get; } = [".asm", ".s", ".inc"];
 }
