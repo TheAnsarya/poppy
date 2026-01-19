@@ -1418,8 +1418,15 @@ main_loop:
 			Console.WriteLine($"  Analyzed: {analyzer.SymbolTable.Symbols.Count} symbols defined");
 		}
 
-		// Code generation
-		var generator = new CodeGenerator(analyzer, options.Target);
+		// Create CDL generator if detailed tracking is enabled
+		CdlGenerator? cdlGenerator = null;
+		if (options.CdlDetailed && options.CdlFile is not null) {
+			// CDL generator will be populated during code generation
+			cdlGenerator = new CdlGenerator(analyzer.SymbolTable, analyzer.Target, []);
+		}
+
+		// Code generation (with optional CDL tracking)
+		var generator = new CodeGenerator(analyzer, options.Target, cdlGenerator);
 		var code = generator.Generate(program);
 
 		if (generator.HasErrors) {
@@ -1497,10 +1504,19 @@ main_loop:
 					"fceux" or "fce" => CdlGenerator.CdlFormat.FCEUX,
 					_ => CdlGenerator.CdlFormat.Mesen
 				};
-				var cdlGenerator = new CdlGenerator(analyzer.SymbolTable, analyzer.Target, generator.Segments);
-				cdlGenerator.Export(options.CdlFile, code.Length, cdlFormat);
+
+				// Create the export generator with actual segments
+				var exportCdlGenerator = new CdlGenerator(analyzer.SymbolTable, analyzer.Target, generator.Segments);
+
+				// If detailed tracking was enabled, copy the tracked targets
+				if (cdlGenerator is not null) {
+					exportCdlGenerator.CopyTargetsFrom(cdlGenerator);
+				}
+
+				exportCdlGenerator.Export(options.CdlFile, code.Length, cdlFormat);
 				if (options.Verbose) {
-					Console.WriteLine($"  CDL: {options.CdlFile} ({options.CdlFormat} format)");
+					var detailSuffix = options.CdlDetailed ? $", detailed: {exportCdlGenerator.SubroutineEntryCount} subs, {exportCdlGenerator.JumpTargetCount} jumps" : "";
+					Console.WriteLine($"  CDL: {options.CdlFile} ({options.CdlFormat} format{detailSuffix})");
 				}
 			} catch (Exception ex) {
 				Console.Error.WriteLine($"Error writing CDL file: {ex.Message}");
@@ -1669,6 +1685,10 @@ main_loop:
 						options.CdlFormat = args[++i].ToLowerInvariant();
 					}
 
+					break;
+
+				case "--cdl-detailed":
+					options.CdlDetailed = true;
 					break;
 
 				case "--diz":
@@ -1883,6 +1903,7 @@ main_loop:
 		Console.WriteLine("  -m, --mapfile <file>          Generate memory map file");
 		Console.WriteLine("  --cdl, --code-data-log <file> Generate CDL (Code/Data Log) file");
 		Console.WriteLine("  --cdl-format <fmt>            CDL format: mesen (default), fceux");
+		Console.WriteLine("  --cdl-detailed                Enable detailed CDL with instruction tracking");
 		Console.WriteLine("  --diz, --diztinguish <file>   Generate DiztinGUIsh project file (.diz)");
 		Console.WriteLine("  -a, --auto-labels             Auto-generate labels for JSR/JMP targets");
 		Console.WriteLine("  -w, --watch                   Watch mode: recompile on file changes");
@@ -2010,6 +2031,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>CDL format (mesen or fceux).</summary>
 	public string CdlFormat { get; set; } = "mesen";
+
+	/// <summary>Enable detailed CDL tracking (instruction-based jump/call targets).</summary>
+	public bool CdlDetailed { get; set; }
 
 	/// <summary>DIZ (DiztinGUIsh) project file path.</summary>
 	public string? DizFile { get; set; }

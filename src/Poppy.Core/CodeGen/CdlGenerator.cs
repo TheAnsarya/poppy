@@ -268,4 +268,28 @@ public sealed class CdlGenerator {
 	public void RegisterJumpTarget(long targetAddress) {
 		_jmpTargets.Add(targetAddress);
 	}
+
+	/// <summary>
+	/// Copies tracked jump/call targets from another CdlGenerator instance.
+	/// Use this to transfer targets collected during code generation to a new generator.
+	/// </summary>
+	/// <param name="source">The source generator with tracked targets.</param>
+	public void CopyTargetsFrom(CdlGenerator source) {
+		foreach (var target in source._jsrTargets) {
+			_jsrTargets.Add(target);
+		}
+		foreach (var target in source._jmpTargets) {
+			_jmpTargets.Add(target);
+		}
+	}
+
+	/// <summary>
+	/// Gets the number of tracked subroutine entry points.
+	/// </summary>
+	public int SubroutineEntryCount => _jsrTargets.Count;
+
+	/// <summary>
+	/// Gets the number of tracked jump targets.
+	/// </summary>
+	public int JumpTargetCount => _jmpTargets.Count;
 }
