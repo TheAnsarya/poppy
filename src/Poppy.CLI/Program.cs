@@ -67,6 +67,11 @@ internal static class Program {
 			return EncodeText(options);
 		}
 
+		// Handle data-gen command
+		if (options.Command == CommandType.DataGen) {
+			return GenerateDataAsm(options);
+		}
+
 		// Project-based build
 		if (options.ProjectPath is not null) {
 			return BuildProject(options);
@@ -1084,6 +1089,106 @@ main_loop:
 	}
 
 	/// <summary>
+	/// Generates assembly data from JSON files.
+	/// </summary>
+	private static int GenerateDataAsm(CompilerOptions options) {
+		Console.WriteLine($"🌸 {AppName} v{Version} - JSON to Assembly Generator");
+
+		if (options.InputFile is null) {
+			Console.Error.WriteLine("Error: No input JSON file specified.");
+			Console.Error.WriteLine("Usage: poppy data-gen <input.json> -o <output.asm> --name <table_name>");
+			Console.Error.WriteLine("   or: poppy json-to-asm monsters.json -o monsters.asm --name Monsters");
+			return 1;
+		}
+
+		if (!File.Exists(options.InputFile)) {
+			Console.Error.WriteLine($"Error: Input file not found: {options.InputFile}");
+			return 1;
+		}
+
+		Console.WriteLine($"  Input: {options.InputFile}");
+
+		// Read JSON
+		string json;
+		try {
+			json = File.ReadAllText(options.InputFile);
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error reading input file: {ex.Message}");
+			return 1;
+		}
+
+		// Determine table name
+		var tableName = options.DataName ?? Path.GetFileNameWithoutExtension(options.InputFile);
+		Console.WriteLine($"  Table name: {tableName}");
+
+		// Configure conversion options
+		var conversionOptions = new JsonToAsmConverter.ConversionOptions {
+			LabelPrefix = options.LabelPrefix ?? "",
+			LowercaseHex = true,
+			IncludeComments = !options.NoComments,
+			AutoWordSize = true,
+			Endianness = options.BigEndian
+				? JsonToAsmConverter.Endianness.Big
+				: JsonToAsmConverter.Endianness.Little,
+			GenerateRecordLabels = !options.NoRecordLabels,
+			GenerateCount = !options.NoCount
+		};
+
+		// Convert JSON to assembly
+		string result;
+		try {
+			result = JsonToAsmConverter.ConvertJsonArray(json, tableName, conversionOptions);
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error converting JSON: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+
+		// Count records (from output)
+		int recordCount = result.Split("Record $", StringSplitOptions.None).Length - 1;
+		if (recordCount == 0) {
+			// Try another pattern
+			recordCount = result.Split("_COUNT = $", StringSplitOptions.None).Length - 1;
+		}
+
+		// Output
+		if (options.OutputFile is not null) {
+			try {
+				File.WriteAllText(options.OutputFile, result);
+				Console.WriteLine($"  Output: {options.OutputFile}");
+
+				var fileInfo = new FileInfo(options.OutputFile);
+				Console.WriteLine($"  Size: {FormatFileSize(fileInfo.Length)}");
+			} catch (Exception ex) {
+				Console.Error.WriteLine($"Error writing output file: {ex.Message}");
+				return 1;
+			}
+		} else {
+			// Output to console
+			Console.WriteLine();
+			Console.WriteLine("  Generated assembly:");
+			Console.WriteLine();
+
+			// Show first 50 lines or so
+			var lines = result.Split('\n');
+			int maxLines = Math.Min(lines.Length, 50);
+			for (int i = 0; i < maxLines; i++) {
+				Console.WriteLine(lines[i].TrimEnd());
+			}
+			if (lines.Length > maxLines) {
+				Console.WriteLine($"... and {lines.Length - maxLines} more lines");
+			}
+		}
+
+		Console.WriteLine();
+		Console.WriteLine($"🌸 Generated assembly for {tableName}");
+
+		return 0;
+	}
+
+	/// <summary>
 	/// Formats a file size for display.
 	/// </summary>
 	private static string FormatFileSize(long bytes) {
@@ -1363,6 +1468,13 @@ main_loop:
 				options.Command = CommandType.TextEncode;
 				break;
 
+			case "data-gen":
+			case "json-to-asm":
+			case "json2asm":
+				// Data generation command
+				options.Command = CommandType.DataGen;
+				break;
+
 				case "-h":
 				case "--help":
 					options.ShowHelp = true;
@@ -1528,6 +1640,37 @@ main_loop:
 
 					break;
 
+				case "--name":
+				case "-n":
+					if (i + 1 < args.Length) {
+						options.DataName = args[++i];
+					}
+
+					break;
+
+				case "--prefix":
+					if (i + 1 < args.Length) {
+						options.LabelPrefix = args[++i];
+					}
+
+					break;
+
+				case "--big-endian":
+					options.BigEndian = true;
+					break;
+
+				case "--no-record-labels":
+					options.NoRecordLabels = true;
+					break;
+
+				case "--no-count":
+					options.NoCount = true;
+					break;
+
+				case "--no-comments":
+					options.NoComments = true;
+					break;
+
 				default:
 					if (!arg.StartsWith('-')) {
 						options.InputFile = arg;
@@ -1553,6 +1696,8 @@ main_loop:
 		Console.WriteLine("       poppy pack [path] [-o <output.poppy>]");
 		Console.WriteLine("       poppy unpack <archive.poppy> [-o <directory>]");
 		Console.WriteLine("       poppy validate <archive.poppy>");
+		Console.WriteLine("       poppy text-encode [options]");
+		Console.WriteLine("       poppy data-gen <input.json> [options]");
 		Console.WriteLine();
 		Console.WriteLine("Commands:");
 		Console.WriteLine("  init <name>          Create a new project from template");
@@ -1560,6 +1705,8 @@ main_loop:
 		Console.WriteLine("  pack                 Pack project into .poppy archive");
 		Console.WriteLine("  unpack               Extract .poppy archive");
 		Console.WriteLine("  validate             Validate .poppy archive integrity");
+		Console.WriteLine("  text-encode          Encode text using TBL table file");
+		Console.WriteLine("  data-gen             Convert JSON data to assembly source");
 		Console.WriteLine();
 		Console.WriteLine("Options:");
 		Console.WriteLine("  -h, --help           Show this help message");
@@ -1609,6 +1756,17 @@ main_loop:
 		Console.WriteLine("  poppy unpack game.poppy            Extract to ./game");
 		Console.WriteLine("  poppy unpack game.poppy -o mydir   Extract to ./mydir");
 		Console.WriteLine("  poppy validate game.poppy          Check archive integrity");
+		Console.WriteLine();
+		Console.WriteLine("Text Encoding:");
+		Console.WriteLine("  poppy text-encode --template dw --text \"Hello\" -o msg.bin");
+		Console.WriteLine("  poppy text-encode -i dialog.txt --table game.tbl -o output.bin");
+		Console.WriteLine("  poppy text-encode --template pokemon --text \"RED\" --format asm");
+		Console.WriteLine("  Templates: pokemon, dw, ff, earthbound, zelda, metroid, castlevania, megaman");
+		Console.WriteLine();
+		Console.WriteLine("Data Generation:");
+		Console.WriteLine("  poppy data-gen monsters.json -o monsters.asm --name Monsters");
+		Console.WriteLine("  poppy json-to-asm items.json -o items.inc --prefix game_");
+		Console.WriteLine("  poppy data-gen spells.json --no-comments --no-record-labels");
 	}
 
 	/// <summary>
@@ -1644,7 +1802,10 @@ internal enum CommandType {
 	Validate,
 
 	/// <summary>Encode text using TBL table.</summary>
-	TextEncode
+	TextEncode,
+
+	/// <summary>Convert JSON data to assembly source.</summary>
+	DataGen
 }
 
 /// <summary>
@@ -1728,4 +1889,22 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Output format (bin, asm, hex).</summary>
 	public string? OutputFormat { get; set; }
+
+	/// <summary>Table/data name for data-gen command.</summary>
+	public string? DataName { get; set; }
+
+	/// <summary>Label prefix for data-gen command.</summary>
+	public string? LabelPrefix { get; set; }
+
+	/// <summary>Use big-endian for multi-byte values.</summary>
+	public bool BigEndian { get; set; }
+
+	/// <summary>Skip generating record labels.</summary>
+	public bool NoRecordLabels { get; set; }
+
+	/// <summary>Skip generating count constant.</summary>
+	public bool NoCount { get; set; }
+
+	/// <summary>Skip generating comments.</summary>
+	public bool NoComments { get; set; }
 }
