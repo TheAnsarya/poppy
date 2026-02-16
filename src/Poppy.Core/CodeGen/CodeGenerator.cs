@@ -14,8 +14,10 @@ namespace Poppy.Core.CodeGen;
 /// </summary>
 public sealed class CodeGenerator : IAstVisitor<object?> {
 	private readonly SemanticAnalyzer _analyzer;
-	private readonly TargetArchitecture _target;
+	private TargetArchitecture _target;
+	private readonly TargetArchitecture _initialTarget;
 	private readonly List<CodeError> _errors;
+	private readonly List<CodeWarning> _warnings;
 	private readonly List<OutputSegment> _segments;
 	private readonly MacroExpander _macroExpander;
 	private OutputSegment? _currentSegment;
@@ -34,14 +36,29 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	public IReadOnlyList<CodeError> Errors => _errors;
 
 	/// <summary>
+	/// Gets all code generation warnings.
+	/// </summary>
+	public IReadOnlyList<CodeWarning> Warnings => _warnings;
+
+	/// <summary>
 	/// Gets whether generation encountered any errors.
 	/// </summary>
 	public bool HasErrors => _errors.Count > 0;
 
 	/// <summary>
+	/// Gets whether generation encountered any warnings.
+	/// </summary>
+	public bool HasWarnings => _warnings.Count > 0;
+
+	/// <summary>
 	/// Gets the output segments.
 	/// </summary>
 	public IReadOnlyList<OutputSegment> Segments => _segments;
+
+	/// <summary>
+	/// Gets the current target architecture.
+	/// </summary>
+	public TargetArchitecture CurrentTarget => _target;
 
 	/// <summary>
 	/// Creates a new code generator.
@@ -52,8 +69,10 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502, CdlGenerator? cdlGenerator = null) {
 		_analyzer = analyzer;
 		_target = target;
+		_initialTarget = target;
 		_cdlGenerator = cdlGenerator;
 		_errors = [];
+		_warnings = [];
 		_segments = [];
 		_macroExpander = new MacroExpander(analyzer.MacroTable);
 		_currentAddress = 0;
@@ -195,6 +214,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			// Optimize Absolute to ZeroPage if value fits and instruction supports it
 			if (operandValue.HasValue) {
 				addressingMode = ResolveAddressingMode(mnemonic, addressingMode, operandValue.Value);
+
+				// Validate memory writes to reserved addresses (platform-specific)
+				ValidateMemoryAddress(mnemonic, operandValue.Value, node.Location);
 			}
 		}
 
@@ -357,6 +379,11 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				break;
 			case "i16":
 				_indexIs16Bit = true;
+				break;
+
+			// Platform switching directive
+			case "platform":
+				HandlePlatformDirective(node);
 				break;
 
 				// Other directives don't generate code
@@ -745,9 +772,118 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		}
 	}
 
+	/// <summary>
+	/// Handles .platform directive for inline platform/architecture switching.
+	/// </summary>
+	/// <remarks>
+	/// Allows changing the target architecture mid-source for multi-CPU systems
+	/// or testing different instruction sets. Example: .platform "lynx"
+	/// </remarks>
+	private void HandlePlatformDirective(DirectiveNode node) {
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError(
+				".platform directive requires an architecture (nes, snes, gb, lynx, genesis, sms, ws, gba, spc700, tg16)",
+				node.Location));
+			return;
+		}
+
+		// Get the platform name from the argument
+		string? platformName = node.Arguments[0] switch {
+			IdentifierNode id => id.Name,
+			StringLiteralNode str => str.Value,
+			_ => null
+		};
+
+		if (platformName is null) {
+			_errors.Add(new CodeError(
+				".platform directive requires an identifier or string",
+				node.Location));
+			return;
+		}
+
+		var target = platformName.ToLowerInvariant() switch {
+			"nes" or "6502" => TargetArchitecture.MOS6502,
+			"atari2600" or "2600" or "6507" => TargetArchitecture.MOS6507,
+			"atarilynx" or "lynx" or "65sc02" => TargetArchitecture.MOS65SC02,
+			"snes" or "65816" => TargetArchitecture.WDC65816,
+			"gb" or "gameboy" or "sm83" => TargetArchitecture.SM83,
+			"genesis" or "megadrive" or "md" or "68000" or "m68k" => TargetArchitecture.M68000,
+			"sms" or "mastersystem" or "z80" => TargetArchitecture.Z80,
+			"wonderswan" or "ws" or "wsc" or "v30mz" => TargetArchitecture.V30MZ,
+			"gba" or "gameboyadvance" or "arm" or "arm7tdmi" => TargetArchitecture.ARM7TDMI,
+			"spc700" => TargetArchitecture.SPC700,
+			"tg16" or "turbografx16" or "pcengine" or "huc6280" => TargetArchitecture.HuC6280,
+			_ => (TargetArchitecture?)null
+		};
+
+		if (target is null) {
+			_errors.Add(new CodeError(
+				$"Unknown platform: {platformName}",
+				node.Location));
+			return;
+		}
+
+		_target = target.Value;
+
+		// Emit a comment in verbose mode for debugging
+		// (platform changes don't generate code, they change instruction encoding)
+	}
+
 	// ========================================================================
 	// Helper Methods
 	// ========================================================================
+
+	/// <summary>
+	/// Validates memory writes to reserved addresses for the current platform.
+	/// </summary>
+	/// <remarks>
+	/// For Atari Lynx (65SC02), validates writes to hardware registers and Boot ROM:
+	/// - $fc00-$fcff: Suzy hardware registers (warning)
+	/// - $fd00-$fdff: Mikey hardware registers (warning)
+	/// - $fe00-$ffff: Boot ROM (error - cannot write to ROM)
+	/// </remarks>
+	/// <param name="mnemonic">The instruction mnemonic.</param>
+	/// <param name="address">The target memory address.</param>
+	/// <param name="location">The source location for error/warning reporting.</param>
+	private void ValidateMemoryAddress(string mnemonic, long address, SourceLocation location) {
+		// Only validate for Lynx platform
+		if (_target != TargetArchitecture.MOS65SC02) return;
+
+		// Check if this is a memory-writing instruction
+		var lower = mnemonic.ToLowerInvariant();
+		var isStoreInstruction = lower is "sta" or "stx" or "sty" or "stz" or
+			"inc" or "dec" or "asl" or "lsr" or "rol" or "ror" or
+			"tsb" or "trb" or // 65C02/65SC02 specific
+			"rmb0" or "rmb1" or "rmb2" or "rmb3" or
+			"rmb4" or "rmb5" or "rmb6" or "rmb7" or
+			"smb0" or "smb1" or "smb2" or "smb3" or
+			"smb4" or "smb5" or "smb6" or "smb7";
+
+		if (!isStoreInstruction) return;
+
+		// Lynx memory map validation
+		// $0000-$fbff: RAM (64KB - 1KB reserved)
+		// $fc00-$fcff: Suzy hardware registers
+		// $fd00-$fdff: Mikey hardware registers
+		// $fe00-$ffff: Boot ROM (512 bytes)
+
+		if (address is >= 0xfe00 and <= 0xffff) {
+			// Boot ROM - cannot write to ROM
+			_errors.Add(new CodeError(
+				$"Cannot write to Lynx Boot ROM at ${address:x4}",
+				location));
+		} else if (address is >= 0xfd00 and <= 0xfdff) {
+			// Mikey hardware registers
+			_warnings.Add(new CodeWarning(
+				$"Writing to Lynx Mikey hardware register at ${address:x4}",
+				location));
+		} else if (address is >= 0xfc00 and <= 0xfcff) {
+			// Suzy hardware registers
+			_warnings.Add(new CodeWarning(
+				$"Writing to Lynx Suzy hardware register at ${address:x4}",
+				location));
+		}
+	}
 
 	/// <summary>
 	/// Ensures a current segment exists.
@@ -991,5 +1127,33 @@ public sealed class CodeError {
 
 	/// <inheritdoc />
 	public override string ToString() => $"{Location}: error: {Message}";
+}
+
+/// <summary>
+/// Represents a code generation warning.
+/// </summary>
+public sealed class CodeWarning {
+	/// <summary>
+	/// The warning message.
+	/// </summary>
+	public string Message { get; }
+
+	/// <summary>
+	/// The source location where the warning occurred.
+	/// </summary>
+	public SourceLocation Location { get; }
+
+	/// <summary>
+	/// Creates a new code warning.
+	/// </summary>
+	/// <param name="message">The warning message.</param>
+	/// <param name="location">The source location.</param>
+	public CodeWarning(string message, SourceLocation location) {
+		Message = message;
+		Location = location;
+	}
+
+	/// <inheritdoc />
+	public override string ToString() => $"{Location}: warning: {Message}";
 }
 
