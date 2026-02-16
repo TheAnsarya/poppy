@@ -223,6 +223,14 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
+		// 65SC02: inc/dec without operand should be Accumulator mode, not Implied
+		if (_target == TargetArchitecture.MOS65SC02 && addressingMode == AddressingMode.Implied) {
+			var lower = mnemonic.ToLowerInvariant();
+			if (lower is "inc" or "dec") {
+				addressingMode = AddressingMode.Accumulator;
+			}
+		}
+
 		// Get instruction encoding
 		if (!TryGetInstructionEncoding(mnemonic, addressingMode, out var encoding)) {
 			_errors.Add(new CodeError(
@@ -321,6 +329,18 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			AddressingMode.AbsoluteY when isZeroPage
 				&& TryGetInstructionEncoding(mnemonic, AddressingMode.ZeroPageY, out _)
 				=> AddressingMode.ZeroPageY,
+
+			// 65SC02: Indirect with zero-page operand should be ZeroPageIndirect
+			AddressingMode.Indirect when isZeroPage
+				&& TryGetInstructionEncoding(mnemonic, AddressingMode.ZeroPageIndirect, out _)
+				=> AddressingMode.ZeroPageIndirect,
+
+			// 65SC02: IndexedIndirect with absolute address should be AbsoluteIndexedIndirect
+			// The parser uses IndexedIndirect for all (addr,x) syntax, but 65SC02 has
+			// a separate AbsoluteIndexedIndirect mode for JMP (abs,x)
+			AddressingMode.IndexedIndirect when !isZeroPage
+				&& TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteIndexedIndirect, out _)
+				=> AddressingMode.AbsoluteIndexedIndirect,
 
 			// Keep original mode
 			_ => mode
