@@ -143,6 +143,32 @@ public sealed class AtariLynxRomBuilder {
 	}
 
 	/// <summary>
+	/// Injects standard boot code at the start of the ROM.
+	/// </summary>
+	/// <param name="entryPoint">The entry point address to jump to after boot.</param>
+	/// <remarks>
+	/// Boot code is placed at $0200 (ROM offset 0). The entry point should typically
+	/// be after the boot code, for example at $0230 or wherever your main code starts.
+	/// </remarks>
+	public void InjectBootCode(int entryPoint) {
+		var bootCode = LynxBootCodeGenerator.GenerateBootCode(entryPoint);
+		AddSegment(LoadAddress, bootCode, 0);
+	}
+
+	/// <summary>
+	/// Injects minimal boot code at the start of the ROM.
+	/// </summary>
+	/// <param name="entryPoint">The entry point address to jump to after minimal boot.</param>
+	/// <remarks>
+	/// Minimal boot code only disables interrupts, clears decimal mode, sets up stack,
+	/// and jumps to entry point. Use this when your code handles hardware initialization.
+	/// </remarks>
+	public void InjectMinimalBootCode(int entryPoint) {
+		var bootCode = LynxBootCodeGenerator.GenerateMinimalBootCode(entryPoint);
+		AddSegment(LoadAddress, bootCode, 0);
+	}
+
+	/// <summary>
 	/// Builds the final LNX ROM binary with header.
 	/// </summary>
 	/// <returns>The complete ROM binary including 64-byte LNX header.</returns>

@@ -55,6 +55,15 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private int? _gbRegion;
 	private int? _gbVersion;
 
+	// Atari Lynx header/boot configuration
+	private string? _lynxGameName;
+	private string? _lynxManufacturer;
+	private int? _lynxRotation;
+	private int? _lynxBank0Size;
+	private int? _lynxBank1Size;
+	private int? _lynxEntryPoint;
+	private bool _lynxUseBootCode;
+
 	// 65816 M/X flag tracking
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
 	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
@@ -212,6 +221,31 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		}
 
 		return builder;
+	}
+
+	/// <summary>
+	/// Gets Lynx header/boot settings if any Lynx directives were used.
+	/// </summary>
+	/// <returns>
+	/// A record containing Lynx configuration settings, or null if no Lynx directives were used.
+	/// </returns>
+	public LynxSettings? GetLynxSettings() {
+		// Only create if at least one Lynx directive was used
+		if (_lynxGameName == null && _lynxManufacturer == null && _lynxRotation == null &&
+			_lynxBank0Size == null && _lynxBank1Size == null && _lynxEntryPoint == null &&
+			!_lynxUseBootCode) {
+			return null;
+		}
+
+		return new LynxSettings(
+			GameName: _lynxGameName ?? "Poppy Game",
+			Manufacturer: _lynxManufacturer ?? "Poppy",
+			Rotation: (CodeGen.LynxRotation)(_lynxRotation ?? 0),
+			Bank0Size: _lynxBank0Size ?? 131072,        // Default 128KB
+			Bank1Size: _lynxBank1Size ?? 0,
+			EntryPoint: _lynxEntryPoint ?? 0x0200,
+			UseBootCode: _lynxUseBootCode
+		);
 	}
 
 	/// <summary>
@@ -565,6 +599,17 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "gb_region":
 			case "gb_version":
 				HandleGbDirective(node);
+				break;
+
+			// Atari Lynx header/boot directives
+			case "lynx_name":
+			case "lynx_manufacturer":
+			case "lynx_rotation":
+			case "lynx_bank0_size":
+			case "lynx_bank1_size":
+			case "lynxentry":
+			case "lynxboot":
+				HandleLynxDirective(node);
 				break;
 
 			// Assertions and diagnostics
@@ -1489,6 +1534,151 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	}
 
 	/// <summary>
+	/// Handles Atari Lynx header/boot directives (.lynx_*, .lynxboot, .lynxentry).
+	/// </summary>
+	private void HandleLynxDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		var directiveName = node.Name.ToLowerInvariant();
+
+		// Get the value from the first argument (if any)
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			// Try to get as a string first (for name and manufacturer)
+			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				// Otherwise evaluate as numeric expression
+				value = EvaluateExpression(node.Arguments[0]);
+			}
+		}
+
+		switch (directiveName) {
+			case "lynx_name":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".lynx_name directive requires a string value (up to 32 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 32) {
+					_errors.Add(new SemanticError(
+						$".lynx_name is too long ({stringValue.Length} characters, maximum is 32)",
+						node.Location));
+					return;
+				}
+
+				_lynxGameName = stringValue;
+				break;
+
+			case "lynx_manufacturer":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".lynx_manufacturer directive requires a string value (up to 16 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 16) {
+					_errors.Add(new SemanticError(
+						$".lynx_manufacturer is too long ({stringValue.Length} characters, maximum is 16)",
+						node.Location));
+					return;
+				}
+
+				_lynxManufacturer = stringValue;
+				break;
+
+			case "lynx_rotation":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".lynx_rotation directive requires a rotation mode (0=none, 1=left, 2=right)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 2) {
+					_errors.Add(new SemanticError(
+						$".lynx_rotation must be 0, 1, or 2 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_lynxRotation = (int)value;
+				break;
+
+			case "lynx_bank0_size":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".lynx_bank0_size directive requires a ROM size in bytes (multiple of 256)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value % 256 != 0) {
+					_errors.Add(new SemanticError(
+						$".lynx_bank0_size must be a positive multiple of 256 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_lynxBank0Size = (int)value;
+				break;
+
+			case "lynx_bank1_size":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".lynx_bank1_size directive requires a ROM size in bytes (multiple of 256, or 0)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value % 256 != 0) {
+					_errors.Add(new SemanticError(
+						$".lynx_bank1_size must be a non-negative multiple of 256 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_lynxBank1Size = (int)value;
+				break;
+
+			case "lynxentry":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".lynxentry directive requires an entry point address (e.g., $0200)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0x0200 || value > 0xfbff) {
+					_errors.Add(new SemanticError(
+						$".lynxentry address must be in RAM range $0200-$fbff (got ${value:x4})",
+						node.Location));
+					return;
+				}
+
+				_lynxEntryPoint = (int)value;
+				break;
+
+			case "lynxboot":
+				// Enable standard boot code generation
+				_lynxUseBootCode = value is null || value != 0;
+				break;
+		}
+
+		// Ensure target is Lynx
+		if (Target != TargetArchitecture.MOS65SC02) {
+			_errors.Add(new SemanticError(
+				$".{directiveName} directive is only valid for Atari Lynx/65SC02 target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
 	/// Handles .assert directive for compile-time assertions.
 	/// </summary>
 	private void HandleAssertDirective(DirectiveNode node) {
@@ -1785,3 +1975,22 @@ public enum TargetArchitecture {
 	HuC6280,
 }
 
+/// <summary>
+/// Lynx header and boot code configuration settings.
+/// </summary>
+/// <param name="GameName">Cart name (up to 32 characters).</param>
+/// <param name="Manufacturer">Manufacturer name (up to 16 characters).</param>
+/// <param name="Rotation">Screen rotation mode.</param>
+/// <param name="Bank0Size">ROM bank 0 size in bytes.</param>
+/// <param name="Bank1Size">ROM bank 1 size in bytes (0 for single-bank).</param>
+/// <param name="EntryPoint">Entry point address after boot code execution.</param>
+/// <param name="UseBootCode">Whether to generate standard boot code.</param>
+public sealed record LynxSettings(
+	string GameName,
+	string Manufacturer,
+	CodeGen.LynxRotation Rotation,
+	int Bank0Size,
+	int Bank1Size,
+	int EntryPoint,
+	bool UseBootCode
+);

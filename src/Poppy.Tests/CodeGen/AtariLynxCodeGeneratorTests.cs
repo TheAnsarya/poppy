@@ -389,4 +389,186 @@ main_loop:
 		Assert.Equal(0x4e, code[2]); // 'N'
 		Assert.Equal(0x58, code[3]); // 'X'
 	}
+
+	// ========================================================================
+	// Boot Code and Directive Tests
+	// ========================================================================
+
+	[Fact]
+	public void LynxBootCodeGenerator_GeneratesValidBootCode() {
+		var bootCode = LynxBootCodeGenerator.GenerateBootCode(0x0230);
+
+		// Boot code should not be empty
+		Assert.NotEmpty(bootCode);
+
+		// Should start with SEI (0x78)
+		Assert.Equal(0x78, bootCode[0]);
+
+		// Should contain CLD (0xd8)
+		Assert.Equal(0xd8, bootCode[1]);
+
+		// Should end with JMP to entry point ($0230)
+		var jmpIndex = bootCode.Length - 3;
+		Assert.Equal(0x4c, bootCode[jmpIndex]);     // JMP
+		Assert.Equal(0x30, bootCode[jmpIndex + 1]); // Low byte
+		Assert.Equal(0x02, bootCode[jmpIndex + 2]); // High byte
+	}
+
+	[Fact]
+	public void LynxBootCodeGenerator_MinimalBootCode() {
+		var bootCode = LynxBootCodeGenerator.GenerateMinimalBootCode(0x0300);
+
+		// Minimal boot should be exactly 8 bytes
+		Assert.Equal(LynxBootCodeGenerator.MinimalBootCodeSize, bootCode.Length);
+		Assert.Equal(8, bootCode.Length);
+
+		// Should be: SEI, CLD, LDX #$FF, TXS, JMP $0300
+		Assert.Equal(0x78, bootCode[0]); // SEI
+		Assert.Equal(0xd8, bootCode[1]); // CLD
+		Assert.Equal(0xa2, bootCode[2]); // LDX
+		Assert.Equal(0xff, bootCode[3]); // #$FF
+		Assert.Equal(0x9a, bootCode[4]); // TXS
+		Assert.Equal(0x4c, bootCode[5]); // JMP
+		Assert.Equal(0x00, bootCode[6]); // $00
+		Assert.Equal(0x03, bootCode[7]); // $03
+	}
+
+	[Fact]
+	public void AtariLynxRomBuilder_InjectBootCode() {
+		var builder = new AtariLynxRomBuilder(bank0Size: 4096);
+
+		// Inject boot code with entry at $0230
+		builder.InjectBootCode(0x0230);
+
+		// Add some code at entry point
+		builder.AddSegment(0x0230, [0xea, 0xea, 0xea]); // NOPs
+
+		var rom = builder.Build();
+
+		// ROM should be header (64) + 4096 bytes
+		Assert.Equal(64 + 4096, rom.Length);
+
+		// Check code starts at offset 64 (after header)
+		// Should be SEI (0x78) at the start
+		Assert.Equal(0x78, rom[64]);
+	}
+
+	[Fact]
+	public void LynxDirective_GameName_Parsed() {
+		var source = @"
+.target lynx
+.lynx_name ""My Lynx Game""
+.org $0200
+	nop
+";
+		var lexer = new PoppyLexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new PoppyParser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer();
+		analyzer.Analyze(program);
+
+		var settings = analyzer.GetLynxSettings();
+		Assert.NotNull(settings);
+		Assert.Equal("My Lynx Game", settings.GameName);
+	}
+
+	[Fact]
+	public void LynxDirective_Rotation_Parsed() {
+		var source = @"
+.target lynx
+.lynx_rotation 1
+.org $0200
+	nop
+";
+		var lexer = new PoppyLexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new PoppyParser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer();
+		analyzer.Analyze(program);
+
+		var settings = analyzer.GetLynxSettings();
+		Assert.NotNull(settings);
+		Assert.Equal(LynxRotation.Left, settings.Rotation);
+	}
+
+	[Fact]
+	public void LynxDirective_EntryPoint_Parsed() {
+		var source = @"
+.target lynx
+.lynxentry $0300
+.org $0200
+	nop
+";
+		var lexer = new PoppyLexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new PoppyParser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer();
+		analyzer.Analyze(program);
+
+		var settings = analyzer.GetLynxSettings();
+		Assert.NotNull(settings);
+		Assert.Equal(0x0300, settings.EntryPoint);
+	}
+
+	[Fact]
+	public void LynxDirective_BootCode_Enabled() {
+		var source = @"
+.target lynx
+.lynxboot
+.lynxentry $0300
+.org $0200
+	nop
+";
+		var lexer = new PoppyLexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new PoppyParser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer();
+		analyzer.Analyze(program);
+
+		var settings = analyzer.GetLynxSettings();
+		Assert.NotNull(settings);
+		Assert.True(settings.UseBootCode);
+		Assert.Equal(0x0300, settings.EntryPoint);
+	}
+
+	[Fact]
+	public void LynxDirective_AllSettings_Parsed() {
+		var source = @"
+.target lynx
+.lynx_name ""Test Game""
+.lynx_manufacturer ""Poppy""
+.lynx_rotation 2
+.lynx_bank0_size 65536
+.lynx_bank1_size 0
+.lynxentry $0400
+.lynxboot
+.org $0200
+	nop
+";
+		var lexer = new PoppyLexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new PoppyParser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer();
+		analyzer.Analyze(program);
+
+		var settings = analyzer.GetLynxSettings();
+		Assert.NotNull(settings);
+		Assert.Equal("Test Game", settings.GameName);
+		Assert.Equal("Poppy", settings.Manufacturer);
+		Assert.Equal(LynxRotation.Right, settings.Rotation);
+		Assert.Equal(65536, settings.Bank0Size);
+		Assert.Equal(0, settings.Bank1Size);
+		Assert.Equal(0x0400, settings.EntryPoint);
+		Assert.True(settings.UseBootCode);
+	}
 }
