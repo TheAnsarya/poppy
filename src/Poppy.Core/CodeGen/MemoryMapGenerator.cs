@@ -195,6 +195,23 @@ public sealed class MemoryMapGenerator {
 				new MemoryRegion("RAM", 0x0200, 0x07ff),
 				new MemoryRegion("PRG-ROM", 0x8000, 0xffff),
 			],
+			TargetArchitecture.MOS6507 => [
+				// Atari 2600 memory map (13-bit addressing = $0000-$1fff)
+				new MemoryRegion("TIA", 0x0000, 0x007f),
+				new MemoryRegion("RAM", 0x0080, 0x00ff),
+				new MemoryRegion("RIOT", 0x0280, 0x02ff),
+				new MemoryRegion("ROM", 0x1000, 0x1fff),
+			],
+			TargetArchitecture.MOS65SC02 => [
+				// Atari Lynx memory map
+				new MemoryRegion("Zero Page", 0x0000, 0x00ff),
+				new MemoryRegion("Stack", 0x0100, 0x01ff),
+				new MemoryRegion("RAM", 0x0200, 0xfbff),
+				new MemoryRegion("Suzy", 0xfc00, 0xfcff),
+				new MemoryRegion("Mikey", 0xfd00, 0xfdff),
+				new MemoryRegion("Boot ROM", 0xfe00, 0xfff7),
+				new MemoryRegion("Vectors", 0xfff8, 0xffff),
+			],
 			TargetArchitecture.WDC65816 => [
 				new MemoryRegion("Direct Page", 0x0000, 0x00ff),
 				new MemoryRegion("Stack", 0x0100, 0x01ff),
@@ -207,6 +224,16 @@ public sealed class MemoryMapGenerator {
 				new MemoryRegion("VRAM", 0x8000, 0x9fff),
 				new MemoryRegion("Work RAM", 0xc000, 0xdfff),
 				new MemoryRegion("High RAM", 0xff80, 0xfffe),
+			],
+			TargetArchitecture.HuC6280 => [
+				// TurboGrafx-16 memory map
+				new MemoryRegion("RAM", 0x2000, 0x3fff),
+				new MemoryRegion("VDC", 0x0000, 0x0003),
+				new MemoryRegion("VCE", 0x0400, 0x0407),
+				new MemoryRegion("PSG", 0x0800, 0x0809),
+				new MemoryRegion("Timer", 0x0c00, 0x0c01),
+				new MemoryRegion("I/O", 0x1000, 0x1001),
+				new MemoryRegion("IRQ", 0x1400, 0x1403),
 			],
 			_ => []
 		};

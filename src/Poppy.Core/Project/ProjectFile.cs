@@ -103,8 +103,16 @@ public sealed class ProjectFile {
 	[JsonIgnore]
 	public TargetArchitecture TargetArchitecture => Target?.ToLowerInvariant() switch {
 		"nes" or "6502" => Semantics.TargetArchitecture.MOS6502,
+		"atari2600" or "2600" or "6507" => Semantics.TargetArchitecture.MOS6507,
+		"lynx" or "65sc02" => Semantics.TargetArchitecture.MOS65SC02,
 		"snes" or "65816" => Semantics.TargetArchitecture.WDC65816,
-		"gb" or "gameboy" or "sm83" => Semantics.TargetArchitecture.SM83,
+		"gb" or "gbc" or "gameboy" or "sm83" => Semantics.TargetArchitecture.SM83,
+		"genesis" or "megadrive" or "68000" or "m68000" => Semantics.TargetArchitecture.M68000,
+		"sms" or "gg" or "z80" => Semantics.TargetArchitecture.Z80,
+		"wonderswan" or "ws" or "wsc" or "v30mz" => Semantics.TargetArchitecture.V30MZ,
+		"gba" or "arm7" or "arm7tdmi" => Semantics.TargetArchitecture.ARM7TDMI,
+		"spc" or "spc700" => Semantics.TargetArchitecture.SPC700,
+		"tg16" or "pce" or "huc6280" => Semantics.TargetArchitecture.HuC6280,
 		_ => Semantics.TargetArchitecture.MOS6502
 	};
 
@@ -179,7 +187,29 @@ public sealed class ProjectFile {
 	/// Checks if a target string is valid.
 	/// </summary>
 	private static bool IsValidTarget(string? target) {
-		return target?.ToLowerInvariant() is "nes" or "6502" or "snes" or "65816" or "gb" or "gameboy" or "sm83";
+		return target?.ToLowerInvariant() is
+			// NES / 6502
+			"nes" or "6502" or
+			// Atari 2600 / 6507
+			"atari2600" or "2600" or "6507" or
+			// Atari Lynx / 65SC02
+			"lynx" or "65sc02" or
+			// SNES / 65816
+			"snes" or "65816" or
+			// Game Boy / SM83
+			"gb" or "gbc" or "gameboy" or "sm83" or
+			// Sega Genesis / M68000
+			"genesis" or "megadrive" or "68000" or "m68000" or
+			// Sega Master System / Z80
+			"sms" or "gg" or "z80" or
+			// WonderSwan / V30MZ
+			"wonderswan" or "ws" or "wsc" or "v30mz" or
+			// GBA / ARM7TDMI
+			"gba" or "arm7" or "arm7tdmi" or
+			// SNES APU / SPC700
+			"spc" or "spc700" or
+			// TurboGrafx-16 / HuC6280
+			"tg16" or "pce" or "huc6280";
 	}
 
 	/// <summary>
