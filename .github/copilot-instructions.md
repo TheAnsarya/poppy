@@ -105,8 +105,35 @@
 ## 🎮 Target Systems
 
 - **Primary:** NES (6502), SNES (65816)
-- **Secondary:** Game Boy (Z80-like)
-- Reference compilers: ASAR, XKAS, Ophis, ca65
+- **Secondary:** Game Boy (SM83), Atari Lynx (65SC02), Atari 2600 (6507)
+- **Additional:** Genesis (M68000), GBA (ARM7TDMI), TurboGrafx-16 (HuC6280), WonderSwan (V30MZ)
+- Reference compilers: ASAR, XKAS, Ophis, ca65, DASM, RGBDS
+
+## 🔤 Assembly Code Style
+
+### Lowercase Everything
+- **ALL opcodes/mnemonics MUST be lowercase** (e.g., `lda`, `sta`, `jsr`, NOT `LDA`, `STA`, `JSR`)
+- **ALL hex values MUST be lowercase** (e.g., `$ff`, `$ca6e`, NOT `$FF`, `$CA6E`)
+- This applies to ALL platforms: NES, SNES, Lynx, GB, GBA, Genesis, etc.
+
+### Examples
+```asm
+; ✅ CORRECT - lowercase
+lda #$ff
+sta $2000
+jsr subroutine
+bra .loop
+phx
+ply
+
+; ❌ WRONG - uppercase (NEVER use)
+LDA #$FF
+STA $2000
+JSR Subroutine
+BRA .Loop
+PHX
+PLY
+```
 
 ## ⚠️ Important Notes
 
