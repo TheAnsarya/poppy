@@ -124,9 +124,12 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 		// Build Atari Lynx ROM if configured (for Atari Lynx target only)
 		if (_target == TargetArchitecture.MOS65SC02) {
-			// Default to 128K ROM if no header builder is configured
-			var romSize = 131072;  // 128K
-			var romBuilder = new AtariLynxRomBuilder(romSize, "Poppy Game");
+			// Default to 128K ROM (single bank) if no header builder is configured
+			var bank0Size = 131072;  // 128K
+			var romBuilder = new AtariLynxRomBuilder(
+				bank0Size: bank0Size,
+				bank1Size: 0,
+				gameName: "Poppy Game");
 
 			// Add all segments to the ROM builder
 			foreach (var segment in _segments) {

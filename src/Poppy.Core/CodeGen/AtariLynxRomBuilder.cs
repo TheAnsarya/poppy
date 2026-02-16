@@ -1,84 +1,163 @@
 // ============================================================================
-// AtariLynxRomBuilder.cs - Atari Lynx ROM File Generator
+// AtariLynxRomBuilder.cs - Atari Lynx LNX ROM File Generator
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
 namespace Poppy.Core.CodeGen;
 
 /// <summary>
-/// Builds Atari Lynx ROM files from code segments.
-/// The Lynx uses a simple ROM format with a 64-byte header.
+/// Builds Atari Lynx LNX ROM files from code segments.
 /// </summary>
+/// <remarks>
+/// <para>
+/// The LNX format is a container format for Atari Lynx ROMs. It consists of
+/// a 64-byte header followed by the ROM data.
+/// </para>
+/// <para>
+/// LNX Header Format (64 bytes):
+/// - Offset 0-3: Magic "LYNX" (4 bytes)
+/// - Offset 4-5: Bank 0 page count (16-bit little-endian, 256 bytes per page)
+/// - Offset 6-7: Bank 1 page count (16-bit little-endian)
+/// - Offset 8-9: Version (16-bit little-endian)
+/// - Offset 10-41: Cart name (32 bytes, null-terminated ASCII)
+/// - Offset 42-57: Manufacturer name (16 bytes, null-terminated ASCII)
+/// - Offset 58: Rotation (0=None, 1=Left, 2=Right)
+/// - Offset 59-63: Reserved/spare bytes (5 bytes)
+/// </para>
+/// <para>
+/// The Lynx loads ROM data to RAM at $0200. Code/data offsets in segments
+/// should use CPU addresses ($0200+), which the builder converts to ROM offsets.
+/// </para>
+/// </remarks>
 public sealed class AtariLynxRomBuilder {
 	private readonly Dictionary<int, byte> _rom;
-	private readonly int _romSize;
+	private readonly int _bank0Size;
+	private readonly int _bank1Size;
 	private readonly string _gameName;
+	private readonly string _manufacturer;
+	private readonly LynxRotation _rotation;
+	private ushort _version;
 
-	// Lynx ROM header constants
-	private const int HeaderSize = 64;
-	private const byte MagicByte0 = 0x4c; // 'L'
-	private const byte MagicByte1 = 0x59; // 'Y'
-	private const byte MagicByte2 = 0x4e; // 'N'
-	private const byte MagicByte3 = 0x58; // 'X'
+	/// <summary>LNX header size in bytes.</summary>
+	public const int HeaderSize = 64;
+
+	/// <summary>Size of each page in bytes.</summary>
+	public const int PageSize = 256;
+
+	/// <summary>CPU load address where ROM data is loaded.</summary>
+	public const int LoadAddress = 0x0200;
+
+	// LNX Magic bytes
+	private const byte MagicL = 0x4c;
+	private const byte MagicY = 0x59;
+	private const byte MagicN = 0x4e;
+	private const byte MagicX = 0x58;
 
 	/// <summary>
 	/// Creates a new Atari Lynx ROM builder.
 	/// </summary>
-	/// <param name="romSize">The size of the ROM in bytes (typical: 128K, 256K, 512K).</param>
-	/// <param name="gameName">The name of the game (max 32 characters, appears in Lynx menu).</param>
-	public AtariLynxRomBuilder(int romSize = 131072, string gameName = "Poppy Game") {
-		_romSize = romSize;
-		_gameName = gameName;
+	/// <param name="bank0Size">Size of bank 0 in bytes (must be multiple of 256).</param>
+	/// <param name="bank1Size">Size of bank 1 in bytes (0 for single-bank ROMs).</param>
+	/// <param name="gameName">The name of the game (max 32 characters).</param>
+	/// <param name="manufacturer">The manufacturer name (max 16 characters).</param>
+	/// <param name="rotation">Screen rotation mode.</param>
+	/// <param name="version">LNX format version (default 1).</param>
+	public AtariLynxRomBuilder(
+		int bank0Size = 131072,
+		int bank1Size = 0,
+		string gameName = "Poppy Game",
+		string manufacturer = "Poppy",
+		LynxRotation rotation = LynxRotation.None,
+		ushort version = 1) {
+
+		// Validate bank sizes (must be multiple of page size)
+		if (bank0Size < 0 || bank0Size % PageSize != 0) {
+			throw new ArgumentException(
+				$"Bank 0 size must be a non-negative multiple of {PageSize}. Got: {bank0Size}",
+				nameof(bank0Size));
+		}
+		if (bank1Size < 0 || bank1Size % PageSize != 0) {
+			throw new ArgumentException(
+				$"Bank 1 size must be a non-negative multiple of {PageSize}. Got: {bank1Size}",
+				nameof(bank1Size));
+		}
+		if (bank0Size == 0 && bank1Size > 0) {
+			throw new ArgumentException("Bank 1 cannot be used without bank 0.", nameof(bank1Size));
+		}
+
+		_bank0Size = bank0Size;
+		_bank1Size = bank1Size;
+		_gameName = gameName.Length > 32 ? gameName[..32] : gameName;
+		_manufacturer = manufacturer.Length > 16 ? manufacturer[..16] : manufacturer;
+		_rotation = rotation;
+		_version = version;
 		_rom = new Dictionary<int, byte>();
-
-		// Validate ROM size
-		if (romSize < 128 || romSize > 2097152) {
-			throw new ArgumentException($"Invalid ROM size: {romSize}. Must be between 128 bytes and 2MB.", nameof(romSize));
-		}
-
-		// Trim game name to 32 characters
-		if (_gameName.Length > 32) {
-			_gameName = _gameName[..32];
-		}
 	}
+
+	/// <summary>
+	/// Total ROM size in bytes (excluding header).
+	/// </summary>
+	public int RomSize => _bank0Size + _bank1Size;
+
+	/// <summary>
+	/// Gets the number of pages for bank 0.
+	/// </summary>
+	public ushort Bank0Pages => (ushort)(_bank0Size / PageSize);
+
+	/// <summary>
+	/// Gets the number of pages for bank 1.
+	/// </summary>
+	public ushort Bank1Pages => (ushort)(_bank1Size / PageSize);
 
 	/// <summary>
 	/// Adds a code segment to the ROM.
 	/// </summary>
-	/// <param name="address">The starting address for the segment (CPU address >= 0x0200, or ROM offset if &lt; 0x0200).</param>
+	/// <param name="address">CPU address ($0200+) or raw ROM offset.</param>
 	/// <param name="data">The binary data to write.</param>
-	public void AddSegment(int address, byte[] data) {
+	/// <param name="bank">Target bank (0 or 1). Default is 0.</param>
+	public void AddSegment(int address, byte[] data, int bank = 0) {
+		if (bank < 0 || bank > 1) {
+			throw new ArgumentException("Bank must be 0 or 1.", nameof(bank));
+		}
+		if (bank == 1 && _bank1Size == 0) {
+			throw new InvalidOperationException("Cannot add to bank 1 when bank1Size is 0.");
+		}
+
 		// Map CPU address to ROM offset
-		// Load address is $0200, so subtract to get ROM offset
-		// If address < $0200, treat it as a ROM offset already
-		const int LoadAddress = 0x0200;
+		// If address >= LoadAddress, treat as CPU address and subtract
+		// Otherwise, treat as raw ROM offset
+		var baseOffset = address >= LoadAddress ? address - LoadAddress : address;
 
+		// Add bank offset for bank 1
+		if (bank == 1) {
+			baseOffset += _bank0Size;
+		}
+
+		var maxSize = RomSize;
 		for (int i = 0; i < data.Length; i++) {
-			var addr = address + i;
-			var romAddress = addr >= LoadAddress ? addr - LoadAddress : addr;
-
-			if (romAddress >= 0 && romAddress < _romSize) {
-				_rom[romAddress] = data[i];
+			var romOffset = baseOffset + i;
+			if (romOffset >= 0 && romOffset < maxSize) {
+				_rom[romOffset] = data[i];
 			}
 		}
 	}
 
 	/// <summary>
-	/// Builds the final ROM binary with Lynx header.
+	/// Builds the final LNX ROM binary with header.
 	/// </summary>
-	/// <returns>The complete ROM binary including header.</returns>
+	/// <returns>The complete ROM binary including 64-byte LNX header.</returns>
 	public byte[] Build() {
-		var output = new byte[HeaderSize + _romSize];
+		var output = new byte[HeaderSize + RomSize];
 
-		// Initialize ROM with $ff (common for unused ROM space)
-		Array.Fill(output, (byte)0xff, HeaderSize, _romSize);
+		// Initialize ROM area with $ff (typical for unused ROM space)
+		Array.Fill(output, (byte)0xff, HeaderSize, RomSize);
 
-		// Build header
+		// Build LNX header
 		BuildHeader(output);
 
 		// Copy all segments into the output (after header)
 		foreach (var kvp in _rom) {
-			if (kvp.Key >= 0 && kvp.Key < _romSize) {
+			if (kvp.Key >= 0 && kvp.Key < RomSize) {
 				output[HeaderSize + kvp.Key] = kvp.Value;
 			}
 		}
@@ -87,56 +166,81 @@ public sealed class AtariLynxRomBuilder {
 	}
 
 	/// <summary>
-	/// Builds the Lynx ROM header.
+	/// Builds the raw ROM binary without LNX header.
 	/// </summary>
-	/// <param name="output">The output buffer (must be at least 64 bytes).</param>
-	private void BuildHeader(byte[] output) {
-		// Magic number "LYNX" at offset 0-3
-		output[0] = MagicByte0;
-		output[1] = MagicByte1;
-		output[2] = MagicByte2;
-		output[3] = MagicByte3;
+	/// <returns>The raw ROM binary (no header).</returns>
+	public byte[] BuildRaw() {
+		var output = new byte[RomSize];
+		Array.Fill(output, (byte)0xff);
 
-		// Page size in pages of 256 bytes (offset 4-5, little-endian)
-		var pageSize = (ushort)(_romSize / 256);
-		output[4] = (byte)(pageSize & 0xff);
-		output[5] = (byte)((pageSize >> 8) & 0xff);
+		foreach (var kvp in _rom) {
+			if (kvp.Key >= 0 && kvp.Key < RomSize) {
+				output[kvp.Key] = kvp.Value;
+			}
+		}
 
-		// Load address (offset 6-7, little-endian)
-		// Typically $0200 for Lynx games (after system RAM)
-		output[6] = 0x00;
-		output[7] = 0x02;
-
-		// Start address (offset 8-9, little-endian)
-		// This is the entry point of the game
-		// Default to $0200 if not explicitly set
-		output[8] = 0x00;
-		output[9] = 0x02;
-
-		// Game name (offset 10-41, ASCII, null-terminated)
-		var nameBytes = System.Text.Encoding.ASCII.GetBytes(_gameName);
-		Array.Copy(nameBytes, 0, output, 10, Math.Min(nameBytes.Length, 32));
-
-		// Manufacturer (offset 42-57, ASCII, null-terminated)
-		var manufacturer = "Poppy Compiler";
-		var mfgBytes = System.Text.Encoding.ASCII.GetBytes(manufacturer);
-		Array.Copy(mfgBytes, 0, output, 42, Math.Min(mfgBytes.Length, 16));
-
-		// Rotation (offset 58)
-		// 0 = no rotation, 1 = left rotation, 2 = right rotation
-		output[58] = 0;
-
-		// Spare bytes (offset 59-63) - typically unused
-		// Leave as 0xff (already filled)
+		return output;
 	}
 
 	/// <summary>
-	/// Sets a custom start address in the ROM header.
+	/// Builds the LNX header.
 	/// </summary>
-	/// <param name="address">The start address (entry point).</param>
-	public void SetStartAddress(ushort address) {
-		// This will be used when building the header
-		// For now, we'll keep it simple and use the default
-		// TODO: Store this and use it in BuildHeader
+	private void BuildHeader(byte[] output) {
+		// Magic "LYNX" (offset 0-3)
+		output[0] = MagicL;
+		output[1] = MagicY;
+		output[2] = MagicN;
+		output[3] = MagicX;
+
+		// Bank 0 page count (offset 4-5, little-endian)
+		output[4] = (byte)(Bank0Pages & 0xff);
+		output[5] = (byte)((Bank0Pages >> 8) & 0xff);
+
+		// Bank 1 page count (offset 6-7, little-endian)
+		output[6] = (byte)(Bank1Pages & 0xff);
+		output[7] = (byte)((Bank1Pages >> 8) & 0xff);
+
+		// Version (offset 8-9, little-endian)
+		output[8] = (byte)(_version & 0xff);
+		output[9] = (byte)((_version >> 8) & 0xff);
+
+		// Cart name (offset 10-41, null-terminated ASCII)
+		var nameBytes = System.Text.Encoding.ASCII.GetBytes(_gameName);
+		Array.Copy(nameBytes, 0, output, 10, Math.Min(nameBytes.Length, 32));
+		// Ensure null termination if name is shorter than 32 chars
+		if (nameBytes.Length < 32) {
+			output[10 + nameBytes.Length] = 0;
+		}
+
+		// Manufacturer name (offset 42-57, null-terminated ASCII)
+		var mfgBytes = System.Text.Encoding.ASCII.GetBytes(_manufacturer);
+		Array.Copy(mfgBytes, 0, output, 42, Math.Min(mfgBytes.Length, 16));
+		if (mfgBytes.Length < 16) {
+			output[42 + mfgBytes.Length] = 0;
+		}
+
+		// Rotation (offset 58)
+		output[58] = (byte)_rotation;
+
+		// Spare bytes (offset 59-63) - leave as 0
+		output[59] = 0;
+		output[60] = 0;
+		output[61] = 0;
+		output[62] = 0;
+		output[63] = 0;
 	}
+}
+
+/// <summary>
+/// Screen rotation modes for Atari Lynx games.
+/// </summary>
+public enum LynxRotation : byte {
+	/// <summary>No rotation (default horizontal orientation).</summary>
+	None = 0,
+
+	/// <summary>Rotate display left 90 degrees.</summary>
+	Left = 1,
+
+	/// <summary>Rotate display right 90 degrees.</summary>
+	Right = 2
 }

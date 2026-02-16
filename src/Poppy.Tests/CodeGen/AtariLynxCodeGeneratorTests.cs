@@ -158,7 +158,7 @@ loop:
 
 	[Fact]
 	public void RomBuilder_CreatesHeaderWithMagic() {
-		var builder = new AtariLynxRomBuilder(131072, "Test Game");
+		var builder = new AtariLynxRomBuilder(bank0Size: 131072, gameName: "Test Game");
 		var rom = builder.Build();
 
 		// Check magic "LYNX"
@@ -169,28 +169,28 @@ loop:
 	}
 
 	[Fact]
-	public void RomBuilder_SetsPageSize() {
-		var builder = new AtariLynxRomBuilder(131072, "Test"); // 128K = 512 pages
+	public void RomBuilder_SetsBank0PageCount() {
+		var builder = new AtariLynxRomBuilder(bank0Size: 131072, gameName: "Test"); // 128K = 512 pages
 		var rom = builder.Build();
 
-		// Page size at offset 4-5 (little-endian)
-		var pageSize = rom[4] | (rom[5] << 8);
-		Assert.Equal(512, pageSize); // 131072 / 256 = 512
+		// Bank 0 page count at offset 4-5 (little-endian)
+		var bank0Pages = rom[4] | (rom[5] << 8);
+		Assert.Equal(512, bank0Pages); // 131072 / 256 = 512
 	}
 
 	[Fact]
-	public void RomBuilder_SetsLoadAddress() {
-		var builder = new AtariLynxRomBuilder(131072, "Test");
+	public void RomBuilder_SetsBank1PageCountToZero() {
+		var builder = new AtariLynxRomBuilder(bank0Size: 131072, gameName: "Test");
 		var rom = builder.Build();
 
-		// Load address at offset 6-7 (little-endian)
-		var loadAddr = rom[6] | (rom[7] << 8);
-		Assert.Equal(0x0200, loadAddr); // Default load address
+		// Bank 1 page count at offset 6-7 (little-endian)
+		var bank1Pages = rom[6] | (rom[7] << 8);
+		Assert.Equal(0, bank1Pages); // No bank 1
 	}
 
 	[Fact]
 	public void RomBuilder_SetsGameName() {
-		var builder = new AtariLynxRomBuilder(131072, "Poppy Test");
+		var builder = new AtariLynxRomBuilder(bank0Size: 131072, gameName: "Poppy Test");
 		var rom = builder.Build();
 
 		// Game name at offset 10-41
@@ -201,7 +201,7 @@ loop:
 	[Fact]
 	public void RomBuilder_TruncatesLongGameName() {
 		var longName = "This is a very long game name that exceeds 32 characters";
-		var builder = new AtariLynxRomBuilder(131072, longName);
+		var builder = new AtariLynxRomBuilder(bank0Size: 131072, gameName: longName);
 		var rom = builder.Build();
 
 		// Should be truncated to 32 chars
@@ -211,7 +211,7 @@ loop:
 
 	[Fact]
 	public void RomBuilder_AddsSegment() {
-		var builder = new AtariLynxRomBuilder(131072, "Test");
+		var builder = new AtariLynxRomBuilder(bank0Size: 131072, gameName: "Test");
 		var data = new byte[] { 0xa9, 0x42, 0x60 }; // LDA #$42, RTS
 
 		builder.AddSegment(0, data);
@@ -221,6 +221,89 @@ loop:
 		Assert.Equal(0xa9, rom[64]);
 		Assert.Equal(0x42, rom[65]);
 		Assert.Equal(0x60, rom[66]);
+	}
+
+	[Fact]
+	public void RomBuilder_DualBank_SetsBothPageCounts() {
+		var builder = new AtariLynxRomBuilder(
+			bank0Size: 131072,   // 128K = 512 pages
+			bank1Size: 65536,    // 64K = 256 pages
+			gameName: "Dual Bank Test");
+		var rom = builder.Build();
+
+		var bank0Pages = rom[4] | (rom[5] << 8);
+		var bank1Pages = rom[6] | (rom[7] << 8);
+
+		Assert.Equal(512, bank0Pages);
+		Assert.Equal(256, bank1Pages);
+		Assert.Equal(64 + 131072 + 65536, rom.Length);
+	}
+
+	[Fact]
+	public void RomBuilder_SetsRotation() {
+		var builder = new AtariLynxRomBuilder(
+			bank0Size: 131072,
+			gameName: "Rotated Game",
+			rotation: LynxRotation.Left);
+		var rom = builder.Build();
+
+		Assert.Equal(1, rom[58]); // Left rotation = 1
+	}
+
+	[Fact]
+	public void RomBuilder_SetsVersion() {
+		var builder = new AtariLynxRomBuilder(
+			bank0Size: 131072,
+			gameName: "Version Test",
+			version: 2);
+		var rom = builder.Build();
+
+		var version = rom[8] | (rom[9] << 8);
+		Assert.Equal(2, version);
+	}
+
+	[Fact]
+	public void RomBuilder_BuildRaw_ExcludesHeader() {
+		var builder = new AtariLynxRomBuilder(bank0Size: 1024, gameName: "Raw Test");
+		var data = new byte[] { 0xea, 0xea, 0xea }; // NOP NOP NOP
+
+		builder.AddSegment(0, data);
+		var raw = builder.BuildRaw();
+
+		Assert.Equal(1024, raw.Length); // No 64-byte header
+		Assert.Equal(0xea, raw[0]);
+		Assert.Equal(0xea, raw[1]);
+		Assert.Equal(0xea, raw[2]);
+	}
+
+	[Fact]
+	public void RomBuilder_AddSegmentToBank1() {
+		var builder = new AtariLynxRomBuilder(
+			bank0Size: 1024,
+			bank1Size: 1024,
+			gameName: "Multi-Bank");
+		var data = new byte[] { 0xaa, 0xbb, 0xcc };
+
+		builder.AddSegment(0, data, bank: 1);
+		var rom = builder.Build();
+
+		// Bank 1 data starts after header (64) + bank0 (1024)
+		Assert.Equal(0xaa, rom[64 + 1024]);
+		Assert.Equal(0xbb, rom[64 + 1024 + 1]);
+		Assert.Equal(0xcc, rom[64 + 1024 + 2]);
+	}
+
+	[Fact]
+	public void RomBuilder_SetsManufacturer() {
+		var builder = new AtariLynxRomBuilder(
+			bank0Size: 1024,
+			gameName: "Test",
+			manufacturer: "Poppy Dev");
+		var rom = builder.Build();
+
+		// Manufacturer at offset 42-57
+		var mfg = System.Text.Encoding.ASCII.GetString(rom, 42, 9);
+		Assert.Equal("Poppy Dev", mfg);
 	}
 
 	// ========================================================================
