@@ -174,6 +174,36 @@ public sealed class PansyGenerator {
 		Local = 6,
 		/// <summary>Anonymous label (+/-).</summary>
 		Anonymous = 7,
+		/// <summary>Interrupt/exception vector (NMI, IRQ, RESET, etc.).</summary>
+		InterruptVector = 8,
+		/// <summary>Subroutine/function entry point.</summary>
+		Function = 9,
+	}
+	#endregion
+
+	#region Memory Region Types
+	/// <summary>
+	/// Types of memory regions (matches Pansy spec MemoryRegionType).
+	/// </summary>
+	public enum MemoryRegionType : byte {
+		/// <summary>Unknown or unspecified region type.</summary>
+		Unknown = 0,
+		/// <summary>Read-only memory (ROM).</summary>
+		ROM = 1,
+		/// <summary>Random access memory (RAM).</summary>
+		RAM = 2,
+		/// <summary>Video RAM.</summary>
+		VRAM = 3,
+		/// <summary>I/O registers.</summary>
+		IO = 4,
+		/// <summary>Save RAM (battery-backed).</summary>
+		SRAM = 5,
+		/// <summary>Work RAM.</summary>
+		WRAM = 6,
+		/// <summary>Open bus / unmapped.</summary>
+		OpenBus = 7,
+		/// <summary>Mirror of another region.</summary>
+		Mirror = 8,
 	}
 	#endregion
 
@@ -387,11 +417,9 @@ public sealed class PansyGenerator {
 		foreach (var symbol in _symbolTable.Symbols.Values) {
 			if (!symbol.IsDefined || !symbol.Value.HasValue) continue;
 
+			// Write address as uint32 (24-bit address in lower bits, bank in upper byte)
 			var address = (uint)symbol.Value.Value;
-			var bank = (byte)((address >> 16) & 0xff);
-			var addr24 = (address & 0xffffff) | ((uint)bank << 24);
-
-			writer.Write(addr24);
+			writer.Write(address);
 
 			// Determine symbol type
 			SymbolEntryType entryType = symbol.Type switch {
@@ -433,7 +461,7 @@ public sealed class PansyGenerator {
 		foreach (var segment in _segments) {
 			writer.Write((uint)segment.StartAddress);
 			writer.Write((uint)(segment.StartAddress + segment.Data.Count - 1));
-			writer.Write((byte)1); // Type: code
+			writer.Write((byte)MemoryRegionType.ROM); // Assembled segments are ROM
 			writer.Write((byte)((segment.StartAddress >> 16) & 0xff)); // Bank
 			writer.Write((ushort)0); // Flags
 
@@ -534,10 +562,6 @@ public sealed class PansyGenerator {
 		writer.Write((ushort)versionBytes.Length);
 		writer.Write(versionBytes);
 
-		// Timestamps
-		writer.Write(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // Created
-		writer.Write(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // Modified
-
 		return ms.ToArray();
 	}
 
@@ -623,10 +647,15 @@ public sealed class PansyGenerator {
 			TargetArchitecture.MOS6502 => PLATFORM_NES,
 			TargetArchitecture.WDC65816 => PLATFORM_SNES,
 			TargetArchitecture.SM83 => PLATFORM_GB,
-			TargetArchitecture.Z80 => PLATFORM_SMS, // Or GB/SMS based on context
+			TargetArchitecture.Z80 => PLATFORM_SMS,
 			TargetArchitecture.M68000 => PLATFORM_GENESIS,
 			TargetArchitecture.SPC700 => PLATFORM_SPC700,
-			_ => 0, // Unknown
+			TargetArchitecture.ARM7TDMI => PLATFORM_GBA,
+			TargetArchitecture.MOS65SC02 => PLATFORM_LYNX,
+			TargetArchitecture.HuC6280 => PLATFORM_PCE,
+			TargetArchitecture.V30MZ => PLATFORM_WONDERSWAN,
+			TargetArchitecture.MOS6507 => PLATFORM_ATARI_2600,
+			_ => PLATFORM_CUSTOM, // Unknown platform
 		};
 	}
 
