@@ -344,4 +344,166 @@ public sealed class PansyGeneratorTests {
 		Assert.Equal((byte)2, PansyGenerator.COMMENT_BLOCK);
 		Assert.Equal((byte)3, PansyGenerator.COMMENT_TODO);
 	}
+
+	[Fact]
+	public void PopulateCrossRefsFromCodeGenerator_PopulatesCrossRefs() {
+		// Arrange
+		var symbolTable = new SymbolTable();
+		var segments = new List<OutputSegment>();
+		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
+
+		var crossRefs = new List<(uint From, uint To, byte Type)> {
+			(0x8000, 0x8100, 1), // Jsr
+			(0x8010, 0x8200, 2), // Jmp
+			(0x8020, 0x8050, 3), // Branch
+		};
+
+		// Act
+		generator.PopulateCrossRefsFromCodeGenerator(crossRefs);
+		var data = generator.Generate(romSize: 0x10000, compress: false);
+
+		// Assert - HasCrossRefs flag should be set
+		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
+		Assert.True(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+
+		// Find cross-refs section
+		bool foundCrossRefsSection = false;
+		int sectionCount = BitConverter.ToInt32(data, 24);
+		int offset = 32;
+		for (int i = 0; i < sectionCount; i++) {
+			var sectionType = BitConverter.ToUInt32(data, offset);
+			if (sectionType == PansyGenerator.SECTION_CROSS_REFS) {
+				foundCrossRefsSection = true;
+				break;
+			}
+			offset += 16;
+		}
+		Assert.True(foundCrossRefsSection, "Cross-refs section (0x0006) should be present");
+	}
+
+	[Fact]
+	public void PopulateCrossRefsFromCodeGenerator_EmptyList_NoCrossRefSection() {
+		// Arrange
+		var symbolTable = new SymbolTable();
+		var segments = new List<OutputSegment>();
+		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
+
+		// Act - populate with empty list
+		generator.PopulateCrossRefsFromCodeGenerator([]);
+		var data = generator.Generate(romSize: 0x8000, compress: false);
+
+		// Assert - no cross-refs section
+		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
+		Assert.False(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+	}
+
+	[Fact]
+	public void CrossRefTypes_MatchPansySpec() {
+		Assert.Equal((byte)1, (byte)PansyGenerator.CrossRefType.Jsr);
+		Assert.Equal((byte)2, (byte)PansyGenerator.CrossRefType.Jmp);
+		Assert.Equal((byte)3, (byte)PansyGenerator.CrossRefType.Branch);
+		Assert.Equal((byte)4, (byte)PansyGenerator.CrossRefType.Read);
+		Assert.Equal((byte)5, (byte)PansyGenerator.CrossRefType.Write);
+	}
+
+	[Fact]
+	public void CodeGenerator_TracksJsrCrossRef() {
+		// Assemble "jsr $8100" at address $8000
+		var source = ".org $8000\njsr $8100\n";
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Poppy.Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		var cdlGen = new CdlGenerator(analyzer.SymbolTable, TargetArchitecture.MOS6502, []);
+		var codeGen = new CodeGenerator(analyzer, TargetArchitecture.MOS6502, cdlGen);
+		codeGen.Generate(program);
+
+		// Assert cross-refs contain JSR entry
+		Assert.Single(codeGen.CrossReferences);
+		var xref = codeGen.CrossReferences[0];
+		Assert.Equal((uint)0x8000, xref.From);
+		Assert.Equal((uint)0x8100, xref.To);
+		Assert.Equal((byte)1, xref.Type); // Jsr=1
+	}
+
+	[Fact]
+	public void CodeGenerator_TracksJmpCrossRef() {
+		// Assemble "jmp $8200" at address $8000
+		var source = ".org $8000\njmp $8200\n";
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Poppy.Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		var cdlGen = new CdlGenerator(analyzer.SymbolTable, TargetArchitecture.MOS6502, []);
+		var codeGen = new CodeGenerator(analyzer, TargetArchitecture.MOS6502, cdlGen);
+		codeGen.Generate(program);
+
+		Assert.Single(codeGen.CrossReferences);
+		var xref = codeGen.CrossReferences[0];
+		Assert.Equal((uint)0x8000, xref.From);
+		Assert.Equal((uint)0x8200, xref.To);
+		Assert.Equal((byte)2, xref.Type); // Jmp=2
+	}
+
+	[Fact]
+	public void CodeGenerator_TracksConditionalBranchCrossRef() {
+		// Assemble "loop: nop\nbne loop" — bne should generate branch cross-ref
+		var source = ".org $8000\nloop:\nnop\nbne loop\n";
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Poppy.Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		var cdlGen = new CdlGenerator(analyzer.SymbolTable, TargetArchitecture.MOS6502, []);
+		var codeGen = new CodeGenerator(analyzer, TargetArchitecture.MOS6502, cdlGen);
+		codeGen.Generate(program);
+
+		// Should have one branch cross-ref
+		Assert.Single(codeGen.CrossReferences);
+		var xref = codeGen.CrossReferences[0];
+		Assert.Equal((uint)0x8001, xref.From); // bne is at $8001 (after nop)
+		Assert.Equal((uint)0x8000, xref.To);   // target is "loop" at $8000
+		Assert.Equal((byte)3, xref.Type);       // Branch=3
+	}
+
+	[Fact]
+	public void CodeGenerator_CrossRefsFlowToPansyGenerator() {
+		// Full pipeline: assemble → cross-refs → PansyGenerator
+		var source = ".org $8000\njsr $8100\njmp $8200\n";
+		var lexer = new Poppy.Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Poppy.Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(program);
+
+		var cdlGen = new CdlGenerator(analyzer.SymbolTable, TargetArchitecture.MOS6502, []);
+		var codeGen = new CodeGenerator(analyzer, TargetArchitecture.MOS6502, cdlGen);
+		var code = codeGen.Generate(program);
+
+		// Create PansyGenerator and populate cross-refs
+		var pansyGen = new PansyGenerator(
+			analyzer.SymbolTable,
+			TargetArchitecture.MOS6502,
+			codeGen.Segments,
+			cdlGenerator: cdlGen);
+		pansyGen.PopulateCrossRefsFromCodeGenerator(codeGen.CrossReferences);
+
+		var data = pansyGen.Generate(romSize: code.Length, compress: false);
+
+		// Assert cross-refs section present
+		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
+		Assert.True(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+
+		// Should have 2 cross-refs (JSR + JMP)
+		Assert.Equal(2, codeGen.CrossReferences.Count);
+	}
 }

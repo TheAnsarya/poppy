@@ -26,6 +26,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	// Optional CDL generator for tracking jump/call targets
 	private readonly CdlGenerator? _cdlGenerator;
 
+	// Cross-reference tracking from instruction analysis
+	private readonly List<(uint From, uint To, byte Type)> _crossRefs = [];
+
 	// 65816 M/X flag tracking for correct immediate operand sizes
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
 	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
@@ -59,6 +62,13 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// Gets the current target architecture.
 	/// </summary>
 	public TargetArchitecture CurrentTarget => _target;
+
+	/// <summary>
+	/// Gets cross-references discovered during code generation.
+	/// Each tuple is (FromAddress, ToAddress, CrossRefType) where type matches Pansy spec:
+	/// Jsr=1, Jmp=2, Branch=3.
+	/// </summary>
+	public IReadOnlyList<(uint From, uint To, byte Type)> CrossReferences => _crossRefs;
 
 	/// <summary>
 	/// Creates a new code generator.
@@ -251,18 +261,30 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				return null;
 			}
 
-			// Track JSR/JMP targets in CDL generator
-			if (_cdlGenerator is not null) {
-				var mnemonicLower = mnemonic.ToLowerInvariant();
+			// Track JSR/JMP/branch targets for CDL and cross-references
+			var mnemonicLower = mnemonic.ToLowerInvariant();
+			var instructionAddress = (uint)(_currentAddress - 1); // Before opcode was emitted
+			var targetAddr = (uint)operandValue.Value;
 
-				// JSR-type instructions (subroutine calls)
-				if (mnemonicLower is "jsr" or "jsl" or "call" or "bsr") {
-					_cdlGenerator.RegisterSubroutineEntry(operandValue.Value);
-				}
-				// JMP-type instructions (jumps)
-				else if (mnemonicLower is "jmp" or "jml" or "bra" or "brl") {
-					_cdlGenerator.RegisterJumpTarget(operandValue.Value);
-				}
+			// JSR-type instructions (subroutine calls)
+			if (mnemonicLower is "jsr" or "jsl" or "call" or "bsr") {
+				_cdlGenerator?.RegisterSubroutineEntry(operandValue.Value);
+				_crossRefs.Add((instructionAddress, targetAddr, 1)); // Jsr=1
+			}
+			// JMP-type instructions (unconditional jumps)
+			else if (mnemonicLower is "jmp" or "jml") {
+				_cdlGenerator?.RegisterJumpTarget(operandValue.Value);
+				_crossRefs.Add((instructionAddress, targetAddr, 2)); // Jmp=2
+			}
+			// Unconditional relative branches
+			else if (mnemonicLower is "bra" or "brl") {
+				_cdlGenerator?.RegisterJumpTarget(operandValue.Value);
+				_crossRefs.Add((instructionAddress, targetAddr, 3)); // Branch=3
+			}
+			// Conditional branch instructions
+			else if (IsBranchInstruction(mnemonic)) {
+				_cdlGenerator?.RegisterJumpTarget(operandValue.Value);
+				_crossRefs.Add((instructionAddress, targetAddr, 3)); // Branch=3
 			}
 
 			// Handle branch instructions (relative addressing)

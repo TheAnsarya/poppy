@@ -282,6 +282,16 @@ public sealed class PansyGenerator {
 	}
 
 	/// <summary>
+	/// Populates cross-references from instruction analysis data collected by CodeGenerator.
+	/// </summary>
+	/// <param name="crossRefs">Cross-references from CodeGenerator (From, To, TypeByte).</param>
+	public void PopulateCrossRefsFromCodeGenerator(IReadOnlyList<(uint From, uint To, byte Type)> crossRefs) {
+		foreach (var (from, to, type) in crossRefs) {
+			_crossRefs.Add((from, to, (CrossRefType)type));
+		}
+	}
+
+	/// <summary>
 	/// Registers a comment at a ROM address.
 	/// </summary>
 	/// <param name="address">The ROM address to attach the comment to.</param>
