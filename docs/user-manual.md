@@ -240,6 +240,9 @@ poppy --project [path] [options]
 | `-c NAME` | `--config NAME` | Build configuration (debug, release, etc.) |
 | `-V` | `--verbose` | Verbose output |
 | `-w` | `--watch` | Watch mode (auto-recompile on changes) |
+| | `--pansy FILE` | Override Pansy metadata output file path |
+| | `--no-pansy` | Disable automatic Pansy file generation |
+| | `--no-verify` | Disable roundtrip verification |
 | `-h` | `--help` | Show help |
 | `--version` | | Show version |
 
@@ -278,6 +281,28 @@ Project mode (`--project` or `-p`) builds from a `poppy.json` project file inste
 - **Output organization** into build directories
 
 See [Project Files](#project-files) for detailed project configuration.
+
+### Pansy Metadata & Roundtrip Verification
+
+Poppy automatically generates a `.pansy` metadata file alongside the assembled ROM, containing symbols, code/data maps, and cross-references.
+
+When a `peony.json` file exists in the project directory (created by Peony during disassembly), Poppy also runs **roundtrip verification** — comparing the assembled ROM byte-for-byte against the original to confirm the disassembly is complete and accurate.
+
+```bash
+# Auto-generates game.pansy alongside game.nes
+poppy -o game.nes main.pasm
+
+# Override Pansy output path
+poppy -o game.nes --pansy custom.pansy main.pasm
+
+# Disable Pansy generation
+poppy -o game.nes --no-pansy main.pasm
+
+# Disable roundtrip verification
+poppy -o game.nes --no-verify main.pasm
+```
+
+See [Build from Project](build-from-project.md) for the full Nexen → Peony → Poppy pipeline documentation.
 
 ---
 

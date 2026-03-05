@@ -127,6 +127,13 @@ The compiler supports real-world game development with comprehensive tooling, in
 - 🔢 Enumeration blocks (`.enum`/`.ende`) for sequential constants
 - 📊 Listing file generation with symbol tables
 
+**Metadata & Verification:**
+
+- 🌼 Automatic Pansy metadata generation (symbols, CDL, cross-refs)
+- 🔄 Roundtrip verification against original ROM (byte-for-byte)
+- 📦 Peony project support (`peony.json` from Nexen game packs)
+- 🎯 `--pansy`, `--no-pansy`, `--no-verify` CLI flags
+
 **Developer Tools:**
 
 - 🎨 [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
@@ -192,6 +199,12 @@ poppy -V game.pasm                  # Shows compilation progress
 poppy -t 6502 game.pasm             # NES (default)
 poppy -t 65816 game.pasm            # SNES
 poppy -t sm83 game.pasm             # Game Boy
+
+# Pansy metadata & roundtrip verification
+poppy game.pasm -o game.nes         # Auto-generates game.pansy
+poppy game.pasm --no-pansy          # Disable Pansy generation
+poppy game.pasm --no-verify         # Disable roundtrip verification
+poppy game.pasm --pansy out.pansy   # Custom Pansy output path
 ```
 
 ### Example Assembly (NES/6502)
@@ -318,6 +331,7 @@ Check out the example projects in the `examples/` directory:
 | [User Manual](docs/user-manual.md) | Complete usage guide with examples |
 | [SNES Development Guide](docs/snes-guide.md) | Comprehensive SNES/65816 guide |
 | [Game Boy Development Guide](docs/gameboy-guide.md) | Complete GB/GBC guide with SM83 |
+| [Build from Project](docs/build-from-project.md) | Nexen → Peony → Poppy pipeline |
 | [Project File Format](docs/project-file-format.md) | `.poppy` project configuration |
 | [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
 
