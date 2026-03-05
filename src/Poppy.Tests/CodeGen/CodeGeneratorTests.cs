@@ -522,5 +522,147 @@ public class CodeGeneratorTests {
 		Assert.False(gen.HasErrors);
 		Assert.Equal([0xa9, 0x42], code);
 	}
+
+	// ========================================================================
+	// Bank Directive Tests
+	// ========================================================================
+
+	[Fact]
+	public void Generate_BankDirective_SetsBankOnSegments() {
+		var source = """
+			.bank 0
+			.org $8000
+			lda #$01
+			.bank 1
+			.org $8000
+			lda #$02
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		// Bank 0 at ROM offset 0x0000, bank 1 at ROM offset 0x4000
+		// Total ROM size = 0x4000 + 2 = 0x4002
+		Assert.Equal(0x4002, code.Length);
+		Assert.Equal(0xa9, code[0]);    // Bank 0: LDA opcode
+		Assert.Equal(0x01, code[1]);    // Bank 0: operand
+		Assert.Equal(0xa9, code[0x4000]); // Bank 1: LDA opcode
+		Assert.Equal(0x02, code[0x4001]); // Bank 1: operand
+	}
+
+	[Fact]
+	public void Generate_BankDirective_OverlappingCpuAddresses() {
+		// Two banks both use .org $8000 but shouldn't overlap in ROM
+		var source = """
+			.bank 0
+			.org $8000
+			.db $aa
+			.bank 1
+			.org $8000
+			.db $bb
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		Assert.Equal(0xaa, code[0]);       // Bank 0 at ROM 0x0000
+		Assert.Equal(0xbb, code[0x4000]);  // Bank 1 at ROM 0x4000
+	}
+
+	[Fact]
+	public void Generate_BanksizeDirective_CustomBankSize() {
+		var source = """
+			.banksize $2000
+			.bank 0
+			.org $8000
+			.db $11
+			.bank 1
+			.org $8000
+			.db $22
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		Assert.Equal(0x11, code[0]);       // Bank 0 at ROM 0x0000
+		Assert.Equal(0x22, code[0x2000]);  // Bank 1 at ROM 0x2000 (custom 8KB banks)
+	}
+
+	[Fact]
+	public void Generate_BankWithOrgOffset_WritesToCorrectRomPosition() {
+		// .org $8100 inside bank 0 = ROM offset 0x0100
+		var source = """
+			.bank 0
+			.org $8100
+			.db $ff
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		Assert.Equal(0x0101, code.Length);  // 0x0100 offset + 1 byte
+		Assert.Equal(0xff, code[0x0100]);   // Data at offset $100 within bank
+	}
+
+	[Fact]
+	public void Generate_BankDirective_NegativeBank_Error() {
+		var source = """
+			.bank -1
+			.org $8000
+			nop
+			""";
+		var (_, gen) = GenerateCode(source);
+
+		Assert.True(gen.HasErrors);
+	}
+
+	[Fact]
+	public void Generate_ThreeBanks_CorrectLayout() {
+		var source = """
+			.bank 0
+			.org $8000
+			.db $10
+			.bank 1
+			.org $8000
+			.db $20
+			.bank 2
+			.org $8000
+			.db $30
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		Assert.Equal(0x10, code[0]);       // Bank 0
+		Assert.Equal(0x20, code[0x4000]);  // Bank 1
+		Assert.Equal(0x30, code[0x8000]);  // Bank 2
+	}
+
+	[Fact]
+	public void Generate_UnbankedAssembly_StillWorksUnchanged() {
+		// Without .bank, behavior is identical to before
+		var source = """
+			.org $8000
+			lda #$42
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		Assert.Equal([0xa9, 0x42], code);
+	}
+
+	[Fact]
+	public void Generate_BankDirective_CustomBankSize_SmallBanks() {
+		// Test with small 256-byte banks
+		var source = """
+			.banksize $100
+			.bank 0
+			.org $8000
+			.db $aa
+			.bank 2
+			.org $8000
+			.db $cc
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors);
+		Assert.Equal(0xaa, code[0]);     // Bank 0 at ROM 0x0000
+		Assert.Equal(0xcc, code[0x200]); // Bank 2 at ROM 0x0200
+	}
 }
 

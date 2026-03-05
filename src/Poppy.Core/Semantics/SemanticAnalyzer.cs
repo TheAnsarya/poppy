@@ -269,6 +269,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	public long CurrentAddress { get; set; }
 
 	/// <summary>
+	/// Gets the current bank number (-1 if not in a bank).
+	/// </summary>
+	public int CurrentBank { get; private set; } = -1;
+
+	/// <summary>
+	/// Gets the configured bank size in bytes.
+	/// </summary>
+	public int BankSize { get; private set; }
+
+	/// <summary>
 	/// Gets or sets whether to auto-generate labels for JSR/JMP targets that don't have a label.
 	/// When enabled, creates labels like "sub_8100" for JSR targets and "loc_8200" for JMP targets.
 	/// </summary>
@@ -625,6 +635,14 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				HandleWarningDirective(node);
 				break;
 
+			case "bank":
+				HandleBankDirective(node);
+				break;
+
+			case "banksize":
+				HandleBanksizeDirective(node);
+				break;
+
 			default:
 				// Visit arguments for symbol resolution
 				foreach (var arg in node.Arguments) {
@@ -887,6 +905,57 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		var value = EvaluateExpression(node.Arguments[0]);
 		if (value.HasValue) {
 			CurrentAddress = value.Value;
+		}
+	}
+
+	/// <summary>
+	/// Handles .bank N directive to set the current bank number.
+	/// </summary>
+	private void HandleBankDirective(DirectiveNode node) {
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new SemanticError(
+				".bank directive requires a bank number",
+				node.Location));
+			return;
+		}
+
+		var value = EvaluateExpression(node.Arguments[0]);
+		if (!value.HasValue) {
+			_errors.Add(new SemanticError(
+				"Cannot evaluate .bank argument",
+				node.Location));
+			return;
+		}
+
+		var bankNumber = (int)value.Value;
+		if (bankNumber < 0) {
+			_errors.Add(new SemanticError(
+				$"Bank number cannot be negative: {bankNumber}",
+				node.Location));
+			return;
+		}
+
+		CurrentBank = bankNumber;
+	}
+
+	/// <summary>
+	/// Handles .banksize N directive to set the bank size in bytes.
+	/// </summary>
+	private void HandleBanksizeDirective(DirectiveNode node) {
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new SemanticError(
+				".banksize directive requires a size argument",
+				node.Location));
+			return;
+		}
+
+		var value = EvaluateExpression(node.Arguments[0]);
+		if (value.HasValue && value.Value > 0) {
+			BankSize = (int)value.Value;
+		} else {
+			_errors.Add(new SemanticError(
+				".banksize must be a positive integer",
+				node.Location));
 		}
 	}
 

@@ -29,6 +29,12 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	// Cross-reference tracking from instruction analysis
 	private readonly List<(uint From, uint To, byte Type)> _crossRefs = [];
 
+	// Bank tracking for multi-bank ROM assembly
+	private int _currentBank = -1;        // Current bank number (-1 = unbanked)
+	private int _bankSize;                // Bank size in bytes (auto-detected or .banksize)
+	private long _bankRomOffset = -1;     // ROM file offset of current bank start
+	private long _bankCpuBase = -1;       // CPU base address of banked window
+
 	// 65816 M/X flag tracking for correct immediate operand sizes
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
 	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
@@ -431,6 +437,14 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				HandlePlatformDirective(node);
 				break;
 
+			case "bank":
+				HandleBankDirective(node);
+				break;
+
+			case "banksize":
+				HandleBanksizeDirective(node);
+				break;
+
 				// Other directives don't generate code
 		}
 
@@ -574,8 +588,112 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 			// Create a new segment at the new address
 			_currentSegment = new OutputSegment(_currentAddress);
+
+			// If banking is active, compute ROM offset for this segment
+			if (_currentBank >= 0 && _bankRomOffset >= 0) {
+				var offsetInBank = _bankCpuBase >= 0
+					? _currentAddress - _bankCpuBase
+					: 0L;
+				_currentSegment.RomOffset = _bankRomOffset + offsetInBank;
+				_currentSegment.Bank = _currentBank;
+			}
+
 			_segments.Add(_currentSegment);
 		}
+	}
+
+	/// <summary>
+	/// Handles .bank N directive to set the current bank for ROM placement.
+	/// </summary>
+	private void HandleBankDirective(DirectiveNode node) {
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError(
+				".bank directive requires a bank number",
+				node.Location));
+			return;
+		}
+
+		var value = _analyzer.EvaluateExpression(node.Arguments[0]);
+		if (!value.HasValue) {
+			_errors.Add(new CodeError(
+				"Cannot evaluate .bank argument",
+				node.Location));
+			return;
+		}
+
+		var bankNumber = (int)value.Value;
+		if (bankNumber < 0) {
+			_errors.Add(new CodeError(
+				$"Bank number cannot be negative: {bankNumber}",
+				node.Location));
+			return;
+		}
+
+		_currentBank = bankNumber;
+
+		// Auto-detect bank size if not explicitly set
+		if (_bankSize == 0) {
+			_bankSize = GetDefaultBankSize();
+		}
+
+		_bankRomOffset = (long)bankNumber * _bankSize;
+		_bankCpuBase = GetBankCpuBase();
+
+		// Create a new segment at the bank's ROM offset
+		_currentAddress = _bankCpuBase >= 0 ? _bankCpuBase : _bankRomOffset;
+		_currentSegment = new OutputSegment(_currentAddress) {
+			RomOffset = _bankRomOffset,
+			Bank = _currentBank
+		};
+		_segments.Add(_currentSegment);
+	}
+
+	/// <summary>
+	/// Handles .banksize N directive to set the bank size in bytes.
+	/// </summary>
+	private void HandleBanksizeDirective(DirectiveNode node) {
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError(
+				".banksize directive requires a size argument",
+				node.Location));
+			return;
+		}
+
+		var value = _analyzer.EvaluateExpression(node.Arguments[0]);
+		if (value.HasValue && value.Value > 0) {
+			_bankSize = (int)value.Value;
+		} else {
+			_errors.Add(new CodeError(
+				".banksize must be a positive integer",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Gets the default bank size for the current architecture.
+	/// </summary>
+	private int GetDefaultBankSize() {
+		return _target switch {
+			TargetArchitecture.MOS6502 => 0x4000,    // 16KB NES PRG bank
+			TargetArchitecture.WDC65816 => (GetSnesMapMode() == SnesMapMode.HiRom) ? 0x10000 : 0x8000,
+			TargetArchitecture.SM83 => 0x4000,        // 16KB Game Boy bank
+			TargetArchitecture.MOS6507 => 0x1000,     // 4KB Atari 2600 bank
+			TargetArchitecture.MOS65SC02 => 0x4000,   // 16KB default for Lynx
+			_ => 0x4000                                // Default 16KB
+		};
+	}
+
+	/// <summary>
+	/// Gets the CPU base address for the banked window.
+	/// </summary>
+	private long GetBankCpuBase() {
+		return _target switch {
+			TargetArchitecture.MOS6502 => 0x8000,     // NES PRG banked at $8000
+			TargetArchitecture.WDC65816 => 0x8000,    // SNES LoROM banked at $8000
+			TargetArchitecture.SM83 => _currentBank == 0 ? 0x0000 : 0x4000,  // GB bank 0 at $0000, others at $4000
+			TargetArchitecture.MOS6507 => 0xf000,     // Atari 2600 banked at $F000
+			_ => -1                                    // Unknown: no CPU base
+		};
 	}
 
 	/// <summary>
@@ -1104,18 +1222,64 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return [];
 		}
 
-		// Find the address range
+		// Check if any segments use bank-based ROM offsets
+		bool hasBankedSegments = _segments.Any(s => s.RomOffset.HasValue);
+
+		if (hasBankedSegments) {
+			return FlattenBankedSegments();
+		}
+
+		// Unbanked: use CPU addresses directly (original behavior)
 		var minAddress = _segments.Min(s => s.StartAddress);
 		var maxAddress = _segments.Max(s => s.StartAddress + s.Data.Count);
 
-		// Create output buffer
 		var output = new byte[maxAddress - minAddress];
 
-		// Copy each segment into the output
 		foreach (var segment in _segments) {
 			var offset = segment.StartAddress - minAddress;
 			for (int i = 0; i < segment.Data.Count; i++) {
 				output[offset + i] = segment.Data[i];
+			}
+		}
+
+		return output;
+	}
+
+	/// <summary>
+	/// Flattens segments using ROM offsets from bank directives.
+	/// </summary>
+	private byte[] FlattenBankedSegments() {
+		// Compute total ROM size needed
+		long maxRomEnd = 0;
+		long maxCpuEnd = 0;
+
+		foreach (var segment in _segments) {
+			if (segment.RomOffset.HasValue) {
+				var end = segment.RomOffset.Value + segment.Data.Count;
+				if (end > maxRomEnd) maxRomEnd = end;
+			} else {
+				var end = segment.StartAddress + segment.Data.Count;
+				if (end > maxCpuEnd) maxCpuEnd = end;
+			}
+		}
+
+		var romSize = Math.Max(maxRomEnd, maxCpuEnd);
+		var output = new byte[romSize];
+
+		foreach (var segment in _segments) {
+			long offset;
+			if (segment.RomOffset.HasValue) {
+				offset = segment.RomOffset.Value;
+			} else {
+				// Unbanked segments use their CPU address as ROM offset
+				offset = segment.StartAddress;
+			}
+
+			for (int i = 0; i < segment.Data.Count; i++) {
+				var pos = offset + i;
+				if (pos >= 0 && pos < romSize) {
+					output[pos] = segment.Data[i];
+				}
 			}
 		}
 
@@ -1128,9 +1292,20 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 /// </summary>
 public sealed class OutputSegment {
 	/// <summary>
-	/// The starting address of this segment.
+	/// The CPU starting address of this segment (for label resolution).
 	/// </summary>
 	public long StartAddress { get; }
+
+	/// <summary>
+	/// The ROM file offset for this segment. When set, FlattenSegments uses this
+	/// instead of StartAddress for placement. Used by .bank directive.
+	/// </summary>
+	public long? RomOffset { get; set; }
+
+	/// <summary>
+	/// The bank number this segment belongs to, or -1 if unbanked.
+	/// </summary>
+	public int Bank { get; set; } = -1;
 
 	/// <summary>
 	/// The data bytes in this segment.
