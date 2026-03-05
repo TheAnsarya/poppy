@@ -289,4 +289,59 @@ public sealed class PansyGeneratorTests {
 		Assert.Equal(0x1e, PansyGenerator.PLATFORM_C128);
 		Assert.Equal(0xff, PansyGenerator.PLATFORM_CUSTOM);
 	}
+
+	[Fact]
+	public void RegisterComment_GeneratesCommentsSection() {
+		// Arrange
+		var symbolTable = new SymbolTable();
+		var segments = new List<OutputSegment>();
+		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
+		generator.RegisterComment(0x8000, "Entry point", PansyGenerator.COMMENT_INLINE);
+		generator.RegisterComment(0x8003, "Main loop", PansyGenerator.COMMENT_INLINE);
+
+		// Act
+		var data = generator.Generate(romSize: 0x8000, compress: false);
+
+		// Assert - file should contain SECTION_COMMENTS (0x0003) somewhere
+		bool foundCommentsSection = false;
+		// Parse section table after 32-byte header
+		int sectionCount = BitConverter.ToInt32(data, 24);
+		int offset = 32; // after header
+		for (int i = 0; i < sectionCount; i++) {
+			var sectionType = BitConverter.ToUInt32(data, offset);
+			if (sectionType == PansyGenerator.SECTION_COMMENTS) {
+				foundCommentsSection = true;
+				break;
+			}
+			offset += 16; // type(4) + offset(4) + compressedSize(4) + uncompressedSize(4)
+		}
+		Assert.True(foundCommentsSection, "Comments section (0x0003) should be present");
+	}
+
+	[Fact]
+	public void RegisterComment_NoComments_NoSection() {
+		// Arrange
+		var symbolTable = new SymbolTable();
+		var segments = new List<OutputSegment>();
+		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
+
+		// Act
+		var data = generator.Generate(romSize: 0x8000, compress: false);
+
+		// Assert - should NOT contain SECTION_COMMENTS
+		int sectionCount = BitConverter.ToInt32(data, 24);
+		int offset = 32;
+		for (int i = 0; i < sectionCount; i++) {
+			var sectionType = BitConverter.ToUInt32(data, offset);
+			Assert.NotEqual(PansyGenerator.SECTION_COMMENTS, sectionType);
+			offset += 16;
+		}
+	}
+
+	[Fact]
+	public void CommentTypeConstants_MatchPansySpec() {
+		Assert.Equal((byte)1, PansyGenerator.COMMENT_INLINE);
+		Assert.Equal((byte)2, PansyGenerator.COMMENT_BLOCK);
+		Assert.Equal((byte)3, PansyGenerator.COMMENT_TODO);
+	}
 }

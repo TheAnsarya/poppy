@@ -234,6 +234,16 @@ public sealed class PansyGenerator {
 	// Track cross-references
 	private readonly List<(uint From, uint To, CrossRefType Type)> _crossRefs = [];
 
+	// Track comments
+	private readonly List<(uint Address, string Text, byte CommentType)> _comments = [];
+
+	/// <summary>Comment type: inline (end-of-line) comment.</summary>
+	public const byte COMMENT_INLINE = 1;
+	/// <summary>Comment type: block (multi-line) comment.</summary>
+	public const byte COMMENT_BLOCK = 2;
+	/// <summary>Comment type: TODO/note comment.</summary>
+	public const byte COMMENT_TODO = 3;
+
 	/// <summary>Project name for metadata section.</summary>
 	public string ProjectName { get; set; } = "";
 
@@ -272,6 +282,16 @@ public sealed class PansyGenerator {
 	}
 
 	/// <summary>
+	/// Registers a comment at a ROM address.
+	/// </summary>
+	/// <param name="address">The ROM address to attach the comment to.</param>
+	/// <param name="text">The comment text.</param>
+	/// <param name="commentType">The comment type (COMMENT_INLINE, COMMENT_BLOCK, COMMENT_TODO).</param>
+	public void RegisterComment(uint address, string text, byte commentType = COMMENT_INLINE) {
+		_comments.Add((address, text, commentType));
+	}
+
+	/// <summary>
 	/// Generates Pansy file data.
 	/// </summary>
 	/// <param name="romSize">The total ROM size in bytes.</param>
@@ -289,6 +309,12 @@ public sealed class PansyGenerator {
 		var symbols = GenerateSymbols();
 		if (symbols.Length > 0) {
 			sections.Add(new SectionData { Type = SECTION_SYMBOLS, Data = symbols });
+		}
+
+		// Generate comments section
+		var comments = GenerateComments();
+		if (comments.Length > 0) {
+			sections.Add(new SectionData { Type = SECTION_COMMENTS, Data = comments });
 		}
 
 		// Generate memory regions section
@@ -445,6 +471,26 @@ public sealed class PansyGenerator {
 			} else {
 				writer.Write((ushort)0);
 			}
+		}
+
+		return ms.ToArray();
+	}
+
+	/// <summary>
+	/// Generates the comments section.
+	/// </summary>
+	private byte[] GenerateComments() {
+		if (_comments.Count == 0) return [];
+
+		using var ms = new MemoryStream();
+		using var writer = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true);
+
+		foreach (var (address, text, commentType) in _comments.OrderBy(c => c.Address)) {
+			writer.Write(address);
+			writer.Write(commentType);
+			var textBytes = Encoding.UTF8.GetBytes(text);
+			writer.Write((ushort)textBytes.Length);
+			writer.Write(textBytes);
 		}
 
 		return ms.ToArray();
