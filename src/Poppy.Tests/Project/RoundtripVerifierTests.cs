@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Poppy.Core.Project;
+using StreamHash.Core;
 
 namespace Poppy.Tests.Project;
 
@@ -211,13 +212,7 @@ public class RoundtripVerifierTests : IDisposable {
 		File.WriteAllBytes(romPath, romBytes);
 
 		// Compute the actual CRC32 for this data
-		uint crcValue = 0xffffffff;
-		foreach (byte b in romBytes) {
-			crcValue ^= b;
-			for (int j = 0; j < 8; j++)
-				crcValue = (crcValue & 1) != 0 ? (crcValue >> 1) ^ 0xedb88320 : crcValue >> 1;
-		}
-		crcValue ^= 0xffffffff;
+		uint crcValue = BitConverter.ToUInt32(HashFacade.ComputeCrc32(romBytes));
 
 		var json = $$"""
 			{

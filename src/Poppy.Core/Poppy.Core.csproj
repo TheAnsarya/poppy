@@ -16,5 +16,9 @@
 		<WarningLevel>9999</WarningLevel>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="StreamHash" Version="1.10.0" />
+	</ItemGroup>
+
 </Project>
 

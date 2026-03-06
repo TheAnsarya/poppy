@@ -4,6 +4,7 @@
 // ============================================================================
 
 using System.Buffers.Binary;
+using StreamHash.Core;
 
 namespace Poppy.Core.Project;
 
@@ -172,13 +173,6 @@ public static class RoundtripVerifier {
 	/// Compute CRC32 of a byte array.
 	/// </summary>
 	private static uint ComputeCrc32(byte[] data) {
-		uint crc = 0xffffffff;
-		foreach (byte b in data) {
-			crc ^= b;
-			for (int i = 0; i < 8; i++) {
-				crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xedb88320 : crc >> 1;
-			}
-		}
-		return crc ^ 0xffffffff;
+		return BitConverter.ToUInt32(HashFacade.ComputeCrc32(data));
 	}
 }
