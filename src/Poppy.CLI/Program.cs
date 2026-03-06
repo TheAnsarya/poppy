@@ -83,6 +83,11 @@ internal static class Program {
 			return ConvertFromAssembler(options);
 		}
 
+		// Handle export command (PASM → other assembler)
+		if (options.Command == CommandType.Export) {
+			return ExportToAssembler(options);
+		}
+
 		// Project-based build
 		if (options.ProjectPath is not null) {
 			return BuildProject(options);
@@ -1588,6 +1593,179 @@ main_loop:
 	}
 
 	/// <summary>
+	/// Exports PASM source files to another assembler format.
+	/// </summary>
+	private static int ExportToAssembler(CompilerOptions options) {
+		Console.WriteLine($"🌸 {AppName} v{Version} - PASM Exporter");
+
+		// Target assembler is required
+		if (options.TargetAssembler is null) {
+			Console.Error.WriteLine("Error: No target assembler specified.");
+			Console.Error.WriteLine("Usage: poppy export <input.pasm> --to asar|ca65|xkas [-o <output>]");
+			Console.Error.WriteLine($"Supported targets: {string.Join(", ", ExporterFactory.SupportedTargets)}");
+			return 1;
+		}
+
+		if (!ExporterFactory.TryCreate(options.TargetAssembler, out var exporter) || exporter is null) {
+			Console.Error.WriteLine($"Error: Unknown target assembler: {options.TargetAssembler}");
+			Console.Error.WriteLine($"Supported targets: {string.Join(", ", ExporterFactory.SupportedTargets)}");
+			return 1;
+		}
+
+		// Create export options
+		var exportOptions = new ConversionOptions {
+			PreserveComments = options.PreserveComments
+		};
+
+		// Project directory export
+		if (options.ConvertProject || (options.InputFile is not null && Directory.Exists(options.InputFile))) {
+			return ExportProjectDirectory(options, exporter, exportOptions);
+		}
+
+		// Single file export
+		if (options.InputFile is null) {
+			Console.Error.WriteLine("Error: No input file or directory specified.");
+			Console.Error.WriteLine("Usage: poppy export <input.pasm> --to asar|ca65|xkas [-o <output>]");
+			return 1;
+		}
+
+		if (!File.Exists(options.InputFile)) {
+			Console.Error.WriteLine($"Error: Input file not found: {options.InputFile}");
+			return 1;
+		}
+
+		Console.WriteLine($"  Input: {options.InputFile}");
+		Console.WriteLine($"  Target: {exporter.TargetAssembler}");
+
+		try {
+			var result = exporter.ExportFile(options.InputFile, exportOptions);
+
+			foreach (var error in result.Errors) {
+				Console.WriteLine($"  ❌ Error ({error.FilePath}:{error.Line}): {error.Message}");
+			}
+
+			foreach (var warning in result.Warnings) {
+				Console.WriteLine($"  ⚠️ Warning ({warning.FilePath}:{warning.Line}): {warning.Message}");
+			}
+
+			if (!result.Success) {
+				Console.Error.WriteLine($"  Export failed with {result.Errors.Count} error(s).");
+				return 1;
+			}
+
+			string outputPath = options.OutputFile
+				?? Path.ChangeExtension(options.InputFile, exporter.DefaultExtension);
+			Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
+			File.WriteAllText(outputPath, result.Content);
+
+			Console.WriteLine($"  Output: {outputPath}");
+
+			var lineCount = result.Content.Split('\n').Length;
+			Console.WriteLine($"  Exported lines: {lineCount}");
+
+			if (result.Warnings.Count > 0) {
+				Console.WriteLine($"  Warnings: {result.Warnings.Count}");
+			}
+
+			Console.WriteLine();
+			Console.WriteLine($"🌸 Export complete");
+			return 0;
+
+		} catch (Exception ex) {
+			Console.Error.WriteLine($"Error exporting file: {ex.Message}");
+			if (options.Verbose) {
+				Console.Error.WriteLine(ex.StackTrace);
+			}
+			return 1;
+		}
+	}
+
+	/// <summary>
+	/// Exports an entire PASM project directory to another assembler format.
+	/// </summary>
+	private static int ExportProjectDirectory(
+		CompilerOptions options,
+		IPasmExporter exporter,
+		ConversionOptions exportOptions) {
+		var projectDir = options.InputFile ?? ".";
+
+		if (!Directory.Exists(projectDir)) {
+			Console.Error.WriteLine($"Error: Project directory not found: {projectDir}");
+			return 1;
+		}
+
+		Console.WriteLine($"  Project directory: {Path.GetFullPath(projectDir)}");
+		Console.WriteLine($"  Target: {exporter.TargetAssembler}");
+
+		string outputDir = options.OutputFile ?? projectDir;
+
+		var sourceFiles = Directory.GetFiles(projectDir, "*.pasm", SearchOption.AllDirectories)
+			.OrderBy(f => f)
+			.ToList();
+
+		if (sourceFiles.Count == 0) {
+			Console.WriteLine("  No PASM files found to export.");
+			return 0;
+		}
+
+		Console.WriteLine($"  Files to export: {sourceFiles.Count}");
+		Console.WriteLine();
+
+		int successCount = 0;
+		int errorCount = 0;
+		int totalWarnings = 0;
+
+		foreach (var inputFile in sourceFiles) {
+			var relativePath = Path.GetRelativePath(projectDir, inputFile);
+			Console.Write($"  Exporting: {relativePath}...");
+
+			try {
+				var result = exporter.ExportFile(inputFile, exportOptions);
+
+				if (result.Success) {
+					var outputPath = Path.Combine(
+						outputDir,
+						Path.ChangeExtension(relativePath, exporter.DefaultExtension));
+					Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
+					File.WriteAllText(outputPath, result.Content);
+
+					var lineCount = result.Content.Split('\n').Length;
+					Console.WriteLine($" ✓ ({lineCount} lines)");
+					successCount++;
+					totalWarnings += result.Warnings.Count;
+				} else {
+					Console.WriteLine($" ✗ ({result.Errors.Count} errors)");
+					errorCount++;
+
+					var firstError = result.Errors.FirstOrDefault();
+					if (firstError is not null) {
+						Console.WriteLine($"    → {firstError.Message}");
+					}
+				}
+			} catch (Exception ex) {
+				Console.WriteLine($" ✗ (exception)");
+				Console.WriteLine($"    → {ex.Message}");
+				errorCount++;
+			}
+		}
+
+		Console.WriteLine();
+		Console.WriteLine($"  Results: {successCount} succeeded, {errorCount} failed");
+		if (totalWarnings > 0) {
+			Console.WriteLine($"  Total warnings: {totalWarnings}");
+		}
+
+		Console.WriteLine();
+		if (errorCount > 0) {
+			Console.WriteLine($"🌸 Export completed with errors");
+			return 1;
+		}
+
+		Console.WriteLine($"🌸 Project export complete");
+		return 0;
+	}
+
+	/// <summary>
 	/// Formats a file size for display.
 	/// </summary>
 	private static string FormatFileSize(long bytes) {
@@ -1924,6 +2102,11 @@ main_loop:
 				options.Command = CommandType.Convert;
 				break;
 
+			case "export":
+				// Export command (convert PASM to other assembler formats)
+				options.Command = CommandType.Export;
+				break;
+
 				case "-h":
 				case "--help":
 					options.ShowHelp = true;
@@ -2178,6 +2361,14 @@ main_loop:
 
 					break;
 
+				case "--to":
+				case "--target-assembler":
+					if (i + 1 < args.Length) {
+						options.TargetAssembler = args[++i].ToLowerInvariant();
+					}
+
+					break;
+
 				case "--auto":
 				case "--auto-detect":
 					options.AutoDetectAssembler = true;
@@ -2239,6 +2430,7 @@ main_loop:
 		Console.WriteLine("       poppy unpack <archive.poppy> [-o <directory>]");
 		Console.WriteLine("       poppy validate <archive.poppy>");
 		Console.WriteLine("       poppy convert <input> [--from <format>] [-o <output>]");
+		Console.WriteLine("       poppy export <input.pasm> --to <format> [-o <output>]");
 		Console.WriteLine("       poppy text-encode [options]");
 		Console.WriteLine("       poppy data-gen <input.json> [options]");
 		Console.WriteLine("       poppy gfx-convert <input.bmp> [options]");
@@ -2333,6 +2525,13 @@ main_loop:
 		Console.WriteLine("  poppy convert . --from asar -o output/        Convert current dir to output");
 		Console.WriteLine("  poppy convert src/ --ext .asm,.s,.inc         Specify file extensions");
 		Console.WriteLine("  Supported formats: asar, ca65, xkas");
+		Console.WriteLine();
+		Console.WriteLine("PASM Export (PASM to ASAR/ca65/xkas):");
+		Console.WriteLine("  poppy export game.pasm --to asar              Export to ASAR format");
+		Console.WriteLine("  poppy export game.pasm --to ca65 -o game.s    Export to ca65 format");
+		Console.WriteLine("  poppy export game.pasm --to xkas              Export to xkas format");
+		Console.WriteLine("  poppy export src/ --to asar --convert-project Export entire project");
+		Console.WriteLine("  Supported targets: asar, ca65, xkas");
 	}
 
 	/// <summary>
@@ -2377,7 +2576,10 @@ internal enum CommandType {
 	GfxConvert,
 
 	/// <summary>Convert project from another assembler format to PASM.</summary>
-	Convert
+	Convert,
+
+	/// <summary>Export PASM source to another assembler format.</summary>
+	Export
 }
 
 /// <summary>
@@ -2508,6 +2710,9 @@ internal sealed class CompilerOptions {
 
 	/// <summary>Source assembler format for conversion (asar, ca65, xkas).</summary>
 	public string? SourceAssembler { get; set; }
+
+	/// <summary>Target assembler format for export (asar, ca65, xkas).</summary>
+	public string? TargetAssembler { get; set; }
 
 	/// <summary>Auto-detect source assembler format.</summary>
 	public bool AutoDetectAssembler { get; set; }

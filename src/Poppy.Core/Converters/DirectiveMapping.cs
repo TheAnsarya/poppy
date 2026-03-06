@@ -236,6 +236,188 @@ public static class DirectiveMapping {
 	};
 
 	// ========================================================================
+	// Reverse Mappings (PASM → Target Assembler)
+	// ========================================================================
+
+	/// <summary>
+	/// Maps PASM directives to their ASAR equivalents.
+	/// </summary>
+	public static readonly IReadOnlyDictionary<string, string> PasmToAsar = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+		// Data directives
+		["db"] = "db",
+		["dw"] = "dw",
+		["dl"] = "dl",
+		["dd"] = "dd",
+
+		// Text directives
+		["table"] = "table",
+		["cleartable"] = "cleartable",
+
+		// Include directives
+		["include"] = "incsrc",
+		["incbin"] = "incbin",
+
+		// Organization directives
+		["org"] = "org",
+		["base"] = "base",
+		["skip"] = "skip",
+		["align"] = "align",
+
+		// Free space directives
+		["freecode"] = "freecode",
+		["freedata"] = "freedata",
+		["freespacebyte"] = "freespacebyte",
+
+		// Fill directives
+		["fill"] = "fill",
+		["fillbyte"] = "fillbyte",
+		["padbyte"] = "padbyte",
+		["pad"] = "pad",
+
+		// Namespace/scope directives
+		["namespace"] = "namespace",
+		["endnamespace"] = "endnamespace",
+
+		// Output directives
+		["print"] = "print",
+		["error"] = "error",
+		["warn"] = "warn",
+		["assert"] = "assert",
+
+		// Architecture directives
+		["arch"] = "arch",
+
+		// Bank directives
+		["bank"] = "bank",
+		["hirom"] = "hirom",
+		["lorom"] = "lorom",
+		["exhirom"] = "exhirom",
+		["exlorom"] = "exlorom",
+		["norom"] = "norom",
+
+		// Conditional assembly
+		["if"] = "if",
+		["else"] = "else",
+		["elseif"] = "elseif",
+		["endif"] = "endif",
+
+		// Macro directives
+		["macro"] = "macro",
+		["endmacro"] = "endmacro",
+	};
+
+	/// <summary>
+	/// Maps PASM directives to their ca65 equivalents.
+	/// </summary>
+	public static readonly IReadOnlyDictionary<string, string> PasmToCa65 = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+		// Data directives
+		["db"] = ".byte",
+		["dw"] = ".word",
+		["dd"] = ".dword",
+		["asciiz"] = ".asciiz",
+
+		// Include directives
+		["include"] = ".include",
+		["incbin"] = ".incbin",
+
+		// Organization directives
+		["org"] = ".org",
+		["align"] = ".align",
+		["fill"] = ".res",
+
+		// Scope/namespace directives
+		["scope"] = ".scope",
+		["endscope"] = ".endscope",
+		["proc"] = ".proc",
+		["endproc"] = ".endproc",
+
+		// Segment directives
+		["segment"] = ".segment",
+
+		// Symbol directives
+		["export"] = ".export",
+		["import"] = ".import",
+		["global"] = ".global",
+		["local"] = ".local",
+
+		// Conditional assembly
+		["if"] = ".if",
+		["else"] = ".else",
+		["elseif"] = ".elseif",
+		["endif"] = ".endif",
+		["ifdef"] = ".ifdef",
+		["ifndef"] = ".ifndef",
+		["ifblank"] = ".ifblank",
+		["ifnblank"] = ".ifnblank",
+
+		// Macro directives
+		["macro"] = ".macro",
+		["endmacro"] = ".endmacro",
+		["exitmacro"] = ".exitmacro",
+
+		// Definition/assignment
+		["define"] = ".define",
+		["set"] = ".set",
+		["enum"] = ".enum",
+		["endenum"] = ".endenum",
+		["struct"] = ".struct",
+		["endstruct"] = ".endstruct",
+		["union"] = ".union",
+		["endunion"] = ".endunion",
+
+		// CPU directives
+		["smart"] = ".smart",
+		["feature"] = ".feature",
+
+		// Output
+		["print"] = ".out",
+		["warn"] = ".warning",
+		["error"] = ".error",
+		["assert"] = ".assert",
+
+		// Linker
+		["reloc"] = ".reloc",
+		["addr"] = ".addr",
+		["faraddr"] = ".faraddr",
+		["bankbytes"] = ".bankbytes",
+	};
+
+	/// <summary>
+	/// Maps PASM directives to their xkas equivalents.
+	/// </summary>
+	public static readonly IReadOnlyDictionary<string, string> PasmToXkas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+		// Data directives
+		["db"] = "db",
+		["dw"] = "dw",
+		["dl"] = "dl",
+		["dd"] = "dd",
+
+		// Text directives
+		["table"] = "table",
+		["cleartable"] = "cleartable",
+
+		// Include directives
+		["include"] = "incsrc",
+		["incbin"] = "incbin",
+
+		// Organization directives
+		["org"] = "org",
+		["base"] = "base",
+
+		// Fill directives
+		["fill"] = "fill",
+		["fillbyte"] = "fillbyte",
+
+		// Architecture
+		["arch"] = "arch",
+
+		// Header directives
+		["header"] = "header",
+		["lorom"] = "lorom",
+		["hirom"] = "hirom",
+	};
+
+	// ========================================================================
 	// Helper Methods
 	// ========================================================================
 
@@ -292,5 +474,36 @@ public static class DirectiveMapping {
 	/// <returns>True if the directive is explicitly unsupported.</returns>
 	public static bool IsUnsupported(string assembler, string directive) {
 		return GetUnsupported(assembler).Contains(directive);
+	}
+
+	/// <summary>
+	/// Gets the reverse directive mapping (PASM → target assembler).
+	/// </summary>
+	/// <param name="assembler">The target assembler name.</param>
+	/// <returns>The reverse directive mapping dictionary.</returns>
+	public static IReadOnlyDictionary<string, string> GetReverseMapping(string assembler) {
+		return assembler.ToUpperInvariant() switch {
+			"ASAR" => PasmToAsar,
+			"CA65" => PasmToCa65,
+			"XKAS" => PasmToXkas,
+			_ => throw new ArgumentException($"Unknown assembler: {assembler}", nameof(assembler))
+		};
+	}
+
+	/// <summary>
+	/// Translates a PASM directive to the target assembler format.
+	/// </summary>
+	/// <param name="assembler">The target assembler name.</param>
+	/// <param name="pasmDirective">The PASM directive to translate.</param>
+	/// <param name="targetDirective">The translated target directive.</param>
+	/// <returns>True if the directive was found and translated.</returns>
+	public static bool TryTranslateReverse(string assembler, string pasmDirective, out string? targetDirective) {
+		var mapping = GetReverseMapping(assembler);
+		if (mapping.TryGetValue(pasmDirective, out targetDirective)) {
+			return true;
+		}
+
+		targetDirective = null;
+		return false;
 	}
 }
