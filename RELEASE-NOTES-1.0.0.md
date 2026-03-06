@@ -1,4 +1,5 @@
-﻿﻿# 🌸 Poppy v1.0.0 Release Notes
+﻿﻿<!-- markdownlint-disable MD004 MD024 MD025 MD029 MD035 MD041 MD050 -->
+# 🌸 Poppy v1.0.0 Release Notes
 
 **Release Date:** January 15, 2026
 **Status:** ✅ STABLE RELEASE
@@ -136,6 +137,7 @@ dotnet build -c Release
 ### VS Code Extension
 
 Install "Poppy Assembly" from the Visual Studio Code Marketplace for:
+
 - Syntax highlighting for all three platforms
 - IntelliSense with opcode documentation
 - Code snippets for common patterns
@@ -192,9 +194,9 @@ Install "Poppy Assembly" from the Visual Studio Code Marketplace for:
 ## 🔧 Known Limitations
 
 1. **No Project System** - Multi-file projects require manual includes (v1.1.0 planned)
-2. **Limited Expression Evaluation** - Complex expressions may need parentheses
-3. **No Asset Pipeline** - Binary assets must be pre-converted
-4. **Manual Testing Required** - Test your ROMs in emulators
+1. **Limited Expression Evaluation** - Complex expressions may need parentheses
+2. **No Asset Pipeline** - Binary assets must be pre-converted
+3. **Manual Testing Required** - Test your ROMs in emulators
 
 ---
 
@@ -225,12 +227,14 @@ Install "Poppy Assembly" from the Visual Studio Code Marketplace for:
 ## 🙏 Credits
 
 **Inspired by:**
+
 - [ASAR](https://github.com/RPGHacker/asar) - SNES assembler
 - [ca65](https://cc65.github.io/doc/ca65.html) - 6502 assembler
 - [RGBDS](https://rgbds.gbdev.io/) - Game Boy assembler
 - [Ophis](https://github.com/michaelcmartin/Ophis) - 6502 cross-assembler
 
 **Special Thanks:**
+
 - Pan Docs contributors for GB documentation
 - Super Famicom Development Wiki
 - NESdev community

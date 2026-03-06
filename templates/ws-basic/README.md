@@ -44,6 +44,7 @@ Creates `game.ws` - a valid WonderSwan ROM.
 ## Key Bits
 
 ### Y Keys (D-pad)
+
 | Bit | Button |
 |-----|--------|
 | 0 | Y1 (Up) |
@@ -52,6 +53,7 @@ Creates `game.ws` - a valid WonderSwan ROM.
 | 3 | Y4 (Left) |
 
 ### X Keys (Buttons)
+
 | Bit | Button |
 |-----|--------|
 | 0 | X1 |

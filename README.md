@@ -9,7 +9,7 @@
 
 ---
 
-## 🎉 v1.0.0 Released!
+## 🎉 v1.0.0 Released
 
 **Poppy v1.0.0** is now available with complete support for multiple retro gaming platforms! [Download the release →](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 
@@ -137,12 +137,12 @@ The compiler supports real-world game development with comprehensive tooling, in
 **Developer Tools:**
 
 - 🎨 [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-	- Syntax highlighting for all platforms
-	- IntelliSense with opcode documentation
-	- Code formatting with column alignment
-	- 40+ code snippets
-	- Build task integration
-	- Go-to-definition and hover info
+   	- Syntax highlighting for all platforms
+   	- IntelliSense with opcode documentation
+   	- Code formatting with column alignment
+   	- 40+ code snippets
+   	- Build task integration
+   	- Go-to-definition and hover info
 - 📊 Comprehensive error messages with context
 - 🧮 Advanced expression evaluation
 - 📋 Multiple output formats (ROM, symbols, listings, memory maps)
@@ -423,6 +423,7 @@ rts
 **Current Version:** v1.0.0 (Released January 15, 2026)
 
 **Completed:**
+
 - ✅ Full NES support (6502, iNES 2.0, 942 tests passing)
 - ✅ Full SNES support (65816, LoROM/HiROM/ExHiROM)
 - ✅ Full Game Boy support (SM83, MBC1/3/5, CGB modes)
@@ -439,6 +440,7 @@ rts
 - ✅ 1,837 tests passing
 
 **Next Version:** v1.1.0 (Q1 2026)
+
 - Project file system (poppy.json)
 - Multi-file compilation with dependency tracking
 - Watch mode for auto-rebuild
@@ -446,6 +448,7 @@ rts
 - VS Code workspace symbols
 
 **Future:** v2.0.0 (Q4 2026)
+
 - Platform expansion (GBA, Genesis, Atari 2600, TG16, etc.)
 - Language Server Protocol (LSP)
 - Web-based compiler (WASM)
@@ -476,6 +479,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 is free and unencumbered software released into the public domain.
 
 See the [LICENSE](LICENSE) file for details (Unlicense)
+
 ---
 
 ## 🔗 References

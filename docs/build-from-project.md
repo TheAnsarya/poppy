@@ -12,7 +12,7 @@ The **Nexen → Peony → Poppy** pipeline enables a full roundtrip workflow:
 2. **Peony** (disassembler) imports the pack and produces `.pasm` source files + `peony.json`
 3. **Poppy** (assembler) builds the `.pasm` files back into a ROM and verifies byte-for-byte accuracy
 
-```
+```text
 ┌─────────┐     export      ┌─────────┐     import      ┌─────────┐
 │  Nexen  │ ──────────────► │  Peony  │ ──────────────► │  Poppy  │
 │Emulator │  nexen.pack.zip │Disasm   │  peony.json     │Assembler│
@@ -79,8 +79,8 @@ When Peony disassembles a ROM, it creates a `peony.json` project file in the out
 
 | Section | Field | Required | Description |
 |---------|-------|----------|-------------|
-| *(root)* | `version` | Yes | Project format version (e.g., `"1.0"`) |
-| *(root)* | `platform` | Yes | Target platform: `nes`, `snes`, `gb`, `gba`, `lynx`, `a26` |
+| _(root)_ | `version` | Yes | Project format version (e.g., `"1.0"`) |
+| _(root)_ | `platform` | Yes | Target platform: `nes`, `snes`, `gb`, `gba`, `lynx`, `a26` |
 | `rom` | `path` | Yes | Relative path to the original ROM file |
 | `rom` | `crc32` | No | CRC32 hash (lowercase hex) for integrity checking |
 | `rom` | `size` | No | ROM size in bytes |
@@ -108,13 +108,13 @@ When Poppy detects a `peony.json` in the project directory, it automatically run
 ### Example Output
 
 **Pass:**
-```
+```text
 Assembled main.pasm -> build/game.nes (262144 bytes) + game.pansy
 Roundtrip: PASS — assembled ROM matches original (CRC32: a1b2c3d4)
 ```
 
 **Fail:**
-```
+```text
 Assembled main.pasm -> build/game.nes (262144 bytes) + game.pansy
 Roundtrip: FAIL — 3 byte(s) differ
   Offset $001a: expected $4c, got $00
@@ -176,7 +176,7 @@ poppy main.pasm -o game.nes --no-pansy
 
 A typical Peony project directory looks like:
 
-```
+```text
 my-project/
 ├── peony.json              # Project configuration (created by Peony)
 ├── roms/

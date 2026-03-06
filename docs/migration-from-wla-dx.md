@@ -334,7 +334,7 @@ Start:
 
 ## Quick Reference Card
 
-```
+```text
 WLA-DX                   Poppy
 ──────                   ─────
 .org $1234               .org $1234
@@ -366,23 +366,28 @@ _localLabel:             @localLabel:
 ## Common Migration Tasks
 
 ### 1. Remove Memory Map
+
 - Delete `.memorymap`/`.endme` blocks
 - Delete `.rombankmap`/`.endro` blocks
 - Create poppy.json with target settings
 
 ### 2. Update Sections
+
 - Convert `.section`/`.ends` to simple `.org`
 - Remove `.slot` references
 
 ### 3. Update Macros
+
 - Change `.endm` to `.endmacro`
 - Convert numbered params `\1` to named params
 - Add `%` prefix to invocations
 
 ### 4. Update Labels
+
 - Change `_localLabel` to `@localLabel`
 
 ### 5. Update Structs
+
 - Change `.endst` to `.endstruct`
 - Update `instanceof` to `.ds Struct.size`
 

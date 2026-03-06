@@ -4,7 +4,7 @@ This document describes the roundtrip workflow between **Poppy** (assembler) and
 
 ## Overview
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────┐
 │					CDL/DIZ Roundtrip Workflow					  │
 ├────────────────────────────────────────────────────────────────────┤
@@ -45,10 +45,12 @@ This document describes the roundtrip workflow between **Poppy** (assembler) and
 CDL files track which ROM bytes have been executed as code or read as data during emulation.
 
 **Supported Formats:**
+
 - **Mesen** - Header "CDL\x01" + byte array (recommended)
 - **FCEUX** - Raw byte array, no header
 
 **Flag Values (per byte):**
+
 | Flag | Mesen | FCEUX | Meaning |
 |------|-------|-------|---------|
 | Code | 0x01 | 0x01 | Byte was executed as an opcode/operand |
@@ -61,12 +63,14 @@ CDL files track which ROM bytes have been executed as code or read as data durin
 DIZ files are gzip-compressed JSON containing rich disassembly metadata.
 
 **Contents:**
+
 - Project name and ROM mapping info
 - Per-byte data type classification
 - Labels with names and comments
 - ROM checksum for verification
 
 **Data Types:**
+
 | Value | Name | Description |
 |-------|------|-------------|
 | 0 | Unreached | Not accessed |

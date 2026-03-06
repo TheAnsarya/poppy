@@ -227,7 +227,7 @@ rep #$10			; Clear X flag (16-bit X/Y)
 .i16
 ```
 
-### ⚠️ Important: Always Use Directives!
+### ⚠️ Important: Always Use Directives
 
 Always use `.a8`/`.a16`/`.i8`/`.i16` directives after REP/SEP instructions.
 This tells the assembler the current register sizes so it can emit correct
@@ -636,4 +636,4 @@ sta $2100		; INIDISP
 
 ---
 
-*Happy SNES coding with Poppy! 🌸*
+_Happy SNES coding with Poppy! 🌸_

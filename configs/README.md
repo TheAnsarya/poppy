@@ -55,6 +55,7 @@ game-specific metadata:
 ## Contributing
 
 To add a new game configuration:
+
 1. Create a new JSON file following the schema
 2. Include accurate mapper and memory layout information
 3. Add reference information for the source disassembly

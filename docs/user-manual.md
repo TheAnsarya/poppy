@@ -84,11 +84,13 @@
 **Poppy** is a modern multi-system assembly compiler targeting classic gaming platforms:
 
 ### Primary Platforms
+
 - **NES** (MOS 6502 processor)
 - **SNES** (WDC 65816 processor)
 - **Game Boy** (Sharp SM83/LR35902 processor)
 
 ### Extended Platforms (v2.0)
+
 - **Sega Genesis/Mega Drive** (Motorola 68000 processor)
 - **Game Boy Advance** (ARM7TDMI processor)
 - **Sega Master System** (Zilog Z80 processor)
@@ -556,6 +558,7 @@ irq_vector:
 ```
 
 **Features:**
+
 - `.align N` - Align to N-byte boundary
 - `.pad ADDR [, VALUE]` - Fill with value (default $00) until address
 - Useful for page-aligned data and ROM layouts
@@ -587,6 +590,7 @@ SCREEN_WIDTH = 256
 ```
 
 **Features:**
+
 - Recursive includes supported
 - Circular include detection
 - Relative and absolute paths
@@ -627,6 +631,7 @@ SCREEN_WIDTH = 256
 ```
 
 **Supported Directives:**
+
 - `.ifdef SYMBOL` - If symbol defined
 - `.ifndef SYMBOL` - If symbol not defined
 - `.if EXPR` - If expression is non-zero
@@ -681,6 +686,7 @@ SCREEN_WIDTH = 256
 ```
 
 **Features:**
+
 - Parameter substitution
 - Default parameter values
 - Nested macro calls
@@ -879,6 +885,7 @@ init:
 ```
 
 **Features:**
+
 - Scoped to nearest global label
 - Same name can be reused in different routines
 - Cannot be referenced outside their scope
@@ -922,6 +929,7 @@ Anonymous labels provide quick forward/backward references without naming:
 ```
 
 **Features:**
+
 - `-` references nearest previous anonymous label
 - `+` references nearest next anonymous label
 - Multiple `-` or `+` for different nesting levels
@@ -1857,5 +1865,4 @@ Coming from another assembler? Check our migration guides:
 ---
 
 **Happy coding! 🌸**
-
 

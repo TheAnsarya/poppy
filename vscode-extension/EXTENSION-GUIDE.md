@@ -130,6 +130,7 @@ The extension provides comprehensive syntax highlighting:
 | **Macro Parameters** | Variables (cyan) |
 
 **Supported Instruction Sets:**
+
 - 6502 (NES) - 56 opcodes
 - 65816 (SNES) - 256 opcodes
 - SM83 (Game Boy) - 512 opcodes (including CB-prefixed)
@@ -146,6 +147,7 @@ Context-aware code completion with documentation:
 ```
 
 **Details:**
+
 - Architecture-specific (detects `.target nes/snes/gb`)
 - Shows valid addressing modes
 - Includes opcode description
@@ -157,6 +159,7 @@ Context-aware code completion with documentation:
 ```
 
 **Details:**
+
 - All assembler directives
 - Parameter hints
 - Usage examples
@@ -169,6 +172,7 @@ reset:
 ```
 
 **Details:**
+
 - All labels in current file
 - Includes global and local labels
 - Shows label address (if available)
@@ -187,6 +191,7 @@ Professional column-based alignment:
 ```
 
 **Features:**
+
 - Labels aligned at column 0
 - Opcodes aligned at column 8 (configurable)
 - Operands aligned at column 16 (configurable)
@@ -226,6 +231,7 @@ Hover over an instruction to see documentation:
 ```
 
 **Includes:**
+
 - Instruction description
 - Supported addressing modes
 - Cycle counts
@@ -249,12 +255,13 @@ The extension provides two build tasks:
 
 Compiler errors appear in VS Code's Problems panel:
 
-```
+```text
 ERROR: Undefined symbol 'my_label'
   --> hello.pasm:10:5
 ```
 
 **Features:**
+
 - Click to jump to error location
 - Inline error highlighting
 - Real-time diagnostics
@@ -360,7 +367,7 @@ Column position for comments.
 
 ### Project Organization
 
-```
+```text
 my-game/
 ├── poppy.json          # Project configuration
 ├── src/
@@ -429,6 +436,7 @@ poppy --version
 
 **Problem:** No completion suggestions  
 **Solution:**
+
 1. Verify `.pasm` file extension
 2. Try restarting VS Code
 3. Check for conflicting extensions

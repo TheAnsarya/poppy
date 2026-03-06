@@ -271,7 +271,7 @@ DEBUG   equ 1
 
 ## Quick Reference Card
 
-```
+```text
 ASM68K                   Poppy
 ──────                   ─────
 org $1234                .org $1234
@@ -423,23 +423,28 @@ VDPRegs:
 ## Common Migration Tasks
 
 ### 1. Update Project Setup
+
 - Create poppy.json
 - Move header info to config or directives
 
 ### 2. Update Directives
+
 - Add dot prefix to all directives
 - Change `dc.` to `.d` (dc.b → .db)
 - Change `ds.` to `.ds`
 
 ### 3. Update Macros
+
 - Add dot prefix to macro/endm
 - Change `endm` to `.endmacro`
 - Add `%` prefix to invocations
 
 ### 4. Update Labels
+
 - Change `.localLabel` to `@localLabel`
 
 ### 5. Lowercase Hex
+
 - Convert `$FFFF` to `$ffff` (Poppy convention)
 
 ## Resources

@@ -7,6 +7,7 @@ A minimal SNES audio driver demonstrating **SPC700** assembly programming for th
 The **SPC700** is the Sony audio co-processor in the Super Nintendo. It's a completely separate CPU from the main 65816, running at 1.024 MHz with its own 64KB of RAM. Communication with the main CPU happens through four I/O ports ($f4-$f7).
 
 This example demonstrates:
+
 - DSP register initialization
 - BRR-encoded sample playback
 - Timer-driven audio updates

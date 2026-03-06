@@ -20,7 +20,7 @@ The Lynx uses a WDC 65SC02, an enhanced CMOS version of the 6502 with:
 
 - All original 6502 instructions
 - New instructions: `bra`, `phx`, `phy`, `plx`, `ply`, `stz`, `trb`, `tsb`
-- New addressing mode: Zero Page Indirect `(zp)` 
+- New addressing mode: Zero Page Indirect `(zp)`
 - Fixed JMP indirect bug (page boundary crossing)
 - Decimal mode sets flags correctly
 
@@ -50,7 +50,7 @@ The Lynx uses a WDC 65SC02, an enhanced CMOS version of the 6502 with:
 
 ## Memory Map
 
-```
+```text
 $0000-$00ff   Zero Page (CPU direct page)
 $0100-$01ff   Stack
 $0200-$fbff   Work RAM / Program / Display Buffer
@@ -111,6 +111,7 @@ Each timer has 4 registers at offsets 0-3:
 | 3 | CTLB | Control B / Status |
 
 Timer addresses:
+
 - Timer 0: $fd00-$fd03 (Horizontal sync)
 - Timer 1: $fd04-$fd07 (Audio channel 0)
 - Timer 2: $fd08-$fd0b (Vertical sync)
@@ -467,21 +468,25 @@ Poppy generates this header automatically with the `.platform "lynx"` directive.
 ## External Resources
 
 ### Official Documentation
+
 - [Atari Lynx Developer Documentation](https://atarilynxdeveloper.wordpress.com/) - Comprehensive development resources
 - [Lynx Development Kit](http://www.monlynx.de/lynx/) - Tools and documentation
 
 ### Technical References
+
 - [Handy Lynx Emulator Source](https://github.com/handy-sdl/handy-sdl) - Reference implementation
 - [65C02 Datasheet (WDC)](https://www.westerndesigncenter.com/wdc/documentation/w65c02s.pdf) - Official CPU documentation
 - [Atari Lynx Hardware Manual](http://www.monlynx.de/lynx/lynxhw.html) - Hardware specifications
 
 ### Community Resources
+
 - [AtariAge Lynx Forum](https://atariage.com/forums/forum/13-atari-lynx/) - Active development community
 - [Lynx Programmer's Reference Guide](http://www.monlynx.de/lynx/lynxprgr.html) - Programming reference
 - [CC65 Lynx Support](https://cc65.github.io/doc/lynx.html) - C compiler Lynx documentation
 
 ### Nexen Emulator
 The [Nexen emulator](https://github.com/TheAnsarya/Nexen) contains a cycle-accurate Lynx core with:
+
 - Accurate Mikey timer emulation
 - Suzy sprite engine emulation
 - Hardware math unit

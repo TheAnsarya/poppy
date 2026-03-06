@@ -13,6 +13,7 @@ A minimal Sega Master System example demonstrating Z80 assembly.
 ## Hardware
 
 The Master System uses:
+
 - **VDP**: Custom video chip (TMS9918 derivative)
 - **PSG**: SN76489 sound chip (4 channels: 3 square + 1 noise)
 

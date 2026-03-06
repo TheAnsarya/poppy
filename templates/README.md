@@ -47,7 +47,7 @@ poppy init my-game --template nes-platformer
 
 Each template follows this structure:
 
-```
+```text
 template-name/
 ├── poppy.json          # Project configuration
 ├── README.md           # Template documentation

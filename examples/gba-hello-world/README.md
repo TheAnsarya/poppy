@@ -31,6 +31,7 @@ poppy --project . -V
 ## Running
 
 Use a GBA emulator like:
+
 - mGBA
 - VBA-M
 - NO$GBA

@@ -310,28 +310,33 @@ Poppy supports standard TIA register names when targeting Atari 2600:
 ## Common Migration Tasks
 
 ### 1. Update Project Setup
+
 - Create poppy.json with target/cpu settings
 - Remove `processor` directive
 
 ### 2. Update Directives
+
 - Add dot prefix to all directives
 - Change `mac`/`endm` to `.macro`/`.endmacro`
 - Change `repeat`/`repend` to `.rept`/`.endr`
 
 ### 3. Update Macros
+
 - Change `{1}`, `{2}` to named parameters
 - Add `%` prefix to macro invocations
 
 ### 4. Update Labels
+
 - Change `.localLabel` to `@localLabel`
 
 ### 5. Update Data Definitions
+
 - Change `dc.b` to `.db`
 - Change `dc.w` to `.dw`
 
 ## Quick Reference Card
 
-```
+```text
 DASM                     Poppy
 ────                     ─────
 processor 6502           ; Use poppy.json

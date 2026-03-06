@@ -308,31 +308,36 @@ DW "AB"           ; Two bytes: 'A', 'B'
 ## Common Migration Tasks
 
 ### 1. Update Directives
+
 - Add dot prefix to all directives
 - Convert `ENDC` to `.endif`
 - Convert `ENDM` to `.endmacro`
 
 ### 2. Update Macros
+
 - Change `MACRO name` to `.macro name`
 - Change `\1`, `\2` to named parameters
 - Add `%` prefix to macro invocations
 
 ### 3. Update Labels
+
 - Change `.localLabel` to `@localLabel`
 - Change `:+`/`:-` to `+`/`-`
 
 ### 4. Update Sections
+
 - Convert `SECTION` to `.org` and `.bank`
 - Move header info to poppy.json or directives
 
 ### 5. Update Build Process
+
 - Remove RGBLINK step
 - Remove RGBFIX step (header built-in)
 - Create poppy.json project file
 
 ## Quick Reference Card
 
-```
+```text
 RGBDS                    Poppy
 ─────                    ─────
 SECTION "x", ROM0[$100]  .org $100

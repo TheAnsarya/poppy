@@ -21,7 +21,7 @@ Output: `game.nes`
 
 ## Project Structure
 
-```
+```text
 nes-basic/
 ├── poppy.json          # Project configuration
 ├── README.md           # This file

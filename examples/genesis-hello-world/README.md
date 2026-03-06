@@ -31,6 +31,7 @@ poppy --project . -V
 ## Running
 
 Use a Sega Genesis emulator like:
+
 - BlastEm
 - Gens
 - Fusion

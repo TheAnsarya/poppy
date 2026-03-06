@@ -31,6 +31,7 @@ poppy --project . -V
 ## Running
 
 Use a WonderSwan emulator like:
+
 - Mednafen
 - Oswan
 - WonderWitch
@@ -38,19 +39,22 @@ Use a WonderSwan emulator like:
 ## Technical Notes
 
 The WonderSwan uses:
+
 - **NEC V30MZ** CPU at 3.072MHz (Intel 8086/80186 compatible)
 - **Segment:Offset** addressing (20-bit address space, 1MB)
 - **224×144** resolution (WonderSwan) or 224×144 with color (WonderSwan Color)
 - **I/O port mapped** hardware registers ($00-$FF)
 
 ### Memory Map
-```
+
+```text
 $0000-$3FFF  Internal RAM (16KB)
 $4000-$BFFF  Cartridge SRAM (optional)
 $C000-$FFFF  ROM Bank (mapped from cartridge)
 ```
 
 ### CPU Registers
+
 - **AX, BX, CX, DX** - General purpose (16-bit, split into H/L bytes)
 - **SI, DI** - Index registers
 - **BP, SP** - Stack registers

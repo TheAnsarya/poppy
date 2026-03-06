@@ -3,8 +3,8 @@
 ## Prerequisites
 
 1. **Azure DevOps Personal Access Token (PAT)**
-   - Go to: https://dev.azure.com/TheAnsarya/_usersSettings/tokens
-   - Or: https://marketplace.visualstudio.com/manage/publishers/TheAnsarya
+   - Go to: <https://dev.azure.com/TheAnsarya/_usersSettings/tokens>
+   - Or: <https://marketplace.visualstudio.com/manage/publishers/TheAnsarya>
    - Click "New Token"
    - Set **Organization** to "All accessible organizations"
    - Set **Scopes** to "Custom defined" and select:
@@ -38,13 +38,13 @@ vsce publish -p <YOUR_PAT_TOKEN>
 ## Verify Publication
 
 After publishing, verify at:
-https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly
+<https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly>
 
 ## Troubleshooting
 
 - **Timeout errors**: Try again, Azure DevOps can be slow
 - **401 Unauthorized**: PAT may have expired or wrong scopes
-- **Publisher not found**: Create publisher at https://marketplace.visualstudio.com/manage/publishers
+- **Publisher not found**: Create publisher at <https://marketplace.visualstudio.com/manage/publishers>
 
 ## Current Extension Info
 

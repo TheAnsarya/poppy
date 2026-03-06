@@ -30,6 +30,7 @@ poppy --project . -V
 ## Running
 
 Use an Atari 2600 emulator like:
+
 - Stella
 - z26
 - Javatari

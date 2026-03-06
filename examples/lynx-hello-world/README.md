@@ -30,6 +30,7 @@ poppy --project . -V
 ## Running
 
 Use an Atari Lynx emulator like:
+
 - Mednafen
 - Handy
 - Felix
@@ -37,6 +38,7 @@ Use an Atari Lynx emulator like:
 ## Technical Notes
 
 The Atari Lynx uses:
+
 - **WDC 65C02** CPU at 4MHz (same as Apple IIc)
 - **Mikey** - Audio, timers, UART, interrupts
 - **Suzy** - Sprite engine, math coprocessor

@@ -341,7 +341,7 @@ LargeBuffer:
 
 ## Quick Reference Card
 
-```
+```text
 GAS                      Poppy
 ───                      ─────
 .section .text           .org $addr
@@ -465,24 +465,29 @@ main:
 ## Common Migration Tasks
 
 ### 1. Update Build System
+
 - Remove Makefile/CMake
 - Create poppy.json
 - Remove gbafix step
 
 ### 2. Update Syntax
+
 - Change `0x` to `$` for hex
 - Change `@` comments to `;`
 - Remove `.section` directives
 
 ### 3. Update Macros
+
 - Change `.endm` to `.endmacro`
 - Add `%` prefix to invocations
 
 ### 4. Update Labels
+
 - Change numbered labels `1:` to named `@label:`
 - Change `1b`/`1f` to `@label`
 
 ### 5. Update Data
+
 - Change `.word` to `.dl`
 - Change `.hword` to `.dw`
 - Change `.byte` to `.db`
