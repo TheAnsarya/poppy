@@ -5,7 +5,7 @@
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-[![Tests](https://img.shields.io/badge/tests-1039%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+[![Tests](https://img.shields.io/badge/tests-1837%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
 
 ---
 
@@ -147,6 +147,14 @@ The compiler supports real-world game development with comprehensive tooling, in
 - 🧮 Advanced expression evaluation
 - 📋 Multiple output formats (ROM, symbols, listings, memory maps)
 
+**Format Export:**
+
+- 🔄 PASM-to-ASAR exporter (`.asm` output)
+- 🔄 PASM-to-CA65 exporter (`.s` output with `.`→`@` local label conversion)
+- 🔄 PASM-to-XKAS exporter (`;`→`//` comment conversion)
+- 🏭 ExporterFactory for extensible format registration
+- 📝 Automatic directive translation via reverse mapping tables
+
 ---
 
 ## 🚀 Quick Start
@@ -205,6 +213,12 @@ poppy game.pasm -o game.nes         # Auto-generates game.pansy
 poppy game.pasm --no-pansy          # Disable Pansy generation
 poppy game.pasm --no-verify         # Disable roundtrip verification
 poppy game.pasm --pansy out.pansy   # Custom Pansy output path
+
+# Export to other assembler formats
+poppy export game.pasm --to asar    # Export to ASAR format (.asm)
+poppy export game.pasm --to ca65    # Export to CA65 format (.s)
+poppy export game.pasm --to xkas    # Export to XKAS format (.asm)
+poppy export src/ --to asar         # Export entire project directory
 ```
 
 ### Example Assembly (NES/6502)
@@ -412,13 +426,17 @@ rts
 - ✅ Full NES support (6502, iNES 2.0, 942 tests passing)
 - ✅ Full SNES support (65816, LoROM/HiROM/ExHiROM)
 - ✅ Full Game Boy support (SM83, MBC1/3/5, CGB modes)
+- ✅ Full Atari 2600 support (6507)
+- ✅ Full Atari Lynx support (65C02)
 - ✅ Complete macro system with parameters
 - ✅ Conditional assembly (.if, .ifdef, .ifndef)
 - ✅ Include system (.include, .incbin)
 - ✅ Debug symbol export (.sym, .nl, .mlb)
+- ✅ Reverse converters (PASM → ASAR/CA65/XKAS)
 - ✅ VS Code extension (published to marketplace)
 - ✅ Comprehensive documentation (10 guides, 5,800+ lines)
 - ✅ Example projects for all platforms
+- ✅ 1,837 tests passing
 
 **Next Version:** v1.1.0 (Q1 2026)
 - Project file system (poppy.json)
