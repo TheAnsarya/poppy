@@ -473,10 +473,32 @@ See [.github/copilot-instructions.md](.github/copilot-instructions.md) for compl
 
 ---
 
-## 📜 License
+## 🌷 Integrated Pipeline
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-is free and unencumbered software released into the public domain.
+Poppy is the **build** stage of the **Flower Toolchain** — an integrated pipeline for playing, debugging, disassembling, editing, and rebuilding retro games:
+
+| Stage | Tool | Poppy Role |
+|-------|------|------------|
+| 1. Play & Debug | [Nexen](https://github.com/TheAnsarya/Nexen) | — |
+| 2. Disassemble | [Peony](https://github.com/TheAnsarya/peony) | — |
+| 3. Edit & Document | Editor + [Pansy](https://github.com/TheAnsarya/pansy) UI | — |
+| 4. Build | **Poppy** | Compile `.pasm` → ROM, generate Pansy metadata |
+| 5. Verify | [Game Garden](https://github.com/TheAnsarya/game-garden) | Roundtrip byte-identical rebuild |
+
+See the [Integrated Pipeline Master Plan](https://github.com/TheAnsarya/pansy/blob/main/~Plans/integrated-pipeline-master-plan.md) for architecture details.
+
+## 🤝 Related Projects
+
+- **[Nexen](https://github.com/TheAnsarya/Nexen)** - Multi-system emulator & debugger
+- **[🌼 Pansy](https://github.com/TheAnsarya/pansy)** - Universal disassembly metadata format
+- **[🌺 Peony](https://github.com/TheAnsarya/peony)** - Multi-system disassembler
+- **[🌱 Game Garden](https://github.com/TheAnsarya/game-garden)** - Games disassembly & recompilation
+- **[GameInfo](https://github.com/TheAnsarya/GameInfo)** - ROM hacking toolkit
+- **[BPS-Patch](https://github.com/TheAnsarya/bps-patch)** - Binary patching system
+
+---
+
+## 📜 License
 
 See the [LICENSE](LICENSE) file for details (Unlicense)
 
