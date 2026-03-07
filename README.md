@@ -3,15 +3,15 @@
 > **Smart multi-system assembly compiler for retro gaming projects**
 
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v2.0.0)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-[![Tests](https://img.shields.io/badge/tests-1837%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+[![Tests](https://img.shields.io/badge/tests-1844%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
 
 ---
 
-## 🎉 v1.0.0 Released
+## 🎉 v2.0.0 Released
 
-**Poppy v1.0.0** is now available with complete support for multiple retro gaming platforms! [Download the release →](https://github.com/TheAnsarya/poppy/releases/tag/v1.0.0)
+**Poppy v2.0.0** is now available with Pansy.Core integration, reverse converters, and bank switching! [Download the release →](https://github.com/TheAnsarya/poppy/releases/tag/v2.0.0)
 
 ---
 
