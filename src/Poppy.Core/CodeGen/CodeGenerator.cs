@@ -26,6 +26,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	// Optional CDL generator for tracking jump/call targets
 	private readonly CdlGenerator? _cdlGenerator;
 
+	// Optional listing generator for source map tracking
+	private readonly ListingGenerator? _listingGenerator;
+
 	// Cross-reference tracking from instruction analysis
 	private readonly List<(uint From, uint To, byte Type)> _crossRefs = [];
 
@@ -77,16 +80,23 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	public IReadOnlyList<(uint From, uint To, byte Type)> CrossReferences => _crossRefs;
 
 	/// <summary>
+	/// Gets the listing generator (if provided), for passing to PansyGenerator.
+	/// </summary>
+	public ListingGenerator? ListingGenerator => _listingGenerator;
+
+	/// <summary>
 	/// Creates a new code generator.
 	/// </summary>
 	/// <param name="analyzer">The semantic analyzer with symbol table.</param>
 	/// <param name="target">The target architecture.</param>
 	/// <param name="cdlGenerator">Optional CDL generator for tracking jump/call targets.</param>
-	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502, CdlGenerator? cdlGenerator = null) {
+	/// <param name="listingGenerator">Optional listing generator for source map tracking.</param>
+	public CodeGenerator(SemanticAnalyzer analyzer, TargetArchitecture target = TargetArchitecture.MOS6502, CdlGenerator? cdlGenerator = null, ListingGenerator? listingGenerator = null) {
 		_analyzer = analyzer;
 		_target = target;
 		_initialTarget = target;
 		_cdlGenerator = cdlGenerator;
+		_listingGenerator = listingGenerator;
 		_errors = [];
 		_warnings = [];
 		_segments = [];
@@ -214,6 +224,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	public object? VisitInstruction(InstructionNode node) {
 		EnsureSegment(node.Location);
 
+		// Track start address for listing/source map
+		var instructionStartAddress = _currentAddress;
+
 		var mnemonic = node.Mnemonic;
 
 		// Handle size suffixes
@@ -326,6 +339,16 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = false; // M flag
 					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = false;       // X flag
 				}
+			}
+		}
+
+		// Record listing entry for source map generation
+		if (_listingGenerator is not null && _currentSegment is not null) {
+			var byteCount = (int)(_currentAddress - instructionStartAddress);
+			if (byteCount > 0) {
+				var segmentOffset = _currentSegment.Data.Count - byteCount;
+				var bytes = _currentSegment.Data.Skip(segmentOffset).Take(byteCount).ToArray();
+				_listingGenerator.AddEntry(instructionStartAddress, bytes, node.Location);
 			}
 		}
 

@@ -20,5 +20,9 @@
 		<PackageReference Include="StreamHash" Version="1.10.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\pansy\src\Pansy.Core\Pansy.Core.csproj" />
+	</ItemGroup>
+
 </Project>
 
