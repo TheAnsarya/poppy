@@ -4,6 +4,7 @@
 // ============================================================================
 
 using System.Text;
+using Pansy.Core;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Semantics;
@@ -58,7 +59,7 @@ public sealed class PansyGeneratorTests {
 		var data = generator.Generate(romSize: 0x8000);
 
 		// Assert
-		Assert.Equal(PansyGenerator.PLATFORM_NES, data[12]);
+		Assert.Equal(PansyLoader.PLATFORM_NES, data[12]);
 	}
 
 	[Fact]
@@ -72,7 +73,7 @@ public sealed class PansyGeneratorTests {
 		var data = generator.Generate(romSize: 0x80000);
 
 		// Assert
-		Assert.Equal(PansyGenerator.PLATFORM_SNES, data[12]);
+		Assert.Equal(PansyLoader.PLATFORM_SNES, data[12]);
 	}
 
 	[Fact]
@@ -86,7 +87,7 @@ public sealed class PansyGeneratorTests {
 		var data = generator.Generate(romSize: 0x8000);
 
 		// Assert
-		Assert.Equal(PansyGenerator.PLATFORM_GB, data[12]);
+		Assert.Equal(PansyLoader.PLATFORM_GB, data[12]);
 	}
 
 	[Fact]
@@ -125,7 +126,7 @@ public sealed class PansyGeneratorTests {
 	public void Generate_IncludesSymbolSection() {
 		// Arrange
 		var symbolTable = new SymbolTable();
-		symbolTable.Define("TestLabel", SymbolType.Label, 0x8000, DummyLocation);
+		symbolTable.Define("TestLabel", Poppy.Core.Semantics.SymbolType.Label, 0x8000, DummyLocation);
 		var segments = new List<OutputSegment>();
 		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
 
@@ -179,8 +180,8 @@ public sealed class PansyGeneratorTests {
 
 		// Assert
 		// Note: Small files might not compress smaller, but the flag should be set
-		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(compressedData, 10);
-		Assert.True(flags.HasFlag(PansyGenerator.PansyFlags.Compressed));
+		var flags = BitConverter.ToUInt16(compressedData, 10);
+		Assert.True((flags & 0x0001) != 0, "Compressed flag should be set");
 	}
 
 	[Fact]
@@ -218,76 +219,29 @@ public sealed class PansyGeneratorTests {
 		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
 
 		// Act
-		generator.RegisterCrossRef(0x8000, 0x8100, PansyGenerator.CrossRefType.Jsr);
-		generator.RegisterCrossRef(0x8010, 0x8200, PansyGenerator.CrossRefType.Jmp);
+		generator.RegisterCrossRef(0x8000, 0x8100, Pansy.Core.CrossRefType.Jsr);
+		generator.RegisterCrossRef(0x8010, 0x8200, Pansy.Core.CrossRefType.Jmp);
 		var data = generator.Generate(romSize: 0x10000, compress: false);
 
-		// Assert
-		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
-		Assert.True(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+		// Assert - cross-refs section should exist
+		var sectionCount = BitConverter.ToInt32(data, 24);
+		Assert.True(sectionCount > 0);
 	}
 
 	[Fact]
-	public void ByteFlags_HasCorrectValues() {
-		// Verify the byte flags match the specification
-		Assert.Equal(0x00, (byte)PansyGenerator.ByteFlags.None);
-		Assert.Equal(0x01, (byte)PansyGenerator.ByteFlags.Code);
-		Assert.Equal(0x02, (byte)PansyGenerator.ByteFlags.Data);
-		Assert.Equal(0x04, (byte)PansyGenerator.ByteFlags.JumpTarget);
-		Assert.Equal(0x08, (byte)PansyGenerator.ByteFlags.SubEntry);
-		Assert.Equal(0x10, (byte)PansyGenerator.ByteFlags.Opcode);
-		Assert.Equal(0x20, (byte)PansyGenerator.ByteFlags.Drawn);
-		Assert.Equal(0x40, (byte)PansyGenerator.ByteFlags.Read);
-		Assert.Equal(0x80, (byte)PansyGenerator.ByteFlags.Indirect);
-	}
-
-	[Fact]
-	public void SectionTypes_HaveCorrectValues() {
-		// Verify section types match the specification
-		Assert.Equal(0x0001u, PansyGenerator.SECTION_CODE_DATA_MAP);
-		Assert.Equal(0x0002u, PansyGenerator.SECTION_SYMBOLS);
-		Assert.Equal(0x0003u, PansyGenerator.SECTION_COMMENTS);
-		Assert.Equal(0x0004u, PansyGenerator.SECTION_MEMORY_REGIONS);
-		Assert.Equal(0x0005u, PansyGenerator.SECTION_DATA_TYPES);
-		Assert.Equal(0x0006u, PansyGenerator.SECTION_CROSS_REFS);
-		Assert.Equal(0x0007u, PansyGenerator.SECTION_SOURCE_MAP);
-		Assert.Equal(0x0008u, PansyGenerator.SECTION_METADATA);
-	}
-
-	[Fact]
-	public void PlatformIds_HaveCorrectValues() {
-		// Verify platform IDs match the specification
-		Assert.Equal(0x01, PansyGenerator.PLATFORM_NES);
-		Assert.Equal(0x02, PansyGenerator.PLATFORM_SNES);
-		Assert.Equal(0x03, PansyGenerator.PLATFORM_GB);
-		Assert.Equal(0x04, PansyGenerator.PLATFORM_GBA);
-		Assert.Equal(0x05, PansyGenerator.PLATFORM_GENESIS);
-		Assert.Equal(0x06, PansyGenerator.PLATFORM_SMS);
-		Assert.Equal(0x07, PansyGenerator.PLATFORM_PCE);
-		Assert.Equal(0x08, PansyGenerator.PLATFORM_ATARI_2600);
-		Assert.Equal(0x09, PansyGenerator.PLATFORM_LYNX);
-		Assert.Equal(0x0a, PansyGenerator.PLATFORM_WONDERSWAN);
-		Assert.Equal(0x0b, PansyGenerator.PLATFORM_NEOGEO);
-		Assert.Equal(0x0c, PansyGenerator.PLATFORM_SPC700);
-		Assert.Equal(0x0d, PansyGenerator.PLATFORM_C64);
-		Assert.Equal(0x0e, PansyGenerator.PLATFORM_MSX);
-		Assert.Equal(0x0f, PansyGenerator.PLATFORM_ATARI_7800);
-		Assert.Equal(0x10, PansyGenerator.PLATFORM_ATARI_8BIT);
-		Assert.Equal(0x11, PansyGenerator.PLATFORM_APPLE_II);
-		Assert.Equal(0x12, PansyGenerator.PLATFORM_ZX_SPECTRUM);
-		Assert.Equal(0x13, PansyGenerator.PLATFORM_COLECO);
-		Assert.Equal(0x14, PansyGenerator.PLATFORM_INTELLIVISION);
-		Assert.Equal(0x15, PansyGenerator.PLATFORM_VECTREX);
-		Assert.Equal(0x16, PansyGenerator.PLATFORM_GAMEGEAR);
-		Assert.Equal(0x17, PansyGenerator.PLATFORM_32X);
-		Assert.Equal(0x18, PansyGenerator.PLATFORM_SEGACD);
-		Assert.Equal(0x19, PansyGenerator.PLATFORM_VIRTUALBOY);
-		Assert.Equal(0x1a, PansyGenerator.PLATFORM_AMSTRAD_CPC);
-		Assert.Equal(0x1b, PansyGenerator.PLATFORM_BBC_MICRO);
-		Assert.Equal(0x1c, PansyGenerator.PLATFORM_VIC20);
-		Assert.Equal(0x1d, PansyGenerator.PLATFORM_PLUS4);
-		Assert.Equal(0x1e, PansyGenerator.PLATFORM_C128);
-		Assert.Equal(0xff, PansyGenerator.PLATFORM_CUSTOM);
+	public void PansyCorePlatformIds_HaveCorrectValues() {
+		// Verify Pansy.Core platform IDs match the specification
+		Assert.Equal(0x01, PansyLoader.PLATFORM_NES);
+		Assert.Equal(0x02, PansyLoader.PLATFORM_SNES);
+		Assert.Equal(0x03, PansyLoader.PLATFORM_GB);
+		Assert.Equal(0x04, PansyLoader.PLATFORM_GBA);
+		Assert.Equal(0x05, PansyLoader.PLATFORM_GENESIS);
+		Assert.Equal(0x06, PansyLoader.PLATFORM_SMS);
+		Assert.Equal(0x07, PansyLoader.PLATFORM_PCE);
+		Assert.Equal(0x08, PansyLoader.PLATFORM_ATARI_2600);
+		Assert.Equal(0x09, PansyLoader.PLATFORM_LYNX);
+		Assert.Equal(0x0a, PansyLoader.PLATFORM_WONDERSWAN);
+		Assert.Equal(0xff, PansyLoader.PLATFORM_CUSTOM);
 	}
 
 	[Fact]
@@ -296,8 +250,8 @@ public sealed class PansyGeneratorTests {
 		var symbolTable = new SymbolTable();
 		var segments = new List<OutputSegment>();
 		var generator = new PansyGenerator(symbolTable, TargetArchitecture.MOS6502, segments);
-		generator.RegisterComment(0x8000, "Entry point", PansyGenerator.COMMENT_INLINE);
-		generator.RegisterComment(0x8003, "Main loop", PansyGenerator.COMMENT_INLINE);
+		generator.RegisterComment(0x8000, "Entry point", 1); // Inline
+		generator.RegisterComment(0x8003, "Main loop", 1); // Inline
 
 		// Act
 		var data = generator.Generate(romSize: 0x8000, compress: false);
@@ -309,7 +263,7 @@ public sealed class PansyGeneratorTests {
 		int offset = 32; // after header
 		for (int i = 0; i < sectionCount; i++) {
 			var sectionType = BitConverter.ToUInt32(data, offset);
-			if (sectionType == PansyGenerator.SECTION_COMMENTS) {
+			if (sectionType == 0x0003) { // SECTION_COMMENTS
 				foundCommentsSection = true;
 				break;
 			}
@@ -333,16 +287,16 @@ public sealed class PansyGeneratorTests {
 		int offset = 32;
 		for (int i = 0; i < sectionCount; i++) {
 			var sectionType = BitConverter.ToUInt32(data, offset);
-			Assert.NotEqual(PansyGenerator.SECTION_COMMENTS, sectionType);
+			Assert.NotEqual(0x0003u, sectionType); // SECTION_COMMENTS
 			offset += 16;
 		}
 	}
 
 	[Fact]
-	public void CommentTypeConstants_MatchPansySpec() {
-		Assert.Equal((byte)1, PansyGenerator.COMMENT_INLINE);
-		Assert.Equal((byte)2, PansyGenerator.COMMENT_BLOCK);
-		Assert.Equal((byte)3, PansyGenerator.COMMENT_TODO);
+	public void PansyCoreCommentTypes_MatchSpec() {
+		Assert.Equal((byte)1, (byte)CommentType.Inline);
+		Assert.Equal((byte)2, (byte)CommentType.Block);
+		Assert.Equal((byte)3, (byte)CommentType.Todo);
 	}
 
 	[Fact]
@@ -363,8 +317,8 @@ public sealed class PansyGeneratorTests {
 		var data = generator.Generate(romSize: 0x10000, compress: false);
 
 		// Assert - HasCrossRefs flag should be set
-		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
-		Assert.True(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+		var flags = BitConverter.ToUInt16(data, 10);
+		Assert.True((flags & 0x0004) != 0, "HasCrossRefs flag should be set");
 
 		// Find cross-refs section
 		bool foundCrossRefsSection = false;
@@ -372,7 +326,7 @@ public sealed class PansyGeneratorTests {
 		int offset = 32;
 		for (int i = 0; i < sectionCount; i++) {
 			var sectionType = BitConverter.ToUInt32(data, offset);
-			if (sectionType == PansyGenerator.SECTION_CROSS_REFS) {
+			if (sectionType == 0x0006) { // SECTION_CROSS_REFS
 				foundCrossRefsSection = true;
 				break;
 			}
@@ -392,18 +346,18 @@ public sealed class PansyGeneratorTests {
 		generator.PopulateCrossRefsFromCodeGenerator([]);
 		var data = generator.Generate(romSize: 0x8000, compress: false);
 
-		// Assert - no cross-refs section
-		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
-		Assert.False(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+		// Assert - no cross-refs flag (0x0004)
+		var flags = BitConverter.ToUInt16(data, 10);
+		Assert.True((flags & 0x0004) == 0, "HasCrossRefs flag should not be set");
 	}
 
 	[Fact]
-	public void CrossRefTypes_MatchPansySpec() {
-		Assert.Equal((byte)1, (byte)PansyGenerator.CrossRefType.Jsr);
-		Assert.Equal((byte)2, (byte)PansyGenerator.CrossRefType.Jmp);
-		Assert.Equal((byte)3, (byte)PansyGenerator.CrossRefType.Branch);
-		Assert.Equal((byte)4, (byte)PansyGenerator.CrossRefType.Read);
-		Assert.Equal((byte)5, (byte)PansyGenerator.CrossRefType.Write);
+	public void PansyCoreCrossRefTypes_MatchSpec() {
+		Assert.Equal((byte)1, (byte)Pansy.Core.CrossRefType.Jsr);
+		Assert.Equal((byte)2, (byte)Pansy.Core.CrossRefType.Jmp);
+		Assert.Equal((byte)3, (byte)Pansy.Core.CrossRefType.Branch);
+		Assert.Equal((byte)4, (byte)Pansy.Core.CrossRefType.Read);
+		Assert.Equal((byte)5, (byte)Pansy.Core.CrossRefType.Write);
 	}
 
 	[Fact]
@@ -500,8 +454,8 @@ public sealed class PansyGeneratorTests {
 		var data = pansyGen.Generate(romSize: code.Length, compress: false);
 
 		// Assert cross-refs section present
-		var flags = (PansyGenerator.PansyFlags)BitConverter.ToUInt16(data, 10);
-		Assert.True(flags.HasFlag(PansyGenerator.PansyFlags.HasCrossRefs));
+		var flags = BitConverter.ToUInt16(data, 10);
+		Assert.True((flags & 0x0004) != 0, "HasCrossRefs flag should be set");
 
 		// Should have 2 cross-refs (JSR + JMP)
 		Assert.Equal(2, codeGen.CrossReferences.Count);

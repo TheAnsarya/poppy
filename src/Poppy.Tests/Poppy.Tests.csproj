@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Poppy.Core\Poppy.Core.csproj" />
+		<ProjectReference Include="..\..\..\pansy\src\Pansy.Core\Pansy.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
