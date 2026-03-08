@@ -3,6 +3,8 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using System.Collections.Frozen;
+
 namespace Poppy.Core.Converters;
 
 /// <summary>
@@ -16,7 +18,7 @@ public static class DirectiveMapping {
 	/// <summary>
 	/// Maps ASAR directives to their PASM equivalents.
 	/// </summary>
-	public static readonly IReadOnlyDictionary<string, string> AsarToPasm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, string> AsarToPasm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
 		// Data directives
 		["db"] = "db",
 		["dw"] = "dw",
@@ -71,19 +73,19 @@ public static class DirectiveMapping {
 		["exhirom"] = "exhirom",
 		["exlorom"] = "exlorom",
 		["norom"] = "norom",
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// ASAR directives that have no PASM equivalent and should generate warnings.
 	/// </summary>
-	public static readonly IReadOnlySet<string> AsarUnsupported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenSet<string> AsarUnsupported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		"optimize",
 		"dpbase",
 		"pushpc",
 		"pullpc",
 		"pushbase",
 		"pullbase",
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	// ========================================================================
 	// ca65 Directive Mappings
@@ -92,7 +94,7 @@ public static class DirectiveMapping {
 	/// <summary>
 	/// Maps ca65 directives to their PASM equivalents.
 	/// </summary>
-	public static readonly IReadOnlyDictionary<string, string> Ca65ToPasm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, string> Ca65ToPasm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
 		// Data directives
 		[".byte"] = "db",
 		[".word"] = "dw",
@@ -173,12 +175,12 @@ public static class DirectiveMapping {
 		[".addr"] = "addr",
 		[".faraddr"] = "faraddr",
 		[".bankbytes"] = "bankbytes",
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// ca65 directives that have no PASM equivalent and should generate warnings.
 	/// </summary>
-	public static readonly IReadOnlySet<string> Ca65Unsupported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenSet<string> Ca65Unsupported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		".constructor",
 		".destructor",
 		".debuginfo",
@@ -187,7 +189,7 @@ public static class DirectiveMapping {
 		".condes",
 		".forceimport",
 		".autoimport",
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	// ========================================================================
 	// xkas Directive Mappings
@@ -196,7 +198,7 @@ public static class DirectiveMapping {
 	/// <summary>
 	/// Maps xkas directives to their PASM equivalents.
 	/// </summary>
-	public static readonly IReadOnlyDictionary<string, string> XkasToPasm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, string> XkasToPasm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
 		// Data directives
 		["db"] = "db",
 		["dw"] = "dw",
@@ -226,14 +228,14 @@ public static class DirectiveMapping {
 		["header"] = "header",
 		["lorom"] = "lorom",
 		["hirom"] = "hirom",
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// xkas directives that have no PASM equivalent and should generate warnings.
 	/// </summary>
-	public static readonly IReadOnlySet<string> XkasUnsupported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenSet<string> XkasUnsupported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		"rep",      // Repeat (may be supported differently)
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	// ========================================================================
 	// Reverse Mappings (PASM → Target Assembler)
@@ -242,7 +244,7 @@ public static class DirectiveMapping {
 	/// <summary>
 	/// Maps PASM directives to their ASAR equivalents.
 	/// </summary>
-	public static readonly IReadOnlyDictionary<string, string> PasmToAsar = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, string> PasmToAsar = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
 		// Data directives
 		["db"] = "db",
 		["dw"] = "dw",
@@ -304,12 +306,12 @@ public static class DirectiveMapping {
 		// Macro directives
 		["macro"] = "macro",
 		["endmacro"] = "endmacro",
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Maps PASM directives to their ca65 equivalents.
 	/// </summary>
-	public static readonly IReadOnlyDictionary<string, string> PasmToCa65 = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, string> PasmToCa65 = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
 		// Data directives
 		["db"] = ".byte",
 		["dw"] = ".word",
@@ -380,12 +382,12 @@ public static class DirectiveMapping {
 		["addr"] = ".addr",
 		["faraddr"] = ".faraddr",
 		["bankbytes"] = ".bankbytes",
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Maps PASM directives to their xkas equivalents.
 	/// </summary>
-	public static readonly IReadOnlyDictionary<string, string> PasmToXkas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, string> PasmToXkas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
 		// Data directives
 		["db"] = "db",
 		["dw"] = "dw",
@@ -415,7 +417,7 @@ public static class DirectiveMapping {
 		["header"] = "header",
 		["lorom"] = "lorom",
 		["hirom"] = "hirom",
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	// ========================================================================
 	// Helper Methods
