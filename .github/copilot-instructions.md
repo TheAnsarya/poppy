@@ -85,6 +85,7 @@ When creating GitHub issues from AI prompts, **IMMEDIATELY** add the original us
 - **NEVER use Allman style** (brace on its own line)
 
 #### C# Examples
+
 ```csharp
 // ✅ CORRECT — K&R style
 if (condition) {
@@ -283,4 +284,30 @@ See `src/Poppy.Core/CodeGen/PansyGenerator.cs`.
 9. **Always** run tests before and after code changes
 10. **Always** format code before committing (tabs, K&R, lowercase hex)
 11. **Always** tie commits to issues with `#<number>` references
+
+## Markdown Formatting
+
+### ⚠️ MANDATORY: Fix Markdownlint Warnings
+
+**Always fix markdownlint warnings when editing or creating markdown files.** This is non-negotiable.
+
+Key rules to enforce:
+
+- **MD022** — Blank lines above and below headings
+- **MD031** — Blank lines around fenced code blocks
+- **MD032** — Blank lines around lists (ordered and unordered)
+- **MD047** — Files must end with a single newline character
+- **MD010** — Disabled (hard tabs are REQUIRED per our indentation rules)
+
+When generating new markdown content, **always include proper blank line spacing** around headings, lists, and code blocks.
+
+### ⚠️ MANDATORY: Documentation Link-Tree
+
+**Every markdown file in the repository must be reachable from `README.md` through a hierarchical link structure.**
+
+- The main `README.md` must link to all documentation directories and key files
+- Subdirectory docs should link back to parent and to sibling docs
+- No orphan markdown files — if a `.md` file exists, it must be discoverable from the root README
+- When adding new documentation, always update `README.md` with a link to it
+- Internal docs (`~docs/`) should have their own index linked from the main README
 

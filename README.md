@@ -356,6 +356,7 @@ Check out the example projects in the `examples/` directory:
 | [Architecture](docs/architecture.md) | Compiler design and structure |
 | [File Formats](docs/file-formats.md) | ROM and patch format reference |
 | [Resources](docs/resources.md) | External links and research |
+| [Release Notes v1.0.0](RELEASE-NOTES-1.0.0.md) | Complete v1.0.0 release summary |
 
 ### Planning Documents
 
