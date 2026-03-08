@@ -7,6 +7,8 @@
 // address registers (A0-A7, where A7 is the stack pointer).
 // ============================================================================
 
+using System.Collections.Frozen;
+
 using Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
@@ -182,7 +184,7 @@ public static class InstructionSetM68000 {
 	/// <summary>
 	/// Maps register names to their encoding values and types.
 	/// </summary>
-	public static readonly Dictionary<string, (int Register, bool IsAddress)> RegisterMap = new(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, (int Register, bool IsAddress)> RegisterMap = new Dictionary<string, (int Register, bool IsAddress)>(StringComparer.OrdinalIgnoreCase) {
 		// Data registers
 		{ "d0", (DataRegisters.D0, false) },
 		{ "d1", (DataRegisters.D1, false) },
@@ -209,12 +211,12 @@ public static class InstructionSetM68000 {
 		{ "sr", (-2, false) },   // Status register
 		{ "ccr", (-3, false) },  // Condition code register
 		{ "usp", (-4, false) },  // User stack pointer
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Maps condition code names to their encoding values.
 	/// </summary>
-	public static readonly Dictionary<string, int> ConditionCodeMap = new(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, int> ConditionCodeMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
 		{ "t", ConditionCodes.True },
 		{ "f", ConditionCodes.False },
 		{ "hi", ConditionCodes.Higher },
@@ -233,7 +235,7 @@ public static class InstructionSetM68000 {
 		{ "lt", ConditionCodes.LessThan },
 		{ "gt", ConditionCodes.Greater },
 		{ "le", ConditionCodes.LessOrEqual },
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Custom comparer for case-insensitive mnemonic lookup.
@@ -262,7 +264,7 @@ public static class InstructionSetM68000 {
 	/// - Effective address register (bits 2-0)
 	/// - For two-operand instructions, destination may be encoded in bits 11-9
 	/// </remarks>
-	private static readonly Dictionary<string, ushort> _baseOpcodes = new(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<string, ushort> _baseOpcodes = new Dictionary<string, ushort>(MnemonicComparer.Instance) {
 		// =========================================================================
 		// Data Movement Instructions
 		// =========================================================================
@@ -593,7 +595,7 @@ public static class InstructionSetM68000 {
 		// =========================================================================
 
 		{ "tas", 0x4ac0 },       // Test and set
-	};
+	}.ToFrozenDictionary(MnemonicComparer.Instance);
 
 	/// <summary>
 	/// Checks if a mnemonic is a valid M68000 instruction.

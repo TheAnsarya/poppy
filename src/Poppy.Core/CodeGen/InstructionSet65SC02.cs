@@ -3,6 +3,8 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using System.Collections.Frozen;
+
 using Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
@@ -40,7 +42,7 @@ public static class InstructionSet65SC02 {
 	/// This dictionary contains only the NEW instructions and modes added in the 65SC02.
 	/// For 6502-compatible instructions, we fall back to InstructionSet6502.
 	/// </summary>
-	private static readonly Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
 		// BRA - Branch Always (new in 65C02)
 		{ ("bra", AddressingMode.Relative), new(0x80, 2) },
 
@@ -105,7 +107,7 @@ public static class InstructionSet65SC02 {
 		// INC/DEC A - Accumulator mode (new in 65C02)
 		{ ("inc", AddressingMode.Accumulator), new(0x1a, 1) },
 		{ ("dec", AddressingMode.Accumulator), new(0x3a, 1) },
-	};
+	}.ToFrozenDictionary(MnemonicComparer.Instance);
 
 	/// <summary>
 	/// Attempts to get the instruction encoding for the given mnemonic and addressing mode.

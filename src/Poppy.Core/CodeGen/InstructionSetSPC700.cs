@@ -3,6 +3,7 @@
 // The SPC700 is similar to the 6502 but with unique opcodes and addressing modes
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -80,7 +81,7 @@ public static class InstructionSetSPC700 {
 	/// SPC700 opcode definitions with base encoding
 	/// Key is "mnemonic operand_pattern" for complex cases
 	/// </summary>
-	private static readonly Dictionary<string, Dictionary<AddressingMode, byte>> Opcodes = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, Dictionary<AddressingMode, byte>> Opcodes = new Dictionary<string, Dictionary<AddressingMode, byte>>(StringComparer.OrdinalIgnoreCase) {
 		// Move operations
 		["mov a"] = new() {
 			[AddressingMode.Immediate] = 0xe8,
@@ -443,12 +444,12 @@ public static class InstructionSetSPC700 {
 		["nop"] = new() { [AddressingMode.Implied] = 0x00 },
 		["sleep"] = new() { [AddressingMode.Implied] = 0xef },
 		["stop"] = new() { [AddressingMode.Implied] = 0xff }
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Simple opcodes without addressing mode complexity
 	/// </summary>
-	private static readonly HashSet<string> SimpleMnemonics = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenSet<string> SimpleMnemonics = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		// Move
 		"mov", "movw",
 		// Arithmetic
@@ -474,7 +475,7 @@ public static class InstructionSetSPC700 {
 		"set1", "clr1", "tset1", "tclr1", "and1", "or1", "eor1", "mov1", "not1",
 		// Misc
 		"nop", "sleep", "stop"
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Checks if a mnemonic is valid

@@ -3,6 +3,7 @@
 // Supports both ARM (32-bit) and Thumb (16-bit) instruction modes
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -112,7 +113,7 @@ public static class InstructionSetARM7TDMI {
 	/// <summary>
 	/// Valid ARM mode mnemonics (base form, without condition suffix)
 	/// </summary>
-	private static readonly HashSet<string> ArmMnemonics = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenSet<string> ArmMnemonics = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		// Data processing
 		"and", "eor", "sub", "rsb", "add", "adc", "sbc", "rsc",
 		"tst", "teq", "cmp", "cmn", "orr", "mov", "bic", "mvn",
@@ -140,12 +141,12 @@ public static class InstructionSetARM7TDMI {
 		"mrs", "msr",
 		// Miscellaneous
 		"nop", "clz"
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Valid Thumb mode mnemonics
 	/// </summary>
-	private static readonly HashSet<string> ThumbMnemonics = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenSet<string> ThumbMnemonics = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		// Data processing
 		"add", "adc", "and", "asr", "bic", "cmn", "cmp", "eor",
 		"lsl", "lsr", "mov", "mul", "mvn", "neg", "orr", "ror",
@@ -161,12 +162,12 @@ public static class InstructionSetARM7TDMI {
 		"swi", "svc",
 		// Miscellaneous
 		"nop"
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Condition code suffixes map
 	/// </summary>
-	private static readonly Dictionary<string, byte> ConditionMap = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte> ConditionMap = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
 		["eq"] = Conditions.EQ,
 		["ne"] = Conditions.NE,
 		["cs"] = Conditions.CS,
@@ -184,12 +185,12 @@ public static class InstructionSetARM7TDMI {
 		["gt"] = Conditions.GT,
 		["le"] = Conditions.LE,
 		["al"] = Conditions.AL
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Data processing opcode map
 	/// </summary>
-	private static readonly Dictionary<string, byte> DataProcessingOpcodes = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte> DataProcessingOpcodes = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
 		["and"] = ArmOpcodes.AND,
 		["eor"] = ArmOpcodes.EOR,
 		["sub"] = ArmOpcodes.SUB,
@@ -206,23 +207,23 @@ public static class InstructionSetARM7TDMI {
 		["mov"] = ArmOpcodes.MOV,
 		["bic"] = ArmOpcodes.BIC,
 		["mvn"] = ArmOpcodes.MVN
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Shift type map
 	/// </summary>
-	private static readonly Dictionary<string, byte> ShiftMap = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte> ShiftMap = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
 		["lsl"] = ShiftTypes.LSL,
 		["lsr"] = ShiftTypes.LSR,
 		["asr"] = ShiftTypes.ASR,
 		["ror"] = ShiftTypes.ROR,
 		["rrx"] = ShiftTypes.RRX
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Register name to number map (R0-R15, plus aliases)
 	/// </summary>
-	private static readonly Dictionary<string, int> RegisterMap = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, int> RegisterMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
 		["r0"] = 0, ["r1"] = 1, ["r2"] = 2, ["r3"] = 3,
 		["r4"] = 4, ["r5"] = 5, ["r6"] = 6, ["r7"] = 7,
 		["r8"] = 8, ["r9"] = 9, ["r10"] = 10, ["r11"] = 11,
@@ -235,7 +236,7 @@ public static class InstructionSetARM7TDMI {
 		["sp"] = 13,  // Stack Pointer
 		["lr"] = 14,  // Link Register
 		["pc"] = 15   // Program Counter
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Checks if a mnemonic is valid in ARM mode

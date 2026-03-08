@@ -3,6 +3,8 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using System.Collections.Frozen;
+
 using Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
@@ -36,7 +38,7 @@ public static class InstructionSet6502 {
 	/// <summary>
 	/// Lookup table for instruction opcodes by mnemonic and addressing mode.
 	/// </summary>
-	private static readonly Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
 		// ADC - Add with Carry
 		{ ("adc", AddressingMode.Immediate), new(0x69, 2) },
 		{ ("adc", AddressingMode.ZeroPage), new(0x65, 2) },
@@ -311,7 +313,7 @@ public static class InstructionSet6502 {
 
 		// TYA - Transfer Y to Accumulator
 		{ ("tya", AddressingMode.Implied), new(0x98, 1) },
-	};
+	}.ToFrozenDictionary(MnemonicComparer.Instance);
 
 	/// <summary>
 	/// Tries to get the encoding for an instruction.

@@ -3,6 +3,8 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using System.Collections.Frozen;
+
 using Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
@@ -45,7 +47,7 @@ public static class InstructionSet65816 {
 	/// Lookup table for instruction opcodes by mnemonic and addressing mode.
 	/// Includes all 6502 instructions plus 65816 extensions.
 	/// </summary>
-	private static readonly Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
 		// ========================================================================
 		// ADC - Add with Carry
 		// ========================================================================
@@ -495,7 +497,7 @@ public static class InstructionSet65816 {
 		// XCE - Exchange Carry and Emulation
 		// ========================================================================
 		{ ("xce", AddressingMode.Implied), new(0xfb, 1) },
-	};
+	}.ToFrozenDictionary(MnemonicComparer.Instance);
 
 	/// <summary>
 	/// Tries to get the encoding for an instruction.

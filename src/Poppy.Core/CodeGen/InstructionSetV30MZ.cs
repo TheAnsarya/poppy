@@ -6,6 +6,8 @@
 // It uses segment:offset addressing with a 20-bit address space.
 // ============================================================================
 
+using System.Collections.Frozen;
+
 using Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
@@ -138,7 +140,7 @@ public static class InstructionSetV30MZ {
 	/// <summary>
 	/// Maps register names to their encoding values and sizes.
 	/// </summary>
-	public static readonly Dictionary<string, (int Encoding, bool IsWord)> RegisterMap = new(StringComparer.OrdinalIgnoreCase) {
+	public static readonly FrozenDictionary<string, (int Encoding, bool IsWord)> RegisterMap = new Dictionary<string, (int Encoding, bool IsWord)>(StringComparer.OrdinalIgnoreCase) {
 		// 16-bit registers
 		{ "ax", (Registers.AX, true) },
 		{ "cx", (Registers.CX, true) },
@@ -162,12 +164,12 @@ public static class InstructionSetV30MZ {
 		{ "cs", (Registers.CS, true) },
 		{ "ss", (Registers.SS, true) },
 		{ "ds", (Registers.DS, true) },
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Core 8086 opcodes - single byte instructions.
 	/// </summary>
-	private static readonly Dictionary<string, byte[]> _impliedOpcodes = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte[]> _impliedOpcodes = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase) {
 		// No operand instructions
 		{ "nop", new byte[] { 0x90 } },
 		{ "hlt", new byte[] { 0xf4 } },
@@ -225,12 +227,12 @@ public static class InstructionSetV30MZ {
 		// Interrupt
 		{ "int3", new byte[] { 0xcc } },
 		{ "into", new byte[] { 0xce } },
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Conditional jump opcodes (short relative).
 	/// </summary>
-	private static readonly Dictionary<string, byte> _conditionalJumps = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte> _conditionalJumps = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
 		{ "jo", 0x70 },      // Jump if overflow
 		{ "jno", 0x71 },     // Jump if not overflow
 		{ "jb", 0x72 },      // Jump if below (carry)
@@ -261,19 +263,19 @@ public static class InstructionSetV30MZ {
 		{ "jng", 0x7e },     // Jump if not greater
 		{ "jnle", 0x7f },    // Jump if not less or equal
 		{ "jg", 0x7f },      // Jump if greater
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Loop instructions (short relative).
 	/// </summary>
-	private static readonly Dictionary<string, byte> _loopInstructions = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte> _loopInstructions = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
 		{ "loopnz", 0xe0 },  // Loop while CX!=0 and ZF=0
 		{ "loopne", 0xe0 },
 		{ "loopz", 0xe1 },   // Loop while CX!=0 and ZF=1
 		{ "loope", 0xe1 },
 		{ "loop", 0xe2 },    // Loop while CX!=0
 		{ "jcxz", 0xe3 },    // Jump if CX=0
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Gets the opcode for an implied (no operand) instruction.

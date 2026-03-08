@@ -3,6 +3,8 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using System.Collections.Frozen;
+
 using Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
@@ -81,7 +83,7 @@ public static class InstructionSetSM83 {
 	/// Lookup table for instruction opcodes by mnemonic and addressing mode.
 	/// Uses the parser's AddressingMode for compatibility with the code generator.
 	/// </summary>
-	private static readonly Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
 		// ========================================================================
 		// 8-Bit Load Instructions
 		// ========================================================================
@@ -443,13 +445,15 @@ public static class InstructionSetSM83 {
 		{ ("rst $28", AddressingMode.Implied), new(0xef, 1) },
 		{ ("rst $30", AddressingMode.Implied), new(0xf7, 1) },
 		{ ("rst $38", AddressingMode.Implied), new(0xff, 1) },
-	};
+	}.ToFrozenDictionary(MnemonicComparer.Instance);
 
 	/// <summary>
 	/// CB-prefixed instructions (bit manipulation, rotates, shifts).
 	/// All are 2 bytes: CB + opcode.
 	/// </summary>
-	private static readonly Dictionary<string, InstructionEncoding> _cbOpcodes = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, InstructionEncoding> _cbOpcodes;
+
+	private static Dictionary<string, InstructionEncoding> BuildCbOpcodeBase() => new(StringComparer.OrdinalIgnoreCase) {
 		// RLC r/(HL)
 		{ "rlc b", new(0x00, 2, true) },
 		{ "rlc c", new(0x01, 2, true) },
@@ -536,23 +540,26 @@ public static class InstructionSetSM83 {
 	};
 
 	/// <summary>
-	/// Static constructor to populate BIT/SET/RES instructions.
+	/// Static constructor to populate CB-prefixed instructions including programmatic BIT/SET/RES.
 	/// </summary>
 	static InstructionSetSM83() {
+		var cbDict = BuildCbOpcodeBase();
 		string[] registers = ["b", "c", "d", "e", "h", "l", "(hl)", "a"];
 
 		for (int bit = 0; bit < 8; bit++) {
 			for (int reg = 0; reg < 8; reg++) {
 				// BIT b, r: opcode = 0x40 + bit*8 + reg
-				_cbOpcodes[$"bit {bit},{registers[reg]}"] = new((byte)(0x40 + bit * 8 + reg), 2, true);
+				cbDict[$"bit {bit},{registers[reg]}"] = new((byte)(0x40 + bit * 8 + reg), 2, true);
 
 				// RES b, r: opcode = 0x80 + bit*8 + reg
-				_cbOpcodes[$"res {bit},{registers[reg]}"] = new((byte)(0x80 + bit * 8 + reg), 2, true);
+				cbDict[$"res {bit},{registers[reg]}"] = new((byte)(0x80 + bit * 8 + reg), 2, true);
 
 				// SET b, r: opcode = 0xc0 + bit*8 + reg
-				_cbOpcodes[$"set {bit},{registers[reg]}"] = new((byte)(0xc0 + bit * 8 + reg), 2, true);
+				cbDict[$"set {bit},{registers[reg]}"] = new((byte)(0xc0 + bit * 8 + reg), 2, true);
 			}
 		}
+
+		_cbOpcodes = cbDict.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 	}
 
 	/// <summary>

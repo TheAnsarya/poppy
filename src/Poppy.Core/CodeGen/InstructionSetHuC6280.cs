@@ -3,6 +3,7 @@
 // Based on 65C02 with extensions for TG16 hardware
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -63,7 +64,7 @@ public static class InstructionSetHuC6280 {
 	/// <summary>
 	/// HuC6280 opcode definitions with base encoding
 	/// </summary>
-	private static readonly Dictionary<string, Dictionary<AddressingMode, byte>> Opcodes = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, Dictionary<AddressingMode, byte>> Opcodes = new Dictionary<string, Dictionary<AddressingMode, byte>>(StringComparer.OrdinalIgnoreCase) {
 		// Load/Store operations
 		["lda"] = new() {
 			[AddressingMode.Immediate] = 0xa9,
@@ -353,18 +354,18 @@ public static class InstructionSetHuC6280 {
 			[AddressingMode.ZeroPageX] = 0xa3,   // TST #imm,zp,X
 			[AddressingMode.AbsoluteX] = 0xb3    // TST #imm,abs,X
 		}
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// 65C02/HuC6280 bit manipulation instructions (SMB, RMB, BBR, BBS)
 	/// These use opcode + bit number encoding
 	/// </summary>
-	private static readonly Dictionary<string, byte> BitInstructionBase = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, byte> BitInstructionBase = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
 		["rmb"] = 0x07,  // Reset Memory Bit: RMB0-RMB7 = $07, $17, $27, ... $77
 		["smb"] = 0x87,  // Set Memory Bit:   SMB0-SMB7 = $87, $97, $a7, ... $f7
 		["bbr"] = 0x0f,  // Branch on Bit Reset: BBR0-BBR7 = $0f, $1f, $2f, ... $7f
 		["bbs"] = 0x8f   // Branch on Bit Set:   BBS0-BBS7 = $8f, $9f, $af, ... $ff
-	};
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Checks if a mnemonic is valid
