@@ -226,18 +226,25 @@ public sealed class SymbolTable {
 	public long? ResolveAnonymousLabel(bool isForward, int count, long currentAddress, SourceLocation location) {
 		if (isForward) {
 			// Find the Nth + label after the current address
-			var candidates = _anonymousForward.Where(l => l.Address > currentAddress).ToList();
-			if (count <= candidates.Count) {
-				return candidates[count - 1].Address;
+			var target = _anonymousForward
+				.Where(l => l.Address > currentAddress)
+				.Select(l => (long?)l.Address)
+				.ElementAtOrDefault(count - 1);
+			if (target.HasValue) {
+				return target.Value;
 			}
 
 			_errors.Add(new SemanticError($"Cannot find anonymous forward label (+ x{count})", location));
 			return null;
 		} else {
-			// Find the Nth - label at or before the current address
-			var candidates = _anonymousBackward.Where(l => l.Address <= currentAddress).Reverse().ToList();
-			if (count <= candidates.Count) {
-				return candidates[count - 1].Address;
+			// Find the Nth - label at or before the current address (counting from most recent)
+			var target = _anonymousBackward
+				.Where(l => l.Address <= currentAddress)
+				.Reverse()
+				.Select(l => (long?)l.Address)
+				.ElementAtOrDefault(count - 1);
+			if (target.HasValue) {
+				return target.Value;
 			}
 
 			_errors.Add(new SemanticError($"Cannot find anonymous backward label (- x{count})", location));
@@ -287,18 +294,24 @@ public sealed class SymbolTable {
 
 		if (isForward) {
 			// Find the first label after the current address
-			var candidates = list.Where(l => l.Address > currentAddress).ToList();
-			if (candidates.Count > 0) {
-				return candidates[0].Address;
+			var target = list
+				.Where(l => l.Address > currentAddress)
+				.Select(l => (long?)l.Address)
+				.FirstOrDefault();
+			if (target.HasValue) {
+				return target.Value;
 			}
 
 			_errors.Add(new SemanticError($"Cannot find named anonymous forward label '{name}'", location));
 			return null;
 		} else {
 			// Find the last label at or before the current address
-			var candidates = list.Where(l => l.Address <= currentAddress).ToList();
-			if (candidates.Count > 0) {
-				return candidates[^1].Address;
+			var target = list
+				.Where(l => l.Address <= currentAddress)
+				.Select(l => (long?)l.Address)
+				.LastOrDefault();
+			if (target.HasValue) {
+				return target.Value;
 			}
 
 			_errors.Add(new SemanticError($"Cannot find named anonymous backward label '{name}'", location));
