@@ -51,16 +51,12 @@ public class TextEncoder {
 			if (hexPart.Length == 2) {
 				// Single byte
 				if (byte.TryParse(hexPart, System.Globalization.NumberStyles.HexNumber, null, out byte b)) {
-					if (!encoder._charToByte.ContainsKey(charPart)) {
-						encoder._charToByte[charPart] = b;
-					}
+					encoder._charToByte.TryAdd(charPart, b);
 				}
 			} else if (hexPart.Length == 4) {
 				// Word
 				if (ushort.TryParse(hexPart, System.Globalization.NumberStyles.HexNumber, null, out ushort w)) {
-					if (!encoder._charToWord.ContainsKey(charPart)) {
-						encoder._charToWord[charPart] = w;
-					}
+					encoder._charToWord.TryAdd(charPart, w);
 				}
 			}
 		}
