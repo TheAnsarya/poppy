@@ -5,6 +5,7 @@
 
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
+using System.Collections.Frozen;
 
 namespace Poppy.Core.Semantics;
 
@@ -16,7 +17,7 @@ public sealed class MacroTable {
 	private readonly List<SemanticError> _errors = [];
 
 	// Reserved words that cannot be used as macro names
-	private static readonly HashSet<string> ReservedWords = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenSet<string> ReservedWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		// 6502 opcodes
 		"adc", "and", "asl", "bcc", "bcs", "beq", "bit", "bmi",
 		"bne", "bpl", "brk", "bvc", "bvs", "clc", "cld", "cli",
@@ -37,7 +38,7 @@ public sealed class MacroTable {
 		"ifdef", "ifndef", "ifexist",
 		"ifeq", "ifne", "ifgt", "iflt", "ifge", "ifle",
 		"rept", "endr", "enum", "ende"
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Gets all errors encountered during macro processing.

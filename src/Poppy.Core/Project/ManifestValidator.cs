@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Text.RegularExpressions;
 
 namespace Poppy.Core.Project;
@@ -9,17 +10,17 @@ public static class ManifestValidator {
 	/// <summary>
 	/// Valid platform identifiers.
 	/// </summary>
-	private static readonly HashSet<string> ValidPlatforms = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenSet<string> ValidPlatforms = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		"nes", "snes", "gb", "gbc", "atari2600", "lynx",
 		"genesis", "sms", "gba", "wonderswan", "tg16", "spc700"
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Valid warning levels.
 	/// </summary>
-	private static readonly HashSet<string> ValidWarningLevels = new(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenSet<string> ValidWarningLevels = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		"none", "errors", "all"
-	};
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Regex for valid project names (lowercase, hyphens, numbers).
@@ -137,6 +138,6 @@ public static class ManifestValidator {
 	/// </summary>
 	/// <returns>List of valid platform identifiers.</returns>
 	public static IReadOnlyList<string> GetValidPlatforms() {
-		return ValidPlatforms.OrderBy(p => p).ToList();
+		return [.. ValidPlatforms.OrderBy(p => p)];
 	}
 }

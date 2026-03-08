@@ -112,9 +112,9 @@ public abstract partial class BaseExporter : IPasmExporter {
 
 			var sourceFiles = Directory.GetFiles(sourceDirectory, "*.pasm", SearchOption.AllDirectories)
 				.OrderBy(f => f)
-				.ToList();
+				.ToArray();
 
-			options.LogWriter?.WriteLine($"Found {sourceFiles.Count} PASM files to export");
+			options.LogWriter?.WriteLine($"Found {sourceFiles.Length} PASM files to export");
 
 			foreach (var sourceFile in sourceFiles) {
 				var relativePath = Path.GetRelativePath(sourceDirectory, sourceFile);
