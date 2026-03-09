@@ -144,9 +144,15 @@ public sealed class MemoryMapGenerator {
 		sb.AppendLine(";");
 
 		var totalBytes = _segments.Sum(s => s.Data.Count);
-		var labelCount = _symbolTable.Symbols.Values.Count(s => s.IsDefined && s.Type == SymbolType.Label);
-		var constantCount = _symbolTable.Symbols.Values.Count(s => s.IsDefined && s.Type == SymbolType.Constant);
-		var macroCount = _symbolTable.Symbols.Values.Count(s => s.IsDefined && s.Type == SymbolType.Macro);
+		int labelCount = 0, constantCount = 0, macroCount = 0;
+		foreach (var sym in _symbolTable.Symbols.Values) {
+			if (!sym.IsDefined) continue;
+			switch (sym.Type) {
+				case SymbolType.Label: labelCount++; break;
+				case SymbolType.Constant: constantCount++; break;
+				case SymbolType.Macro: macroCount++; break;
+			}
+		}
 
 		sb.AppendLine($"; Total bytes:      {totalBytes}");
 		sb.AppendLine($"; Segments:         {_segments.Count}");
