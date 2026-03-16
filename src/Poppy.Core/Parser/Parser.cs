@@ -280,12 +280,11 @@ public sealed class Parser {
 		// Check for indexing
 		if (Match(TokenType.Comma)) {
 			var indexToken = Advance();
-			var indexReg = indexToken.Text.ToLowerInvariant();
 
-			return indexReg switch {
-				"x" => (operand, AddressingMode.AbsoluteX),
-				"y" => (operand, AddressingMode.AbsoluteY),
-				"s" => (operand, AddressingMode.StackRelative),
+			return indexToken.Text switch {
+				_ when indexToken.Text.Equals("x", StringComparison.OrdinalIgnoreCase) => (operand, AddressingMode.AbsoluteX),
+				_ when indexToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase) => (operand, AddressingMode.AbsoluteY),
+				_ when indexToken.Text.Equals("s", StringComparison.OrdinalIgnoreCase) => (operand, AddressingMode.StackRelative),
 				_ => throw new ParseException($"Invalid index register: {indexToken.Text}", indexToken.Location)
 			};
 		}

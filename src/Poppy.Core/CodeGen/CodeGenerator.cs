@@ -254,8 +254,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 		// 65SC02: inc/dec without operand should be Accumulator mode, not Implied
 		if (_target == TargetArchitecture.MOS65SC02 && addressingMode == AddressingMode.Implied) {
-			var lower = mnemonic.ToLowerInvariant();
-			if (lower is "inc" or "dec") {
+			if (mnemonic.Equals("inc", StringComparison.OrdinalIgnoreCase) || mnemonic.Equals("dec", StringComparison.OrdinalIgnoreCase)) {
 				addressingMode = AddressingMode.Accumulator;
 			}
 		}
@@ -281,22 +280,21 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 
 			// Track JSR/JMP/branch targets for CDL and cross-references
-			var mnemonicLower = mnemonic.ToLowerInvariant();
 			var instructionAddress = (uint)(_currentAddress - 1); // Before opcode was emitted
 			var targetAddr = (uint)operandValue.Value;
 
 			// JSR-type instructions (subroutine calls)
-			if (mnemonicLower is "jsr" or "jsl" or "call" or "bsr") {
+			if (EqualsAnyIgnoreCase(mnemonic, "jsr", "jsl", "call", "bsr")) {
 				_cdlGenerator?.RegisterSubroutineEntry(operandValue.Value);
 				_crossRefs.Add((instructionAddress, targetAddr, 1)); // Jsr=1
 			}
 			// JMP-type instructions (unconditional jumps)
-			else if (mnemonicLower is "jmp" or "jml") {
+			else if (EqualsAnyIgnoreCase(mnemonic, "jmp", "jml")) {
 				_cdlGenerator?.RegisterJumpTarget(operandValue.Value);
 				_crossRefs.Add((instructionAddress, targetAddr, 2)); // Jmp=2
 			}
 			// Unconditional relative branches
-			else if (mnemonicLower is "bra" or "brl") {
+			else if (EqualsAnyIgnoreCase(mnemonic, "bra", "brl")) {
 				_cdlGenerator?.RegisterJumpTarget(operandValue.Value);
 				_crossRefs.Add((instructionAddress, targetAddr, 3)); // Branch=3
 			}
@@ -329,12 +327,11 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 			// Track REP/SEP instructions for M/X flag state (65816)
 			if (_target == TargetArchitecture.WDC65816) {
-				var lower = mnemonic.ToLowerInvariant();
-				if (lower == "rep" && operandValue.HasValue) {
+				if (mnemonic.Equals("rep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
 					// REP clears flags (sets to 16-bit mode)
 					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = true;  // M flag
 					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = true;        // X flag
-				} else if (lower == "sep" && operandValue.HasValue) {
+				} else if (mnemonic.Equals("sep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
 					// SEP sets flags (sets to 8-bit mode)
 					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = false; // M flag
 					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = false;       // X flag
@@ -1036,14 +1033,14 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		if (_target != TargetArchitecture.MOS65SC02) return;
 
 		// Check if this is a memory-writing instruction
-		var lower = mnemonic.ToLowerInvariant();
-		var isStoreInstruction = lower is "sta" or "stx" or "sty" or "stz" or
-			"inc" or "dec" or "asl" or "lsr" or "rol" or "ror" or
-			"tsb" or "trb" or // 65C02/65SC02 specific
-			"rmb0" or "rmb1" or "rmb2" or "rmb3" or
-			"rmb4" or "rmb5" or "rmb6" or "rmb7" or
-			"smb0" or "smb1" or "smb2" or "smb3" or
-			"smb4" or "smb5" or "smb6" or "smb7";
+		var isStoreInstruction = EqualsAnyIgnoreCase(mnemonic,
+			"sta", "stx", "sty", "stz",
+			"inc", "dec", "asl", "lsr", "rol", "ror",
+			"tsb", "trb",
+			"rmb0", "rmb1", "rmb2", "rmb3",
+			"rmb4", "rmb5", "rmb6", "rmb7",
+			"smb0", "smb1", "smb2", "smb3",
+			"smb4", "smb5", "smb6", "smb7");
 
 		if (!isStoreInstruction) return;
 
@@ -1270,23 +1267,23 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return InstructionSetM68000.IsBranchInstruction(mnemonic);
 		}
 
-		return mnemonic.ToLowerInvariant() switch {
-			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
-			_ => false
-		};
+		return EqualsAnyIgnoreCase(mnemonic, "bcc", "bcs", "beq", "bmi", "bne", "bpl", "bvc", "bvs");
 	}
 
 	/// <summary>
 	/// Gets the SNES memory mapping mode from the analyzer.
 	/// </summary>
 	private SnesMapMode GetSnesMapMode() {
-		var mapping = _analyzer.MemoryMapping?.ToLowerInvariant();
-		return mapping switch {
-			"lorom" => SnesMapMode.LoRom,
-			"hirom" => SnesMapMode.HiRom,
-			"exhirom" => SnesMapMode.ExHiRom,
-			_ => SnesMapMode.LoRom // Default to LoROM
-		};
+		var mapping = _analyzer.MemoryMapping;
+		if (mapping is null)
+			return SnesMapMode.LoRom;
+		if (mapping.Equals("lorom", StringComparison.OrdinalIgnoreCase))
+			return SnesMapMode.LoRom;
+		if (mapping.Equals("hirom", StringComparison.OrdinalIgnoreCase))
+			return SnesMapMode.HiRom;
+		if (mapping.Equals("exhirom", StringComparison.OrdinalIgnoreCase))
+			return SnesMapMode.ExHiRom;
+		return SnesMapMode.LoRom;
 	}
 
 	/// <summary>
@@ -1359,6 +1356,14 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		}
 
 		return output;
+	}
+
+	private static bool EqualsAnyIgnoreCase(string value, params ReadOnlySpan<string> candidates) {
+		foreach (var candidate in candidates) {
+			if (value.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+				return true;
+		}
+		return false;
 	}
 }
 
