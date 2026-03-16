@@ -802,5 +802,34 @@ public static class InstructionSetM68000 {
 			(byte)(value & 0xff)
 		];
 	}
+
+	/// <summary>
+	/// Tries to get an encoding using the shared parser addressing mode.
+	/// Handles basic instructions via <see cref="TryGetBaseOpcode"/>.
+	/// Full M68000 codegen requires extended 16-bit opcode and EA field support.
+	/// </summary>
+	/// <param name="mnemonic">The instruction mnemonic.</param>
+	/// <param name="sharedMode">The shared addressing mode from the parser.</param>
+	/// <param name="opcode">The low byte of the base opcode if found.</param>
+	/// <param name="size">The base instruction size in bytes if found.</param>
+	/// <returns>True if a valid encoding was found.</returns>
+	public static bool TryGetEncodingFromShared(string mnemonic, AddressingMode sharedMode, out byte opcode, out int size) {
+		if (TryGetBaseOpcode(mnemonic, out var baseOpcode)) {
+			// M68000 uses 16-bit opcodes; store low byte for compatibility with the 6502 encoding format
+			opcode = (byte)(baseOpcode & 0xff);
+			// M68000 instructions are always at least 2 bytes (word-aligned)
+			size = sharedMode switch {
+				AddressingMode.Implied => 2,
+				AddressingMode.Immediate => 4, // opcode word + immediate word
+				AddressingMode.Absolute => 4,  // opcode word + absolute word
+				AddressingMode.Relative => 4,  // opcode word + displacement word
+				_ => 2
+			};
+			return true;
+		}
+		opcode = 0;
+		size = 0;
+		return false;
+	}
 }
 

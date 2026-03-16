@@ -6,6 +6,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
+using Parser = Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;
 
@@ -465,6 +466,50 @@ public static class InstructionSetHuC6280 {
 			AddressingMode.ZeroPageRelative => 3,
 			AddressingMode.BlockTransfer => 7,  // opcode + src(2) + dst(2) + len(2)
 			_ => 1
+		};
+	}
+
+	/// <summary>
+	/// Tries to get the encoding for a HuC6280 instruction using the shared addressing mode.
+	/// Maps from <see cref="Parser.AddressingMode"/> to <see cref="AddressingMode"/> and looks up the opcode.
+	/// </summary>
+	/// <param name="mnemonic">Instruction mnemonic.</param>
+	/// <param name="sharedMode">The shared addressing mode from the parser.</param>
+	/// <param name="opcode">The opcode byte if found.</param>
+	/// <param name="size">The instruction size in bytes if found.</param>
+	/// <returns>True if a valid encoding was found.</returns>
+	public static bool TryGetEncoding(string mnemonic, Parser.AddressingMode sharedMode, out byte opcode, out int size) {
+		var localMode = MapAddressingMode(sharedMode);
+		if (localMode.HasValue && TryGetOpcode(mnemonic, localMode.Value, out opcode)) {
+			size = GetInstructionSize(localMode.Value);
+			return true;
+		}
+		opcode = 0;
+		size = 0;
+		return false;
+	}
+
+	/// <summary>
+	/// Maps the shared parser addressing mode to HuC6280's local addressing mode.
+	/// </summary>
+	private static AddressingMode? MapAddressingMode(Parser.AddressingMode mode) {
+		return mode switch {
+			Parser.AddressingMode.Implied => AddressingMode.Implied,
+			Parser.AddressingMode.Accumulator => AddressingMode.Accumulator,
+			Parser.AddressingMode.Immediate => AddressingMode.Immediate,
+			Parser.AddressingMode.ZeroPage => AddressingMode.ZeroPage,
+			Parser.AddressingMode.ZeroPageX => AddressingMode.ZeroPageX,
+			Parser.AddressingMode.ZeroPageY => AddressingMode.ZeroPageY,
+			Parser.AddressingMode.Absolute => AddressingMode.Absolute,
+			Parser.AddressingMode.AbsoluteX => AddressingMode.AbsoluteX,
+			Parser.AddressingMode.AbsoluteY => AddressingMode.AbsoluteY,
+			Parser.AddressingMode.Indirect => AddressingMode.Indirect,
+			Parser.AddressingMode.IndexedIndirect => AddressingMode.IndirectX,
+			Parser.AddressingMode.IndirectIndexed => AddressingMode.IndirectY,
+			Parser.AddressingMode.ZeroPageIndirect => AddressingMode.ZeroPageIndirect,
+			Parser.AddressingMode.Relative => AddressingMode.Relative,
+			Parser.AddressingMode.AbsoluteIndexedIndirect => AddressingMode.AbsoluteIndirectX,
+			_ => null
 		};
 	}
 

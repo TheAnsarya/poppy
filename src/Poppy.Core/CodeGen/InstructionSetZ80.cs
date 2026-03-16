@@ -677,5 +677,41 @@ public static class InstructionSetZ80 {
 			_ => 0
 		};
 	}
+
+	/// <summary>
+	/// Tries to get an encoding using the shared parser addressing mode.
+	/// Maps from <see cref="AddressingMode"/> to <see cref="Z80AddressingMode"/> and looks up the opcode.
+	/// </summary>
+	/// <param name="mnemonic">The instruction mnemonic.</param>
+	/// <param name="sharedMode">The shared addressing mode from the parser.</param>
+	/// <param name="opcode">The opcode byte if found.</param>
+	/// <param name="size">The total instruction size in bytes if found.</param>
+	/// <returns>True if a valid encoding was found.</returns>
+	public static bool TryGetEncodingFromShared(string mnemonic, AddressingMode sharedMode, out byte opcode, out int size) {
+		var z80Mode = MapAddressingMode(sharedMode);
+		if (z80Mode.HasValue && TryGetEncoding(mnemonic, z80Mode.Value, out var encoding)) {
+			opcode = encoding.Opcode;
+			size = encoding.Size;
+			return true;
+		}
+		opcode = 0;
+		size = 0;
+		return false;
+	}
+
+	/// <summary>
+	/// Maps the shared parser addressing mode to Z80's local addressing mode.
+	/// </summary>
+	private static Z80AddressingMode? MapAddressingMode(AddressingMode mode) {
+		return mode switch {
+			AddressingMode.Implied => Z80AddressingMode.Implied,
+			AddressingMode.Immediate => Z80AddressingMode.Immediate8,
+			AddressingMode.Absolute => Z80AddressingMode.Extended,
+			AddressingMode.Relative => Z80AddressingMode.Relative,
+			AddressingMode.Indirect => Z80AddressingMode.RegisterIndirectHL,
+			AddressingMode.MemoryReference => Z80AddressingMode.RegisterIndirectHL,
+			_ => null
+		};
+	}
 }
 

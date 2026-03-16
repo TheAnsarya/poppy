@@ -1198,6 +1198,42 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return false;
 		}
 
+		if (_target == TargetArchitecture.HuC6280) {
+			if (InstructionSetHuC6280.TryGetEncoding(mnemonic, mode, out var hucOpcode, out var hucSize)) {
+				encoding = new InstructionSet6502.InstructionEncoding(hucOpcode, hucSize);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		if (_target == TargetArchitecture.Z80) {
+			if (InstructionSetZ80.TryGetEncodingFromShared(mnemonic, mode, out var z80Opcode, out var z80Size)) {
+				encoding = new InstructionSet6502.InstructionEncoding(z80Opcode, z80Size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		if (_target == TargetArchitecture.V30MZ) {
+			if (InstructionSetV30MZ.TryGetEncodingFromShared(mnemonic, mode, out var v30Opcode, out var v30Size)) {
+				encoding = new InstructionSet6502.InstructionEncoding(v30Opcode, v30Size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		if (_target == TargetArchitecture.M68000) {
+			if (InstructionSetM68000.TryGetEncodingFromShared(mnemonic, mode, out var m68kOpcode, out var m68kSize)) {
+				encoding = new InstructionSet6502.InstructionEncoding(m68kOpcode, m68kSize);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
 		// Default to 6502
 		return InstructionSet6502.TryGetEncoding(mnemonic, mode, out encoding);
 	}
@@ -1216,6 +1252,22 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 		if (_target == TargetArchitecture.MOS65SC02) {
 			return InstructionSet65SC02.IsBranchInstruction(mnemonic);
+		}
+
+		if (_target == TargetArchitecture.HuC6280) {
+			return InstructionSetHuC6280.IsBranchInstruction(mnemonic);
+		}
+
+		if (_target == TargetArchitecture.Z80) {
+			return InstructionSetZ80.IsRelativeBranch(mnemonic);
+		}
+
+		if (_target == TargetArchitecture.V30MZ) {
+			return InstructionSetV30MZ.IsBranchInstruction(mnemonic);
+		}
+
+		if (_target == TargetArchitecture.M68000) {
+			return InstructionSetM68000.IsBranchInstruction(mnemonic);
 		}
 
 		return mnemonic.ToLowerInvariant() switch {
