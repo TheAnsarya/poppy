@@ -104,26 +104,9 @@ INPT4	= $0c		; Read input (trigger) 0 (D7)
 INPT5	= $0d		; Read input (trigger) 1 (D7)
 
 ; =============================================================================
-; RIOT (6532) Registers
+; RIOT registers are now in a separate include file:
+;   .include "riot.pasm"
 ; =============================================================================
-
-; RAM: $80-$FF (128 bytes)
-
-; Timer Registers (active: all bits)
-INTIM	= $284		; Read timer output
-TIMINT	= $285		; Read timer interrupt flag (D7)
-
-; Timer Set (interval values)
-TIM1T	= $294		; Set 1 clock interval (838 ns)
-TIM8T	= $295		; Set 8 clock interval (6.7 μs)
-TIM64T	= $296		; Set 64 clock interval (53.6 μs)
-T1024T	= $297		; Set 1024 clock interval (858.2 μs)
-
-; Port Registers
-SWCHA	= $280		; Port A data (joysticks)
-SWACNT	= $281		; Port A DDR (data direction)
-SWCHB	= $282		; Port B data (console switches)
-SWBCNT	= $283		; Port B DDR (data direction)
 
 ; =============================================================================
 ; Common Constants
@@ -174,22 +157,7 @@ NUSIZ_MSL2		= $10		; Missile size: 2 clocks
 NUSIZ_MSL4		= $20		; Missile size: 4 clocks
 NUSIZ_MSL8		= $30		; Missile size: 8 clocks
 
-; Console switch masks (for SWCHB)
-SWITCH_RESET	= $01		; Reset switch (active low)
-SWITCH_SELECT	= $02		; Select switch (active low)
-SWITCH_BW		= $08		; B/W-Color switch (0=B/W, 1=Color)
-SWITCH_P0_DIFF	= $40		; P0 difficulty (0=B, 1=A)
-SWITCH_P1_DIFF	= $80		; P1 difficulty (0=B, 1=A)
-
-; Joystick masks (for SWCHA)
-JOY0_UP		= $10		; P0 joystick up (active low)
-JOY0_DOWN	= $20		; P0 joystick down (active low)
-JOY0_LEFT	= $40		; P0 joystick left (active low)
-JOY0_RIGHT	= $80		; P0 joystick right (active low)
-JOY1_UP		= $01		; P1 joystick up (active low)
-JOY1_DOWN	= $02		; P1 joystick down (active low)
-JOY1_LEFT	= $04		; P1 joystick left (active low)
-JOY1_RIGHT	= $08		; P1 joystick right (active low)
+; Console switch and joystick masks are in riot.pasm
 
 ; Color constants (NTSC)
 BLACK		= $00
