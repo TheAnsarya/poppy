@@ -97,6 +97,7 @@
 - **TurboGrafx-16/PC Engine** (HuC6280 processor)
 - **Atari 2600** (MOS 6507 processor)
 - **Atari Lynx** (WDC 65SC02 processor)
+- **Fairchild Channel F** (F8 family, current scaffold target aliases)
 - **WonderSwan/WonderSwan Color** (NEC V30MZ processor)
 - **SPC700** (Sony SPC700 - SNES audio coprocessor)
 
@@ -351,7 +352,7 @@ Project files (`poppy.json`) define build settings for multi-file projects.
 |----------|------|-------------|
 | `name` | string | Project name (required) |
 | `version` | string | Project version |
-| `target` | string | Target system: `nes`, `snes`, `gb` |
+| `target` | string | Target system: `nes`, `snes`, `gb`, `channel-f`/`channelf`/`channel_f`/`f8` |
 | `main` | string | Main source file |
 | `output` | string | Output ROM file |
 | `sources` | array | Source file patterns (if no main) |
@@ -953,6 +954,17 @@ Supported features:
 - All 56 official opcodes
 - All 13 addressing modes
 - Automatic zero-page optimization
+
+### Channel F (F8 scaffold)
+
+Channel F target aliases are accepted in project files and currently route to the existing 6502 scaffold backend while dedicated F8 backend work is in progress.
+
+Accepted target aliases:
+
+- `channel-f`
+- `channelf`
+- `channel_f`
+- `f8`
 
 ### 65816 (SNES)
 

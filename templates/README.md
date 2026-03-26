@@ -27,6 +27,7 @@ Ready-to-use project templates for all supported platforms. Each template includ
 | nes-platformer | NES | Side-scrolling platformer starter |
 | snes-rpg | SNES | RPG game starter with menus |
 | gb-puzzle | Game Boy | Puzzle game starter |
+| channelf-basic | Channel F | Fairchild Channel F scaffold template (target aliases + asset pipeline hooks) |
 
 ## 🚀 Using Templates
 
