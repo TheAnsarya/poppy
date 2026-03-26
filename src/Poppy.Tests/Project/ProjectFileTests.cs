@@ -74,6 +74,15 @@ public class ProjectFileTests : IDisposable {
 	}
 
 	[Fact]
+	public void TargetArchitecture_ChannelF_Returns6502Scaffold() {
+		// Arrange
+		var project = ProjectFile.Create("Test", "channelf");
+
+		// Act & Assert
+		Assert.Equal(TargetArchitecture.MOS6502, project.TargetArchitecture);
+	}
+
+	[Fact]
 	public void TargetArchitecture_Unknown_DefaultsTo6502() {
 		// Arrange
 		var project = ProjectFile.Create("Test", "unknown");
@@ -245,6 +254,18 @@ public class ProjectFileTests : IDisposable {
 
 		// Assert
 		Assert.Contains(errors, e => e.Contains("target", StringComparison.OrdinalIgnoreCase));
+	}
+
+	[Fact]
+	public void Validate_ChannelFTarget_IsValid() {
+		// Arrange
+		var project = new ProjectFile { Name = "Test", Target = "channel-f", Main = "main.pasm" };
+
+		// Act
+		var errors = project.Validate();
+
+		// Assert
+		Assert.DoesNotContain(errors, e => e.Contains("target", StringComparison.OrdinalIgnoreCase));
 	}
 
 	[Fact]

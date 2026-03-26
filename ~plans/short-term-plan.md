@@ -111,3 +111,20 @@ By end of Week 4:
 - Use feature branches for significant work
 - Update logs after each session
 
+---
+
+## Channel F Immediate Track (2026-03-26)
+
+### Goals
+
+- [x] Add Channel F target alias recognition in `ProjectFile`
+- [x] Map Channel F target to current `MOS6502` scaffold backend
+- [x] Add project validation tests for Channel F target strings
+- [ ] Add Channel F asset conversion directives to project pipeline docs
+- [ ] Add dedicated F8/Channel F backend tasks (assembler semantics, memory model)
+
+### Notes
+
+- Current scope intentionally provides target parsing/validation scaffold only.
+- Full Channel F backend implementation remains tracked under poppy #194 with execution task poppy #195.
+
