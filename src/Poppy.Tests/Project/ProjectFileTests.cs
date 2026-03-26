@@ -268,6 +268,48 @@ public class ProjectFileTests : IDisposable {
 		Assert.DoesNotContain(errors, e => e.Contains("target", StringComparison.OrdinalIgnoreCase));
 	}
 
+	[Theory]
+	[InlineData("channelf")]
+	[InlineData("channel-f")]
+	[InlineData("channel_f")]
+	[InlineData("f8")]
+	public void TargetArchitecture_ChannelFAliases_AllResolveToMOS6502(string alias) {
+		// Arrange
+		var project = ProjectFile.Create("Test", alias);
+
+		// Act & Assert
+		Assert.Equal(TargetArchitecture.MOS6502, project.TargetArchitecture);
+	}
+
+	[Theory]
+	[InlineData("channelf")]
+	[InlineData("channel-f")]
+	[InlineData("channel_f")]
+	[InlineData("f8")]
+	public void Validate_ChannelFAliases_AllValid(string alias) {
+		// Arrange
+		var project = new ProjectFile { Name = "Test", Target = alias, Main = "main.pasm" };
+
+		// Act
+		var errors = project.Validate();
+
+		// Assert
+		Assert.DoesNotContain(errors, e => e.Contains("target", StringComparison.OrdinalIgnoreCase));
+	}
+
+	[Theory]
+	[InlineData("ChannelF")]
+	[InlineData("CHANNEL-F")]
+	[InlineData("Channel_F")]
+	[InlineData("F8")]
+	public void TargetArchitecture_ChannelFAliases_CaseInsensitive(string alias) {
+		// Arrange
+		var project = ProjectFile.Create("Test", alias);
+
+		// Act & Assert
+		Assert.Equal(TargetArchitecture.MOS6502, project.TargetArchitecture);
+	}
+
 	[Fact]
 	public void Validate_NoSources_NoMain_ReturnsError() {
 		// Arrange
