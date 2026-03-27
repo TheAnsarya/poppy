@@ -16,6 +16,14 @@ Include these files in your assembly source using the `.include` directive:
 
 - `atari2600/tia.pasm` - TIA and RIOT register definitions, common constants
 
+### Atari Lynx
+
+- `lynx/lynx.inc` - Suzy/Mikey register definitions, memory map, hardware constants
+
+### Fairchild Channel F
+
+- `channelf/channelf.inc` - F8 CPU port definitions, memory map, controller/button masks, VRAM constants
+
 ### NES (Coming Soon)
 
 - `nes/ppu.pasm` - PPU register definitions
