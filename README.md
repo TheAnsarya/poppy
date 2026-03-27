@@ -343,6 +343,7 @@ Check out the example projects in the `examples/` directory:
 | Document | Description |
 |----------|-------------|
 | [User Manual](docs/user-manual.md) | Complete usage guide with examples |
+| [Channel F Development Guide](docs/channelf-guide.md) | Channel F/F8 project layout, syntax, and coding patterns |
 | [SNES Development Guide](docs/snes-guide.md) | Comprehensive SNES/65816 guide |
 | [Game Boy Development Guide](docs/gameboy-guide.md) | Complete GB/GBC guide with SM83 |
 | [Build from Project](docs/build-from-project.md) | Nexen → Peony → Poppy pipeline |
