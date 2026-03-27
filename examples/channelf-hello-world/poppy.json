@@ -1,0 +1,17 @@
+{
+	"name": "channelf-hello-world",
+	"version": "1.0.0",
+	"platform": "channelf",
+	"compiler": {
+		"target": "channelf",
+		"options": {
+			"optimize": true,
+			"warnings": "all"
+		}
+	},
+	"metadata": {
+		"description": "Simple demo for Fairchild Channel F (F8 CPU)",
+		"author": "Poppy Examples",
+		"tags": ["example", "channelf", "hello-world", "f8"]
+	}
+}
