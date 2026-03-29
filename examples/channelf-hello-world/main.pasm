@@ -1,19 +1,18 @@
-; 🌸 Fairchild Channel F Hello World - Poppy Compiler Example
+; Fairchild Channel F Hello World - Poppy Compiler Example
 ; Fills the screen with a solid color using direct VRAM writes
 
-	.system:channelf
-	.include "channelf/channelf.inc"
-	.org CART_ROM_START
+.system:channelf
+.org $0800
 
-; ═══════════════════════════════════════════════════════════════════════════
+; ===========================================================================
 ; Entry Point ($0800 - Cartridge starts here after BIOS handoff)
-; ═══════════════════════════════════════════════════════════════════════════
+; ===========================================================================
 
 CartEntry:
 	; The BIOS jumps to $0800 after initialization.
 	; At entry, the F8 accumulator and scratchpad are available.
 
-	; ── Fill VRAM with a solid color ──
+	; Fill VRAM with a solid color
 	; VRAM is $3000-$37ff (2048 bytes, 128x64 at 2bpp)
 	; Each byte holds 4 pixels: bits 7-6, 5-4, 3-2, 1-0
 	; COLOR_BLUE = $02, so a full blue byte = %10101010 = $aa
@@ -41,15 +40,15 @@ FillLoop:
 	br FillLoop		; Continue filling
 
 FillDone:
-	; ── Infinite loop (halt) ──
+	; Infinite loop (halt)
 	; Channel F has no halt instruction, so we spin
 
 .halt:
 	br .halt		; Loop forever
 
-; ═══════════════════════════════════════════════════════════════════════════
+; ===========================================================================
 ; Vectors
-; ═══════════════════════════════════════════════════════════════════════════
+; ===========================================================================
 
 	; The cartridge entry point is at $0800, handled by the BIOS
 	; which reads the first instruction and jumps to it.
