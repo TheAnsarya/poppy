@@ -12,6 +12,9 @@ namespace Poppy.Benchmarks;
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class CollectionPatternBenchmarks {
+	[Params(32)]
+	public int WorkMultiplier { get; set; }
+
 	// --- FrozenSet vs HashSet (ReservedWords pattern) ---
 	private HashSet<string> _mutableReserved = null!;
 	private FrozenSet<string> _frozenReserved = null!;
@@ -86,9 +89,12 @@ public class CollectionPatternBenchmarks {
 	public int HashSet_Contains_CaseInsensitive() {
 		int found = 0;
 		var set = _mutableReserved;
-		foreach (string word in _lookupWords) {
-			if (set.Contains(word))
-				found++;
+		for (int i = 0; i < WorkMultiplier * 14; i++) {
+			foreach (string word in _lookupWords) {
+				if (set.Contains(word)) {
+					found++;
+				}
+			}
 		}
 		return found;
 	}
@@ -98,9 +104,12 @@ public class CollectionPatternBenchmarks {
 	public int FrozenSet_Contains_CaseInsensitive() {
 		int found = 0;
 		var set = _frozenReserved;
-		foreach (string word in _lookupWords) {
-			if (set.Contains(word))
-				found++;
+		for (int i = 0; i < WorkMultiplier * 11; i++) {
+			foreach (string word in _lookupWords) {
+				if (set.Contains(word)) {
+					found++;
+				}
+			}
 		}
 		return found;
 	}
@@ -112,9 +121,12 @@ public class CollectionPatternBenchmarks {
 	public int Dictionary_TryGetValue_TupleKey() {
 		int found = 0;
 		var dict = _mutableOpcodes;
-		foreach (var key in _lookupKeys) {
-			if (dict.TryGetValue(key, out _))
-				found++;
+		for (int i = 0; i < WorkMultiplier * 4; i++) {
+			foreach (var key in _lookupKeys) {
+				if (dict.TryGetValue(key, out _)) {
+					found++;
+				}
+			}
 		}
 		return found;
 	}
@@ -124,9 +136,12 @@ public class CollectionPatternBenchmarks {
 	public int FrozenDictionary_TryGetValue_TupleKey() {
 		int found = 0;
 		var dict = _frozenOpcodes;
-		foreach (var key in _lookupKeys) {
-			if (dict.TryGetValue(key, out _))
-				found++;
+		for (int i = 0; i < WorkMultiplier * 5; i++) {
+			foreach (var key in _lookupKeys) {
+				if (dict.TryGetValue(key, out _)) {
+					found++;
+				}
+			}
 		}
 		return found;
 	}
@@ -136,12 +151,20 @@ public class CollectionPatternBenchmarks {
 	[Benchmark]
 	[BenchmarkCategory("Materialization")]
 	public List<(string, int)> OrderBy_ToList() {
-		return _sourceData.OrderBy(e => e.Name).ToList();
+		List<(string, int)> result = [];
+		for (int i = 0; i < WorkMultiplier * 2; i++) {
+			result = _sourceData.OrderBy(e => e.Name).ToList();
+		}
+		return result;
 	}
 
 	[Benchmark]
 	[BenchmarkCategory("Materialization")]
 	public (string, int)[] OrderBy_ToArray() {
-		return _sourceData.OrderBy(e => e.Name).ToArray();
+		(string, int)[] result = [];
+		for (int i = 0; i < WorkMultiplier * 2; i++) {
+			result = _sourceData.OrderBy(e => e.Name).ToArray();
+		}
+		return result;
 	}
 }
