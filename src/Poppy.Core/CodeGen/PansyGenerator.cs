@@ -294,6 +294,7 @@ public sealed class PansyGenerator {
 			TargetArchitecture.HuC6280 => PansyLoader.PLATFORM_PCE,
 			TargetArchitecture.V30MZ => PansyLoader.PLATFORM_WONDERSWAN,
 			TargetArchitecture.MOS6507 => PansyLoader.PLATFORM_ATARI_2600,
+			TargetArchitecture.F8 => PansyLoader.PLATFORM_CHANNEL_F,
 			_ => PansyLoader.PLATFORM_CUSTOM,
 		};
 	}

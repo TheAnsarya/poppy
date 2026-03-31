@@ -818,6 +818,61 @@ public class SemanticAnalyzerTests {
 	}
 
 	[Fact]
+	public void Analyze_TargetDirective_ChannelF_SetsF8Architecture() {
+		var source = """
+			.target channelf
+			.org $0800
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.F8, analyzer.Target);
+	}
+
+	[Theory]
+	[InlineData("channelf")]
+	[InlineData("channel_f")]
+	[InlineData("f8")]
+	public void Analyze_TargetDirective_F8Aliases_AllResolveToF8(string alias) {
+		var source = $"""
+			.target {alias}
+			.org $0800
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.F8, analyzer.Target);
+	}
+
+	[Fact]
+	public void Analyze_ChannelFShortcut_SetsF8Target() {
+		var source = """
+			.channelf
+			.org $0800
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.F8, analyzer.Target);
+	}
+
+	[Fact]
+	public void Analyze_F8Shortcut_SetsF8Target() {
+		var source = """
+			.f8
+			.org $0800
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.F8, analyzer.Target);
+	}
+
+	[Fact]
 	public void Analyze_LoromOnNes_ReportsError() {
 		var source = """
 			.nes

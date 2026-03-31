@@ -544,6 +544,12 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				SetTarget(TargetArchitecture.SM83, node);
 				break;
 
+			case "channelf":
+			case "channel-f":
+			case "f8":
+				SetTarget(TargetArchitecture.F8, node);
+				break;
+
 			// SNES memory mapping
 			case "lorom":
 			case "hirom":
@@ -1076,6 +1082,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			"gba" or "gameboyadvance" or "arm" or "arm7tdmi" => TargetArchitecture.ARM7TDMI,
 			"spc700" => TargetArchitecture.SPC700,
 			"tg16" or "turbografx16" or "pcengine" or "huc6280" => TargetArchitecture.HuC6280,
+			"channelf" or "channel-f" or "channel_f" or "f8" => TargetArchitecture.F8,
 			_ => (TargetArchitecture?)null
 		};
 
@@ -2042,6 +2049,9 @@ public enum TargetArchitecture {
 
 	/// <summary>Hudson HuC6280 (TurboGrafx-16/PC Engine - 65C02 variant)</summary>
 	HuC6280,
+
+	/// <summary>Fairchild F8 (Channel F)</summary>
+	F8,
 }
 
 /// <summary>

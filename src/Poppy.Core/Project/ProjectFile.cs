@@ -105,7 +105,7 @@ public sealed class ProjectFile {
 		"nes" or "6502" => Semantics.TargetArchitecture.MOS6502,
 		"atari2600" or "2600" or "6507" => Semantics.TargetArchitecture.MOS6507,
 		"lynx" or "65sc02" => Semantics.TargetArchitecture.MOS65SC02,
-		"channelf" or "channel-f" or "channel_f" or "f8" => Semantics.TargetArchitecture.MOS6502,
+		"channelf" or "channel-f" or "channel_f" or "f8" => Semantics.TargetArchitecture.F8,
 		"snes" or "65816" => Semantics.TargetArchitecture.WDC65816,
 		"gb" or "gbc" or "gameboy" or "sm83" => Semantics.TargetArchitecture.SM83,
 		"genesis" or "megadrive" or "68000" or "m68000" => Semantics.TargetArchitecture.M68000,

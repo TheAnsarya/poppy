@@ -74,12 +74,12 @@ public class ProjectFileTests : IDisposable {
 	}
 
 	[Fact]
-	public void TargetArchitecture_ChannelF_Returns6502Scaffold() {
+	public void TargetArchitecture_ChannelF_ReturnsF8() {
 		// Arrange
 		var project = ProjectFile.Create("Test", "channelf");
 
 		// Act & Assert
-		Assert.Equal(TargetArchitecture.MOS6502, project.TargetArchitecture);
+		Assert.Equal(TargetArchitecture.F8, project.TargetArchitecture);
 	}
 
 	[Fact]
@@ -273,12 +273,12 @@ public class ProjectFileTests : IDisposable {
 	[InlineData("channel-f")]
 	[InlineData("channel_f")]
 	[InlineData("f8")]
-	public void TargetArchitecture_ChannelFAliases_AllResolveToMOS6502(string alias) {
+	public void TargetArchitecture_ChannelFAliases_AllResolveToF8(string alias) {
 		// Arrange
 		var project = ProjectFile.Create("Test", alias);
 
 		// Act & Assert
-		Assert.Equal(TargetArchitecture.MOS6502, project.TargetArchitecture);
+		Assert.Equal(TargetArchitecture.F8, project.TargetArchitecture);
 	}
 
 	[Theory]
@@ -307,7 +307,7 @@ public class ProjectFileTests : IDisposable {
 		var project = ProjectFile.Create("Test", alias);
 
 		// Act & Assert
-		Assert.Equal(TargetArchitecture.MOS6502, project.TargetArchitecture);
+		Assert.Equal(TargetArchitecture.F8, project.TargetArchitecture);
 	}
 
 	[Fact]
