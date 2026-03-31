@@ -23,17 +23,7 @@ tab_width = 4
 max_line_length = 120
 
 # Assembly files - 8-space tabs for alignment
-[*.asm]
-indent_style = tab
-indent_size = 8
-tab_width = 8
-
-[*.s]
-indent_style = tab
-indent_size = 8
-tab_width = 8
-
-[*.inc]
+[*.{asm,pasm,s,inc}]
 indent_style = tab
 indent_size = 8
 tab_width = 8

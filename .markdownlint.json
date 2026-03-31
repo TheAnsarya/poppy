@@ -32,7 +32,7 @@
 	"MD029": {
 		"style": "ordered"
 	},
-	"MD031": false,
+	"MD031": true,
 	"MD032": true,
 	"MD033": {
 		"allowed_elements": [
