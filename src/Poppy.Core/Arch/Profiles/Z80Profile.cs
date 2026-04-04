@@ -1,0 +1,32 @@
+﻿namespace Poppy.Core.Arch.Profiles;
+
+using Poppy.Core.CodeGen;
+using Poppy.Core.Parser;
+using Poppy.Core.Semantics;
+
+/// <summary>
+/// Zilog Z80 target profile (Sega Master System).
+/// </summary>
+internal sealed class Z80Profile : ITargetProfile {
+	public static readonly Z80Profile Instance = new();
+
+	public TargetArchitecture Architecture => TargetArchitecture.Z80;
+	public IInstructionEncoder Encoder { get; } = new Z80Encoder();
+	public int DefaultBankSize => 0x4000; // Default
+	public long GetBankCpuBase(int bank) => -1;
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	private sealed class Z80Encoder : IInstructionEncoder {
+		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
+			if (InstructionSetZ80.TryGetEncodingFromShared(mnemonic, mode, out var opcode, out var size)) {
+				encoding = new EncodedInstruction(opcode, size);
+				return true;
+			}
+			encoding = default;
+			return false;
+		}
+
+		public bool IsBranchInstruction(string mnemonic) =>
+			InstructionSetZ80.IsRelativeBranch(mnemonic);
+	}
+}

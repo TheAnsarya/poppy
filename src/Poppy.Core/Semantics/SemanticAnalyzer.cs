@@ -1094,22 +1094,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			return;
 		}
 
-		var targetName = targetNode.Name.ToLowerInvariant();
-		var target = targetName switch {
-			"nes" or "6502" => TargetArchitecture.MOS6502,
-			"atari2600" or "2600" or "6507" => TargetArchitecture.MOS6507,
-			"atarilynx" or "lynx" or "65sc02" => TargetArchitecture.MOS65SC02,
-			"snes" or "65816" => TargetArchitecture.WDC65816,
-			"gb" or "gameboy" or "sm83" => TargetArchitecture.SM83,
-			"genesis" or "megadrive" or "md" or "68000" or "m68k" => TargetArchitecture.M68000,
-			"sms" or "mastersystem" or "z80" => TargetArchitecture.Z80,
-			"wonderswan" or "ws" or "wsc" or "v30mz" => TargetArchitecture.V30MZ,
-			"gba" or "gameboyadvance" or "arm" or "arm7tdmi" => TargetArchitecture.ARM7TDMI,
-			"spc700" => TargetArchitecture.SPC700,
-			"tg16" or "turbografx16" or "pcengine" or "huc6280" => TargetArchitecture.HuC6280,
-			"channelf" or "channel-f" or "channel_f" or "f8" => TargetArchitecture.F8,
-			_ => (TargetArchitecture?)null
-		};
+		var target = Arch.TargetResolver.Resolve(targetNode.Name);
 
 		if (target is null) {
 			_errors.Add(new SemanticError(
@@ -2037,18 +2022,12 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// for the specified instruction mnemonic.
 	/// </summary>
 	private bool SupportsAddressingMode(string mnemonic, AddressingMode mode) {
-		return Target switch {
-			TargetArchitecture.MOS6502 => InstructionSet6502.TryGetEncoding(mnemonic, mode, out _),
-			TargetArchitecture.WDC65816 => InstructionSet65816.TryGetEncoding(mnemonic, mode, out _),
-			TargetArchitecture.MOS65SC02 => InstructionSet65SC02.TryGetEncoding(mnemonic, mode, out _),
-			TargetArchitecture.MOS6507 => InstructionSet6507.TryGetEncoding(mnemonic, mode, out _),
-			TargetArchitecture.HuC6280 => InstructionSetHuC6280.TryGetEncoding(mnemonic, mode, out _, out _),
-			TargetArchitecture.SM83 => InstructionSetSM83.TryGetEncoding(mnemonic, mode, out _),
-			TargetArchitecture.Z80 => InstructionSetZ80.TryGetEncodingFromShared(mnemonic, mode, out _, out _),
-			TargetArchitecture.V30MZ => InstructionSetV30MZ.TryGetEncodingFromShared(mnemonic, mode, out _, out _),
-			TargetArchitecture.M68000 => InstructionSetM68000.TryGetEncodingFromShared(mnemonic, mode, out _, out _),
-			_ => false
-		};
+		try {
+			var profile = Arch.TargetResolver.GetProfile(Target);
+			return profile.Encoder.TryEncode(mnemonic, mode, out _);
+		} catch (NotSupportedException) {
+			return false;
+		}
 	}
 
 	/// <summary>

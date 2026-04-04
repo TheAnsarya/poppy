@@ -3,6 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using Poppy.Core.Arch;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
@@ -16,6 +17,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	private readonly SemanticAnalyzer _analyzer;
 	private TargetArchitecture _target;
 	private readonly TargetArchitecture _initialTarget;
+	private ITargetProfile _profile;
 	private readonly List<CodeError> _errors;
 	private readonly List<CodeWarning> _warnings;
 	private readonly List<OutputSegment> _segments;
@@ -95,6 +97,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		_analyzer = analyzer;
 		_target = target;
 		_initialTarget = target;
+		_profile = TargetResolver.GetProfile(target);
 		_cdlGenerator = cdlGenerator;
 		_listingGenerator = listingGenerator;
 		_errors = [];
@@ -276,11 +279,10 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
-		// 65SC02: inc/dec without operand should be Accumulator mode, not Implied
-		if (_target == TargetArchitecture.MOS65SC02 && addressingMode == AddressingMode.Implied) {
-			if (mnemonic.Equals("inc", StringComparison.OrdinalIgnoreCase) || mnemonic.Equals("dec", StringComparison.OrdinalIgnoreCase)) {
-				addressingMode = AddressingMode.Accumulator;
-			}
+		// Let profile adjust addressing mode (e.g. 65SC02 INC/DEC Implied → Accumulator)
+		var adjusted = _profile.AdjustAddressingMode(mnemonic, addressingMode);
+		if (adjusted.HasValue) {
+			addressingMode = adjusted.Value;
 		}
 
 		// V30MZ dedicated encoding path for register operands and extended instructions
@@ -729,27 +731,18 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// Gets the default bank size for the current architecture.
 	/// </summary>
 	private int GetDefaultBankSize() {
-		return _target switch {
-			TargetArchitecture.MOS6502 => 0x4000,    // 16KB NES PRG bank
-			TargetArchitecture.WDC65816 => (GetSnesMapMode() == SnesMapMode.HiRom) ? 0x10000 : 0x8000,
-			TargetArchitecture.SM83 => 0x4000,        // 16KB Game Boy bank
-			TargetArchitecture.MOS6507 => 0x1000,     // 4KB Atari 2600 bank
-			TargetArchitecture.MOS65SC02 => 0x4000,   // 16KB default for Lynx
-			_ => 0x4000                                // Default 16KB
-		};
+		// SNES bank size depends on map mode (runtime state)
+		if (_target == TargetArchitecture.WDC65816) {
+			return (GetSnesMapMode() == SnesMapMode.HiRom) ? 0x10000 : 0x8000;
+		}
+		return _profile.DefaultBankSize;
 	}
 
 	/// <summary>
 	/// Gets the CPU base address for the banked window.
 	/// </summary>
 	private long GetBankCpuBase() {
-		return _target switch {
-			TargetArchitecture.MOS6502 => 0x8000,     // NES PRG banked at $8000
-			TargetArchitecture.WDC65816 => 0x8000,    // SNES LoROM banked at $8000
-			TargetArchitecture.SM83 => _currentBank == 0 ? 0x0000 : 0x4000,  // GB bank 0 at $0000, others at $4000
-			TargetArchitecture.MOS6507 => 0xf000,     // Atari 2600 banked at $F000
-			_ => -1                                    // Unknown: no CPU base
-		};
+		return _profile.GetBankCpuBase(_currentBank);
 	}
 
 	/// <summary>
@@ -803,7 +796,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	private void HandleLongDirective(DirectiveNode node) {
 		EnsureSegment(node.Location);
 
-		var bytes = _target == TargetArchitecture.WDC65816 ? 3 : 4;
+		var bytes = _profile.LongDirectiveSize;
 
 		foreach (var arg in node.Arguments) {
 			var value = _analyzer.EvaluateExpression(arg);
@@ -1020,21 +1013,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return;
 		}
 
-		var target = platformName.ToLowerInvariant() switch {
-			"nes" or "6502" => TargetArchitecture.MOS6502,
-			"atari2600" or "2600" or "6507" => TargetArchitecture.MOS6507,
-			"atarilynx" or "lynx" or "65sc02" => TargetArchitecture.MOS65SC02,
-			"snes" or "65816" => TargetArchitecture.WDC65816,
-			"gb" or "gameboy" or "sm83" => TargetArchitecture.SM83,
-			"genesis" or "megadrive" or "md" or "68000" or "m68k" => TargetArchitecture.M68000,
-			"sms" or "mastersystem" or "z80" => TargetArchitecture.Z80,
-			"wonderswan" or "ws" or "wsc" or "v30mz" => TargetArchitecture.V30MZ,
-			"gba" or "gameboyadvance" or "arm" or "arm7tdmi" => TargetArchitecture.ARM7TDMI,
-			"spc700" => TargetArchitecture.SPC700,
-			"tg16" or "turbografx16" or "pcengine" or "huc6280" => TargetArchitecture.HuC6280,
-			"channelf" or "channel-f" or "channel_f" or "f8" => TargetArchitecture.F8,
-			_ => (TargetArchitecture?)null
-		};
+		var target = TargetResolver.Resolve(platformName);
 
 		if (target is null) {
 			_errors.Add(new CodeError(
@@ -1044,6 +1023,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		}
 
 		_target = target.Value;
+		_profile = TargetResolver.GetProfile(_target);
 
 		// Emit a comment in verbose mode for debugging
 		// (platform changes don't generate code, they change instruction encoding)
@@ -1194,117 +1174,20 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// Tries to get instruction encoding from the appropriate instruction set.
 	/// </summary>
 	private bool TryGetInstructionEncoding(string mnemonic, AddressingMode mode, out InstructionSet6502.InstructionEncoding encoding) {
-		// Select instruction set based on target architecture
-		if (_target == TargetArchitecture.SM83) {
-			if (InstructionSetSM83.TryGetEncoding(mnemonic, mode, out var sm83Encoding)) {
-				// Convert SM83 encoding to 6502 encoding format for compatibility
-				encoding = new InstructionSet6502.InstructionEncoding(sm83Encoding.Opcode, sm83Encoding.Size);
-				return true;
-			}
-			encoding = default;
-			return false;
+		// Delegate to architecture profile's encoder
+		if (_profile.Encoder.TryEncode(mnemonic, mode, out var enc)) {
+			encoding = new InstructionSet6502.InstructionEncoding(enc.Opcode, enc.Size);
+			return true;
 		}
-
-		if (_target == TargetArchitecture.WDC65816) {
-			if (InstructionSet65816.TryGetEncoding(mnemonic, mode, out var enc65816)) {
-				encoding = new InstructionSet6502.InstructionEncoding(enc65816.Opcode, enc65816.Size);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		if (_target == TargetArchitecture.MOS6507) {
-			if (InstructionSet6507.TryGetEncoding(mnemonic, mode, out var enc6507)) {
-				encoding = new InstructionSet6502.InstructionEncoding(enc6507.Opcode, enc6507.Size);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		if (_target == TargetArchitecture.MOS65SC02) {
-			if (InstructionSet65SC02.TryGetEncoding(mnemonic, mode, out var enc65sc02)) {
-				encoding = new InstructionSet6502.InstructionEncoding(enc65sc02.Opcode, enc65sc02.Size);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		if (_target == TargetArchitecture.HuC6280) {
-			if (InstructionSetHuC6280.TryGetEncoding(mnemonic, mode, out var hucOpcode, out var hucSize)) {
-				encoding = new InstructionSet6502.InstructionEncoding(hucOpcode, hucSize);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		if (_target == TargetArchitecture.Z80) {
-			if (InstructionSetZ80.TryGetEncodingFromShared(mnemonic, mode, out var z80Opcode, out var z80Size)) {
-				encoding = new InstructionSet6502.InstructionEncoding(z80Opcode, z80Size);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		if (_target == TargetArchitecture.V30MZ) {
-			if (InstructionSetV30MZ.TryGetEncodingFromShared(mnemonic, mode, out var v30Opcode, out var v30Size)) {
-				encoding = new InstructionSet6502.InstructionEncoding(v30Opcode, v30Size);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		if (_target == TargetArchitecture.M68000) {
-			if (InstructionSetM68000.TryGetEncodingFromShared(mnemonic, mode, out var m68kOpcode, out var m68kSize)) {
-				encoding = new InstructionSet6502.InstructionEncoding(m68kOpcode, m68kSize);
-				return true;
-			}
-			encoding = default;
-			return false;
-		}
-
-		// Default to 6502
-		return InstructionSet6502.TryGetEncoding(mnemonic, mode, out encoding);
+		encoding = default;
+		return false;
 	}
 
 	/// <summary>
 	/// Checks if an instruction is a branch instruction.
 	/// </summary>
 	private bool IsBranchInstruction(string mnemonic) {
-		if (_target == TargetArchitecture.SM83) {
-			return InstructionSetSM83.IsRelativeBranch(mnemonic);
-		}
-
-		if (_target == TargetArchitecture.WDC65816) {
-			return InstructionSet65816.IsBranchInstruction(mnemonic);
-		}
-
-		if (_target == TargetArchitecture.MOS65SC02) {
-			return InstructionSet65SC02.IsBranchInstruction(mnemonic);
-		}
-
-		if (_target == TargetArchitecture.HuC6280) {
-			return InstructionSetHuC6280.IsBranchInstruction(mnemonic);
-		}
-
-		if (_target == TargetArchitecture.Z80) {
-			return InstructionSetZ80.IsRelativeBranch(mnemonic);
-		}
-
-		if (_target == TargetArchitecture.V30MZ) {
-			return InstructionSetV30MZ.IsBranchInstruction(mnemonic);
-		}
-
-		if (_target == TargetArchitecture.M68000) {
-			return InstructionSetM68000.IsBranchInstruction(mnemonic);
-		}
-
-		return EqualsAnyIgnoreCase(mnemonic, "bcc", "bcs", "beq", "bmi", "bne", "bpl", "bvc", "bvs");
+		return _profile.Encoder.IsBranchInstruction(mnemonic);
 	}
 
 	/// <summary>
