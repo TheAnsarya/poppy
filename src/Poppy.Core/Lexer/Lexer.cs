@@ -490,7 +490,17 @@ public sealed class Lexer {
 			"rl" or "rr" or "rlc" or "rrc" or "sla" or "sra" or "srl" or "swap" or
 			"res" or "set" or "halt" or "stop" or "di" or "ei" or "reti" or "rst" or
 			"ccf" or "scf" or "daa" or "cpl" or "jr" or "jp" or "call" or "ret" or
-			"push" or "pop"
+			"push" or "pop" or
+			// HuC6280 (PC Engine / TurboGrafx-16) specific mnemonics
+			"csh" or "csl" or "tam" or "tma" or
+			"st0" or "st1" or "st2" or
+			"tii" or "tdd" or "tin" or "tia" or "tai" or
+			"sax" or "say" or "sxy" or "tst" or
+			// HuC6280 bit-indexed instructions (bbr0-7, bbs0-7, rmb0-7, smb0-7)
+			"bbr0" or "bbr1" or "bbr2" or "bbr3" or "bbr4" or "bbr5" or "bbr6" or "bbr7" or
+			"bbs0" or "bbs1" or "bbs2" or "bbs3" or "bbs4" or "bbs5" or "bbs6" or "bbs7" or
+			"rmb0" or "rmb1" or "rmb2" or "rmb3" or "rmb4" or "rmb5" or "rmb6" or "rmb7" or
+			"smb0" or "smb1" or "smb2" or "smb3" or "smb4" or "smb5" or "smb6" or "smb7"
 			=> true,
 			_ => false,
 		};
