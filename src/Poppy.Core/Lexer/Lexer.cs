@@ -507,7 +507,7 @@ public sealed class Lexer {
 			"iret" or "lahf" or "lea" or "mov" or "mul" or "neg" or "not" or "or" or
 			"out" or "popa" or "popf" or "pusha" or "pushf" or "rcl" or "rcr" or
 			"retf" or "sahf" or "sal" or "sar" or "shr" or "shl" or
-			"stc" or "std" or "sti" or "test" or "wait" or "xchg" or "xlat" or
+			"stc" or "std" or "sti" or "test" or "wait" or "xchg" or "xlat" or "xlatb" or
 			// V30MZ conditional jumps
 			"ja" or "jae" or "jb" or "jbe" or "jc" or "jcxz" or "je" or "jg" or
 			"jge" or "jl" or "jle" or "jna" or "jnae" or "jnb" or "jnbe" or "jnc" or

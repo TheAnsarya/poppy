@@ -193,9 +193,14 @@ public sealed class SymbolTable {
 	/// <summary>
 	/// Checks for undefined symbols and reports errors.
 	/// </summary>
-	public void ValidateAllDefined() {
+	/// <param name="isBuiltinName">Optional predicate to check if a name is a built-in
+	/// (e.g., register name) that should not be flagged as undefined.</param>
+	public void ValidateAllDefined(Func<string, bool>? isBuiltinName = null) {
 		foreach (var symbol in _symbols.Values) {
 			if (!symbol.IsDefined && symbol.References.Count > 0) {
+				if (isBuiltinName is not null && isBuiltinName(symbol.Name)) {
+					continue;
+				}
 				var firstRef = symbol.References[0];
 				_errors.Add(new SemanticError(
 					$"Undefined symbol: '{symbol.Name}'",

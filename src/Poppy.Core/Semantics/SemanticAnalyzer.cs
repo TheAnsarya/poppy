@@ -3,6 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 
@@ -308,8 +309,12 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		CurrentAddress = 0;
 		program.Accept(this);
 
-		// Validate all symbols are defined
-		SymbolTable.ValidateAllDefined();
+		// Validate all symbols are defined (skip register names for register-based architectures)
+		Func<string, bool>? builtinCheck = Target switch {
+			TargetArchitecture.V30MZ => InstructionSetV30MZ.IsRegister,
+			_ => null,
+		};
+		SymbolTable.ValidateAllDefined(builtinCheck);
 		_errors.AddRange(SymbolTable.Errors);
 		_errors.AddRange(MacroTable.Errors);
 		_errors.AddRange(_macroExpander.Errors);
@@ -480,12 +485,21 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <summary>
 	/// Checks if an instruction is a branch instruction (uses relative addressing).
 	/// </summary>
-	private static bool IsBranchInstruction(string mnemonic) {
-		return mnemonic.ToLowerInvariant() switch {
-			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" => true,
-			"bra" => true, // 65816/65C02
-			_ => false
-		};
+	private bool IsBranchInstruction(string mnemonic) {
+		var lower = mnemonic.ToLowerInvariant();
+
+		// Standard 6502/65816 branches
+		if (lower is "bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" or "bra") {
+			return true;
+		}
+
+		// V30MZ conditional jumps and loop instructions (short relative)
+		if (Target == TargetArchitecture.V30MZ) {
+			return InstructionSetV30MZ.TryGetConditionalJump(lower, out _) ||
+				   InstructionSetV30MZ.TryGetLoopInstruction(lower, out _);
+		}
+
+		return false;
 	}
 
 	/// <inheritdoc />
@@ -1934,6 +1948,14 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			mnemonic = mnemonic[..^2];
 		}
 
+		// V30MZ-specific instruction sizing
+		if (Target == TargetArchitecture.V30MZ) {
+			var v30Size = GetV30MZInstructionSize(node, mnemonic);
+			if (v30Size > 0) {
+				return v30Size;
+			}
+		}
+
 		if (IsBranchInstruction(mnemonic)) {
 			return 2; // opcode + 1 byte relative offset
 		}
@@ -1945,6 +1967,67 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		size += GetOperandSize(node.AddressingMode, node.SizeSuffix, mnemonic);
 
 		return size;
+	}
+
+	/// <summary>
+	/// Gets the instruction size for V30MZ-specific instructions.
+	/// Returns 0 if the instruction is not V30MZ-specific (fall through to generic sizing).
+	/// </summary>
+	private int GetV30MZInstructionSize(InstructionNode node, string mnemonic) {
+		var lower = mnemonic.ToLowerInvariant();
+
+		// Conditional jumps: opcode + rel8 = 2 bytes
+		if (InstructionSetV30MZ.TryGetConditionalJump(lower, out _)) {
+			return 2;
+		}
+
+		// Loop instructions: opcode + rel8 = 2 bytes
+		if (InstructionSetV30MZ.TryGetLoopInstruction(lower, out _)) {
+			return 2;
+		}
+
+		// Check if operand is a register identifier
+		bool operandIsRegister = node.Operand is IdentifierNode id && InstructionSetV30MZ.IsRegister(id.Name);
+		bool operandIsSegment = node.Operand is IdentifierNode sid && InstructionSetV30MZ.IsSegmentRegister(sid.Name);
+
+		// Multi-byte implied: AAM ($d4 $0a), AAD ($d5 $0a) = 2 bytes
+		if (lower is "aam" or "aad") {
+			return 2;
+		}
+
+		// Register-operand instructions: single opcode byte
+		if (operandIsRegister || operandIsSegment) {
+			// push/pop/inc/dec/xchg reg16, push/pop segment = 1 byte
+			if (lower is "push" or "pop" or "inc" or "dec" or "xchg") {
+				return 1;
+			}
+		}
+
+		// INT n = 2 bytes (opcode + imm8)
+		if (lower == "int") {
+			return 2;
+		}
+
+		// Near JMP = 3 bytes (opcode + rel16), near CALL = 3 bytes (opcode + rel16)
+		if (lower is "jmp" or "call") {
+			return 3;
+		}
+
+		// RET/RETF with operand = 3 bytes (opcode + imm16)
+		if (lower is "ret" or "retf" && node.Operand != null) {
+			return 3;
+		}
+
+		// PUSH immediate: 2 bytes (push imm8 $6a) or 3 bytes (push imm16 $68)
+		if (lower == "push" && node.Operand != null && !operandIsRegister && !operandIsSegment) {
+			if (node.SizeSuffix == 'b') {
+				return 2;
+			}
+			return 3;
+		}
+
+		// Fall through to generic sizing
+		return 0;
 	}
 
 	/// <summary>

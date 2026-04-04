@@ -283,6 +283,12 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
+		// V30MZ dedicated encoding path for register operands and extended instructions
+		if (_target == TargetArchitecture.V30MZ && TryEmitV30MZInstruction(node, mnemonic, operandValue)) {
+			RecordListingEntry(instructionStartAddress, node.Location);
+			return null;
+		}
+
 		// Get instruction encoding
 		if (!TryGetInstructionEncoding(mnemonic, addressingMode, out var encoding)) {
 			_errors.Add(new CodeError(
@@ -363,17 +369,23 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
-		// Record listing entry for source map generation
+		RecordListingEntry(instructionStartAddress, node.Location);
+
+		return null;
+	}
+
+	/// <summary>
+	/// Records a listing entry for source map generation.
+	/// </summary>
+	private void RecordListingEntry(long startAddress, SourceLocation location) {
 		if (_listingGenerator is not null && _currentSegment is not null) {
-			var byteCount = (int)(_currentAddress - instructionStartAddress);
+			var byteCount = (int)(_currentAddress - startAddress);
 			if (byteCount > 0) {
 				var segmentOffset = _currentSegment.Data.Count - byteCount;
 				var bytes = _currentSegment.Data.Skip(segmentOffset).Take(byteCount).ToArray();
-				_listingGenerator.AddEntry(instructionStartAddress, bytes, node.Location);
+				_listingGenerator.AddEntry(startAddress, bytes, location);
 			}
 		}
-
-		return null;
 	}
 
 	/// <summary>
@@ -1293,6 +1305,175 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		}
 
 		return EqualsAnyIgnoreCase(mnemonic, "bcc", "bcs", "beq", "bmi", "bne", "bpl", "bvc", "bvs");
+	}
+
+	/// <summary>
+	/// Tries to emit a V30MZ instruction using the dedicated encoding path.
+	/// Handles register operands, near jumps/calls, INT, and other instructions
+	/// that cannot be expressed through the generic 6502-like pipeline.
+	/// </summary>
+	/// <param name="node">The instruction AST node.</param>
+	/// <param name="mnemonic">The instruction mnemonic (already stripped of size suffix).</param>
+	/// <param name="operandValue">The evaluated operand value (null for register operands).</param>
+	/// <returns>True if the instruction was handled; false to fall through to the generic pipeline.</returns>
+	private bool TryEmitV30MZInstruction(InstructionNode node, string mnemonic, long? operandValue) {
+		var lower = mnemonic.ToLowerInvariant();
+
+		// === Multi-byte implied instructions (must be handled here, not in generic pipeline) ===
+		if (node.Operand is null && InstructionSetV30MZ.TryGetImpliedOpcode(lower, out var impliedBytes) && impliedBytes.Length > 1) {
+			foreach (var b in impliedBytes) {
+				EmitByte(b);
+			}
+			return true;
+		}
+
+		// === Register operand instructions ===
+		if (node.Operand is IdentifierNode idNode &&
+			InstructionSetV30MZ.TryGetRegister(idNode.Name, out var regEnc, out var isWord)) {
+			var isSeg = InstructionSetV30MZ.IsSegmentRegister(idNode.Name);
+
+			switch (lower) {
+				case "push":
+					if (isSeg) {
+						// PUSH segment: ES=$06, CS=$0e, SS=$16, DS=$1e
+						EmitByte((byte)(0x06 + regEnc * 8));
+					} else if (isWord) {
+						// PUSH r16: $50+rw
+						EmitByte((byte)(0x50 + regEnc));
+					} else {
+						return false; // 8-bit register push not supported
+					}
+					return true;
+
+				case "pop":
+					if (isSeg) {
+						if (regEnc == InstructionSetV30MZ.Registers.CS) {
+							_errors.Add(new CodeError("POP CS is not a valid instruction", node.Location));
+							return true;
+						}
+						// POP segment: ES=$07, SS=$17, DS=$1f
+						EmitByte((byte)(0x07 + regEnc * 8));
+					} else if (isWord) {
+						// POP r16: $58+rw
+						EmitByte((byte)(0x58 + regEnc));
+					} else {
+						return false; // 8-bit register pop not supported
+					}
+					return true;
+
+				case "inc":
+					if (isWord && !isSeg) {
+						// INC r16: $40+rw
+						EmitByte((byte)(0x40 + regEnc));
+						return true;
+					}
+					return false;
+
+				case "dec":
+					if (isWord && !isSeg) {
+						// DEC r16: $48+rw
+						EmitByte((byte)(0x48 + regEnc));
+						return true;
+					}
+					return false;
+
+				case "xchg":
+					if (isWord && !isSeg && regEnc != 0) {
+						// XCHG AX, r16: $90+rw (implicit AX as first operand)
+						EmitByte((byte)(0x90 + regEnc));
+						return true;
+					}
+					return false;
+			}
+		}
+
+		// === Numeric operand instructions ===
+		if (operandValue.HasValue) {
+			var value = operandValue.Value;
+
+			switch (lower) {
+				case "int":
+					// INT n: $cd + imm8
+					EmitByte(0xcd);
+					EmitByte((byte)(value & 0xff));
+					return true;
+
+				case "jmp":
+					return EmitV30MZNearJump(value, node.Location);
+
+				case "call":
+					return EmitV30MZNearCall(value, node.Location);
+
+				case "ret":
+					// RET imm16: $c2 + imm16 (near return with stack adjustment)
+					EmitByte(0xc2);
+					EmitWord((ushort)(value & 0xffff));
+					return true;
+
+				case "retf":
+					// RETF imm16: $ca + imm16 (far return with stack adjustment)
+					EmitByte(0xca);
+					EmitWord((ushort)(value & 0xffff));
+					return true;
+
+				case "push":
+					if (node.AddressingMode == AddressingMode.Immediate) {
+						if (value >= -128 && value <= 127) {
+							// PUSH imm8: $6a + imm8 (80186+)
+							EmitByte(0x6a);
+							EmitByte((byte)(value & 0xff));
+						} else {
+							// PUSH imm16: $68 + imm16 (80186+)
+							EmitByte(0x68);
+							EmitWord((ushort)(value & 0xffff));
+						}
+						return true;
+					}
+					return false;
+			}
+		}
+
+		return false; // Fall through to generic pipeline
+	}
+
+	/// <summary>
+	/// Emits a V30MZ near JMP instruction ($e9 + rel16).
+	/// </summary>
+	private bool EmitV30MZNearJump(long targetAddress, SourceLocation location) {
+		var instructionAddress = (uint)_currentAddress;
+		EmitByte(0xe9);
+		// Near relative offset is from the address AFTER the 3-byte instruction
+		var nextInstruction = _currentAddress + 2;
+		var offset = targetAddress - nextInstruction;
+		if (offset < -32768 || offset > 32767) {
+			_errors.Add(new CodeError(
+				$"Near jump target out of range ({offset} bytes, must be -32768 to +32767)",
+				location));
+		}
+		EmitWord((ushort)(offset & 0xffff));
+		_cdlGenerator?.RegisterJumpTarget(targetAddress);
+		_crossRefs.Add((instructionAddress, (uint)targetAddress, 2)); // Jmp=2
+		return true;
+	}
+
+	/// <summary>
+	/// Emits a V30MZ near CALL instruction ($e8 + rel16).
+	/// </summary>
+	private bool EmitV30MZNearCall(long targetAddress, SourceLocation location) {
+		var instructionAddress = (uint)_currentAddress;
+		EmitByte(0xe8);
+		// Near relative offset is from the address AFTER the 3-byte instruction
+		var nextInstruction = _currentAddress + 2;
+		var offset = targetAddress - nextInstruction;
+		if (offset < -32768 || offset > 32767) {
+			_errors.Add(new CodeError(
+				$"Near call target out of range ({offset} bytes, must be -32768 to +32767)",
+				location));
+		}
+		EmitWord((ushort)(offset & 0xffff));
+		_cdlGenerator?.RegisterSubroutineEntry(targetAddress);
+		_crossRefs.Add((instructionAddress, (uint)targetAddress, 1)); // Jsr=1
+		return true;
 	}
 
 	/// <summary>
