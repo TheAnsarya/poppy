@@ -81,8 +81,14 @@ public sealed class Parser {
 			return ParseLabelOrIdentifier();
 		}
 
-		// Mnemonic instruction
+		// Mnemonic instruction (or label if followed by colon)
 		if (Check(TokenType.Mnemonic)) {
+			// A mnemonic followed by ':' is a label, not an instruction
+			// This handles cases like "loop:", "reset:", "div:" where the
+			// name conflicts with an instruction mnemonic
+			if (CheckNext(TokenType.Colon)) {
+				return ParseMnemonicLabel();
+			}
 			return ParseInstruction();
 		}
 
@@ -227,6 +233,17 @@ public sealed class Parser {
 
 		ExpectEndOfStatement();
 		return new MacroInvocationNode(token.Location, macroName, arguments);
+	}
+
+	/// <summary>
+	/// Parses a label whose name happens to be a known mnemonic (e.g., "loop:", "reset:").
+	/// Called when a Mnemonic token is immediately followed by a colon.
+	/// </summary>
+	private StatementNode ParseMnemonicLabel() {
+		var token = Advance(); // consume the mnemonic token
+		Advance();             // consume the colon
+		var isLocal = token.Text.StartsWith('@');
+		return new LabelNode(token.Location, token.Text, isLocal);
 	}
 
 	private StatementNode ParseInstruction() {
@@ -401,7 +418,8 @@ public sealed class Parser {
 		Match(TokenType.Comma);
 
 		// Parse parameters separated by spaces and/or commas
-		while (Check(TokenType.Identifier)) {
+		// Accept both identifiers and mnemonics as parameter names (e.g., 'b' is ARM branch but valid as param name)
+		while (Check(TokenType.Identifier) || Check(TokenType.Mnemonic)) {
 			var paramName = Advance().Text;
 			IReadOnlyList<Token>? defaultValue = null;
 
@@ -1118,6 +1136,9 @@ public sealed class Parser {
 
 	private bool Check(TokenType type) =>
 		!IsAtEnd() && _tokens[_current].Type == type;
+
+	private bool CheckNext(TokenType type) =>
+		_current + 1 < _tokens.Count && _tokens[_current + 1].Type == type;
 
 	private Token Advance() {
 		if (!IsAtEnd()) {

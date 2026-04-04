@@ -500,10 +500,52 @@ public sealed class Lexer {
 			"bbr0" or "bbr1" or "bbr2" or "bbr3" or "bbr4" or "bbr5" or "bbr6" or "bbr7" or
 			"bbs0" or "bbs1" or "bbs2" or "bbs3" or "bbs4" or "bbs5" or "bbs6" or "bbs7" or
 			"rmb0" or "rmb1" or "rmb2" or "rmb3" or "rmb4" or "rmb5" or "rmb6" or "rmb7" or
-			"smb0" or "smb1" or "smb2" or "smb3" or "smb4" or "smb5" or "smb6" or "smb7"
+			"smb0" or "smb1" or "smb2" or "smb3" or "smb4" or "smb5" or "smb6" or "smb7" or
+			// V30MZ (WonderSwan) mnemonics (not already covered by 6502/SM83)
+			"aaa" or "aad" or "aam" or "aas" or "cbw" or "cmc" or "cwd" or "das" or
+			"div" or "hlt" or "idiv" or "imul" or "in" or "int" or "int3" or "into" or
+			"iret" or "lahf" or "lea" or "mov" or "mul" or "neg" or "not" or "or" or
+			"out" or "popa" or "popf" or "pusha" or "pushf" or "rcl" or "rcr" or
+			"retf" or "sahf" or "sal" or "sar" or "shr" or "shl" or
+			"stc" or "std" or "sti" or "test" or "wait" or "xchg" or "xlat" or
+			// V30MZ conditional jumps
+			"ja" or "jae" or "jb" or "jbe" or "jc" or "jcxz" or "je" or "jg" or
+			"jge" or "jl" or "jle" or "jna" or "jnae" or "jnb" or "jnbe" or "jnc" or
+			"jne" or "jng" or "jnge" or "jnl" or "jnle" or "jno" or "jnp" or "jns" or
+			"jnz" or "jo" or "jpe" or "jpo" or "js" or "jz" or
+			// V30MZ string/loop instructions
+			"cmpsb" or "cmpsw" or "lodsb" or "lodsw" or "movsb" or "movsw" or
+			"scasb" or "scasw" or "stosb" or "stosw" or
+			"loop" or "loope" or "loopne" or "loopnz" or "loopz" or
+			"rep" or "repe" or "repne" or "repnz" or "repz" or
+			// M68000 (Genesis/Mega Drive) mnemonics (not already covered)
+			"abcd" or "adda" or "addi" or "addq" or "addx" or "andi" or
+			"bchg" or "bclr" or "bset" or "bsr" or "btst" or "chk" or "clr" or
+			"cmpa" or "cmpi" or "cmpm" or "divs" or "divu" or "exg" or "ext" or
+			"illegal" or "link" or "movea" or "movem" or "muls" or "mulu" or
+			"nbcd" or "negx" or "ori" or "reset" or "roxl" or "roxr" or
+			"sbcd" or "suba" or "subi" or "subq" or "subx" or "tas" or
+			"trap" or "trapv" or "unlk" or
+			// M68000 set-on-condition (scc variants)
+			"seq" or "sne" or "sge" or "sgt" or "sle" or "slt" or "shi" or "sls" or
+			"scc" or "scs" or "spl" or "smi" or "svc" or "svs" or "sf" or "st" or
+			// M68000 decrement-and-branch
+			"dbcc" or "dbcs" or "dbeq" or "dbge" or "dbgt" or "dbhi" or "dble" or
+			"dbls" or "dblt" or "dbmi" or "dbne" or "dbpl" or "dbra" or "dbt" or
+			"dbvc" or "dbvs" or "dbf" or
+			// ARM7TDMI (GBA) mnemonics (not already covered)
+			"b" or "bl" or "bx" or "cmn" or "eor" or "bic" or "mvn" or "orr" or
+			"ldr" or "ldrb" or "ldrh" or "ldrsb" or "ldrsh" or
+			"str" or "strb" or "strh" or
+			"ldm" or "ldmia" or "ldmib" or "ldmda" or "ldmdb" or
+			"stm" or "stmia" or "stmib" or "stmda" or "stmdb" or
+			"mrs" or "msr" or "swi" or "swp" or "swpb" or
+			"mla" or "smull" or "smlal" or "umull" or "umlal" or
+			"teq" or "tst" or "lsl" or "lsr" or "asr" or "ror" or
+			// ARM7TDMI conditional suffixes handled at parser level
+			"adds" or "subs" or "ands" or "orrs" or "eors" or "bics" or "muls"
 			=> true,
 			_ => false,
 		};
 	}
 }
-
