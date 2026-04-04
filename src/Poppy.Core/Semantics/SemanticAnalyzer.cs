@@ -395,8 +395,19 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			TrackRepSep(node);
 		}
 
+		// Resolve effective addressing mode for sizing (match code generator's optimizations)
+		// Only optimize for operands with known constant values to avoid interfering
+		// with anonymous label resolution or forward reference tracking.
+		var effectiveMode = node.AddressingMode;
+		if (node.Operand is not null) {
+			var value = TryGetConstantOperandValue(node.Operand);
+			if (value.HasValue) {
+				effectiveMode = ResolveEffectiveSizingMode(node.Mnemonic, effectiveMode, value.Value);
+			}
+		}
+
 		// Calculate instruction size
-		var size = GetInstructionSize(node);
+		var size = GetInstructionSize(node, effectiveMode);
 		CurrentAddress += size;
 
 		return null;
@@ -1941,7 +1952,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <summary>
 	/// Calculates the size of an instruction in bytes.
 	/// </summary>
-	private int GetInstructionSize(InstructionNode node) {
+	private int GetInstructionSize(InstructionNode node, AddressingMode effectiveMode) {
 		// Branch instructions are always 2 bytes (opcode + relative offset)
 		var mnemonic = node.Mnemonic;
 		if (mnemonic.Length > 2 && mnemonic[^2] == '.') {
@@ -1963,10 +1974,81 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		// Base opcode is 1 byte
 		int size = 1;
 
-		// Add operand size based on addressing mode
-		size += GetOperandSize(node.AddressingMode, node.SizeSuffix, mnemonic);
+		// Add operand size based on effective addressing mode
+		size += GetOperandSize(effectiveMode, node.SizeSuffix, mnemonic);
 
 		return size;
+	}
+
+	/// <summary>
+	/// Tries to get a constant value from an operand expression without side effects.
+	/// Only returns a value for numeric literals and simple constant expressions
+	/// (EQU-defined constants). Does not resolve labels or anonymous references.
+	/// </summary>
+	private long? TryGetConstantOperandValue(ExpressionNode operand) {
+		if (operand is NumberLiteralNode num) {
+			return num.Value;
+		}
+
+		// Resolve EQU-defined constants (not address labels)
+		if (operand is IdentifierNode ident &&
+			SymbolTable.TryGetSymbol(ident.Name, out var symbol) &&
+			symbol is not null && symbol.IsDefined &&
+			symbol.Type == SymbolType.Constant && symbol.Value.HasValue) {
+			return symbol.Value.Value;
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Resolves the effective addressing mode for instruction sizing, mirroring
+	/// the code generator's Absolute→ZeroPage optimization so label addresses
+	/// are consistent between analyzer and code generator.
+	/// </summary>
+	private AddressingMode ResolveEffectiveSizingMode(string mnemonic, AddressingMode mode, long value) {
+		// Strip size suffix for instruction lookup
+		var lower = mnemonic.ToLowerInvariant();
+		if (lower.Length > 2 && lower[^2] == '.') {
+			lower = lower[..^2];
+		}
+
+		// Branch instructions: Absolute → Relative (already handled by IsBranchInstruction)
+		if (IsBranchInstruction(lower)) {
+			return mode;
+		}
+
+		var isZeroPage = value >= 0 && value <= 0xff;
+		if (!isZeroPage) {
+			return mode;
+		}
+
+		return mode switch {
+			AddressingMode.Absolute when SupportsAddressingMode(lower, AddressingMode.ZeroPage) => AddressingMode.ZeroPage,
+			AddressingMode.AbsoluteX when SupportsAddressingMode(lower, AddressingMode.ZeroPageX) => AddressingMode.ZeroPageX,
+			AddressingMode.AbsoluteY when SupportsAddressingMode(lower, AddressingMode.ZeroPageY) => AddressingMode.ZeroPageY,
+			AddressingMode.Indirect when SupportsAddressingMode(lower, AddressingMode.ZeroPageIndirect) => AddressingMode.ZeroPageIndirect,
+			_ => mode
+		};
+	}
+
+	/// <summary>
+	/// Checks whether the current target architecture supports a given addressing mode
+	/// for the specified instruction mnemonic.
+	/// </summary>
+	private bool SupportsAddressingMode(string mnemonic, AddressingMode mode) {
+		return Target switch {
+			TargetArchitecture.MOS6502 => InstructionSet6502.TryGetEncoding(mnemonic, mode, out _),
+			TargetArchitecture.WDC65816 => InstructionSet65816.TryGetEncoding(mnemonic, mode, out _),
+			TargetArchitecture.MOS65SC02 => InstructionSet65SC02.TryGetEncoding(mnemonic, mode, out _),
+			TargetArchitecture.MOS6507 => InstructionSet6507.TryGetEncoding(mnemonic, mode, out _),
+			TargetArchitecture.HuC6280 => InstructionSetHuC6280.TryGetEncoding(mnemonic, mode, out _, out _),
+			TargetArchitecture.SM83 => InstructionSetSM83.TryGetEncoding(mnemonic, mode, out _),
+			TargetArchitecture.Z80 => InstructionSetZ80.TryGetEncodingFromShared(mnemonic, mode, out _, out _),
+			TargetArchitecture.V30MZ => InstructionSetV30MZ.TryGetEncodingFromShared(mnemonic, mode, out _, out _),
+			TargetArchitecture.M68000 => InstructionSetM68000.TryGetEncodingFromShared(mnemonic, mode, out _, out _),
+			_ => false
+		};
 	}
 
 	/// <summary>

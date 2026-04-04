@@ -305,6 +305,199 @@ loop:
 		Assert.True(TurboGrafxRomBuilder.ValidateRom(binary));
 	}
 
+	[Fact]
+	public void Generate_PceRom_RegisterSwapAndSpeedControl() {
+		// arrange - HuC6280-specific register swap and speed control
+		var source = @"
+.target huc6280
+
+.org $e000
+reset:
+	sei
+	csh             ; $d4 - high-speed mode
+	sax             ; $22 - swap A and X
+	say             ; $42 - swap A and Y
+	sxy             ; $02 - swap X and Y
+	set             ; $f4 - set T flag
+	csl             ; $54 - low-speed mode
+	rts
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.HuC6280);
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.HuC6280);
+		var binary = generator.Generate(program);
+
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+
+		int o = 0x6000;
+		Assert.Equal(0x78, binary[o]);       // sei
+		Assert.Equal(0xd4, binary[o + 1]);   // csh
+		Assert.Equal(0x22, binary[o + 2]);   // sax
+		Assert.Equal(0x42, binary[o + 3]);   // say
+		Assert.Equal(0x02, binary[o + 4]);   // sxy
+		Assert.Equal(0xf4, binary[o + 5]);   // set
+		Assert.Equal(0x54, binary[o + 6]);   // csl
+		Assert.Equal(0x60, binary[o + 7]);   // rts
+	}
+
+	[Fact]
+	public void Generate_PceRom_VdcStoreInstructions() {
+		// arrange - ST0/ST1/ST2 VDC port writes
+		var source = @"
+.target tg16
+
+.org $e000
+reset:
+	sei
+	st0 #$00        ; $03, $00 - select VDC register 0 (MAWR)
+	st1 #$00        ; $13, $00 - write data low byte
+	st2 #$10        ; $23, $10 - write data high byte
+	st0 #$05        ; $03, $05 - select VDC register 5 (CR)
+	st1 #$cc        ; $13, $cc - write control register low
+	st2 #$00        ; $23, $00 - write control register high
+	rts
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.HuC6280);
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.HuC6280);
+		var binary = generator.Generate(program);
+
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+
+		int o = 0x6000;
+		Assert.Equal(0x78, binary[o]);       // sei
+		Assert.Equal(0x03, binary[o + 1]);   // st0
+		Assert.Equal(0x00, binary[o + 2]);   // #$00
+		Assert.Equal(0x13, binary[o + 3]);   // st1
+		Assert.Equal(0x00, binary[o + 4]);   // #$00
+		Assert.Equal(0x23, binary[o + 5]);   // st2
+		Assert.Equal(0x10, binary[o + 6]);   // #$10
+		Assert.Equal(0x03, binary[o + 7]);   // st0
+		Assert.Equal(0x05, binary[o + 8]);   // #$05
+		Assert.Equal(0x13, binary[o + 9]);   // st1
+		Assert.Equal(0xcc, binary[o + 10]);  // #$cc
+		Assert.Equal(0x23, binary[o + 11]);  // st2
+		Assert.Equal(0x00, binary[o + 12]);  // #$00
+		Assert.Equal(0x60, binary[o + 13]);  // rts
+	}
+
+	[Fact]
+	public void Generate_PceRom_65C02ExtensionInstructions() {
+		// arrange - 65C02 extensions available on HuC6280
+		var source = @"
+.target huc6280
+
+.org $e000
+reset:
+	sei
+	phx             ; $da - push X
+	phy             ; $5a - push Y
+	stz $00         ; $64, $00 - store zero to zp
+	inc a           ; $1a - INC A
+	dec a           ; $3a - DEC A
+	ply             ; $7a - pull Y
+	plx             ; $fa - pull X
+	bra skip        ; $80, $02 - unconditional branch
+	nop
+	nop
+skip:
+	rts
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.HuC6280);
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.HuC6280);
+		var binary = generator.Generate(program);
+
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+
+		int o = 0x6000;
+		Assert.Equal(0x78, binary[o]);       // sei
+		Assert.Equal(0xda, binary[o + 1]);   // phx
+		Assert.Equal(0x5a, binary[o + 2]);   // phy
+		Assert.Equal(0x64, binary[o + 3]);   // stz zp
+		Assert.Equal(0x00, binary[o + 4]);   // $00
+		Assert.Equal(0x1a, binary[o + 5]);   // inc A
+		Assert.Equal(0x3a, binary[o + 6]);   // dec A
+		Assert.Equal(0x7a, binary[o + 7]);   // ply
+		Assert.Equal(0xfa, binary[o + 8]);   // plx
+		Assert.Equal(0x80, binary[o + 9]);   // bra
+		Assert.Equal(0x02, binary[o + 10]);  // +2 (skip over 2 nops)
+		Assert.Equal(0xea, binary[o + 11]);  // nop
+		Assert.Equal(0xea, binary[o + 12]);  // nop
+		Assert.Equal(0x60, binary[o + 13]);  // rts (skip label)
+	}
+
+	[Fact]
+	public void Generate_PceRom_MemoryMapping() {
+		// arrange - TAM/TMA memory mapping instructions
+		var source = @"
+.target tg16
+
+.org $e000
+reset:
+	sei
+	cld
+	; Map I/O to MPR1 ($2000-$3fff)
+	lda #$ff
+	tam #$02        ; $53, $02 - MPR1
+	; Map RAM to MPR2 ($4000-$5fff)
+	lda #$f8
+	tam #$04        ; $53, $04 - MPR2
+	; Read MPR7 (reset page)
+	tma #$80        ; $43, $80 - read MPR7
+	rts
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.HuC6280);
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.HuC6280);
+		var binary = generator.Generate(program);
+
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+
+		int o = 0x6000;
+		Assert.Equal(0x78, binary[o]);       // sei
+		Assert.Equal(0xd8, binary[o + 1]);   // cld
+		Assert.Equal(0xa9, binary[o + 2]);   // lda #$ff
+		Assert.Equal(0xff, binary[o + 3]);
+		Assert.Equal(0x53, binary[o + 4]);   // tam #$02
+		Assert.Equal(0x02, binary[o + 5]);
+		Assert.Equal(0xa9, binary[o + 6]);   // lda #$f8
+		Assert.Equal(0xf8, binary[o + 7]);
+		Assert.Equal(0x53, binary[o + 8]);   // tam #$04
+		Assert.Equal(0x04, binary[o + 9]);
+		Assert.Equal(0x43, binary[o + 10]);  // tma #$80
+		Assert.Equal(0x80, binary[o + 11]);
+		Assert.Equal(0x60, binary[o + 12]);  // rts
+	}
+
 	/// <summary>
 	/// Helper to get error messages for test output.
 	/// </summary>
