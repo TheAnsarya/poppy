@@ -76,7 +76,9 @@
 				],
 				"extensions": [
 					".pasm",
-					".inc"
+					".inc",
+					".src",
+					".asm"
 				],
 				"configuration": "./language-configuration.json"
 			}
@@ -225,14 +227,21 @@
 					"description": "Column position for comments"
 				}
 			}
+		},
+		"configurationDefaults": {
+			"[pasm]": {
+				"editor.tabSize": 4,
+				"editor.insertSpaces": false,
+				"editor.detectIndentation": false
+			}
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
+		"vscode:prepublish": "yarn compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint src --ext ts",
-		"pretest": "npm run compile",
+		"pretest": "yarn compile",
 		"test": "node ./out/test/runTests.js",
 		"package": "vsce package",
 		"publish": "vsce publish"

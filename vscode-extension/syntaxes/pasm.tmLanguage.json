@@ -2,7 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "Poppy Assembly",
 	"scopeName": "source.pasm",
-	"fileTypes": ["pasm", "inc"],
+	"fileTypes": ["pasm", "inc", "src", "asm"],
 	"patterns": [
 		{ "include": "#comments" },
 		{ "include": "#strings" },

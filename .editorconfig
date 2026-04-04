@@ -22,11 +22,11 @@ indent_size = 4
 tab_width = 4
 max_line_length = 120
 
-# Assembly files - 8-space tabs for alignment
-[*.{asm,pasm,s,inc}]
+# Assembly files
+[*.{asm,pasm,src,s,inc}]
 indent_style = tab
-indent_size = 8
-tab_width = 8
+indent_size = 4
+tab_width = 4
 
 # JSON files
 [*.{json,jsonc}]
