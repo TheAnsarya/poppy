@@ -237,4 +237,52 @@ public class TurboGrafxRomBuilderTests {
 	}
 
 	#endregion
+
+	#region AddSegment Tests
+
+	[Fact]
+	public void AddSegment_PlacesDataAtCorrectOffset() {
+		var builder = new TurboGrafxRomBuilder();
+		builder.SetRomSize(0x8000);  // 32KB
+
+		// Add segment at $e000 (maps to offset $6000 in a 32KB ROM via mask)
+		var data = new byte[] { 0x78, 0xd8, 0xa2, 0xff };
+		builder.AddSegment(0xe000, data);
+		var rom = builder.Build();
+
+		// $e000 & ($8000 - 1) = $e000 & $7fff = $6000
+		Assert.Equal(0x78, rom[0x6000]);
+		Assert.Equal(0xd8, rom[0x6001]);
+		Assert.Equal(0xa2, rom[0x6002]);
+		Assert.Equal(0xff, rom[0x6003]);
+	}
+
+	[Fact]
+	public void AddSegment_MultipleSegments_AllPlaced() {
+		var builder = new TurboGrafxRomBuilder();
+		builder.SetRomSize(0x8000);  // 32KB
+
+		builder.AddSegment(0xe000, [0x78, 0xd8]);
+		builder.AddSegment(0xe010, [0xa9, 0x42]);
+		var rom = builder.Build();
+
+		Assert.Equal(0x78, rom[0x6000]);
+		Assert.Equal(0xd8, rom[0x6001]);
+		Assert.Equal(0xa9, rom[0x6010]);
+		Assert.Equal(0x42, rom[0x6011]);
+	}
+
+	[Fact]
+	public void AddSegment_AtZero_PlacesAtStart() {
+		var builder = new TurboGrafxRomBuilder();
+		builder.SetRomSize(0x8000);
+
+		builder.AddSegment(0, [0xaa, 0xbb]);
+		var rom = builder.Build();
+
+		Assert.Equal(0xaa, rom[0]);
+		Assert.Equal(0xbb, rom[1]);
+	}
+
+	#endregion
 }

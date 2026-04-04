@@ -44,6 +44,7 @@ public class TurboGrafxRomBuilder {
 	private byte[] _programData = [];
 	private ushort _entryPoint = ResetVector;
 	private bool _isSupergrafxCompatible = false;
+	private readonly List<(int Address, byte[] Data)> _segments = [];
 
 	/// <summary>
 	/// Sets the ROM size. Must be a power of 2, minimum 8KB.
@@ -105,6 +106,16 @@ public class TurboGrafxRomBuilder {
 	}
 
 	/// <summary>
+	/// Adds a code/data segment to the ROM at the given address.
+	/// The address is mapped to a physical ROM offset using the PCE memory map.
+	/// </summary>
+	/// <param name="address">The logical address for the segment</param>
+	/// <param name="data">The binary data to write</param>
+	public void AddSegment(int address, byte[] data) {
+		_segments.Add((address, data));
+	}
+
+	/// <summary>
 	/// Builds the complete ROM with header and vectors.
 	/// </summary>
 	/// <returns>Complete ROM data</returns>
@@ -114,7 +125,17 @@ public class TurboGrafxRomBuilder {
 		// Fill with $ff (typical for unused ROM space)
 		Array.Fill(rom, (byte)0xff);
 
-		// Copy program data if provided
+		// Copy segments into ROM (address masked to ROM size)
+		foreach (var (address, data) in _segments) {
+			for (int i = 0; i < data.Length; i++) {
+				var romOffset = (address + i) & (_romSize - 1);
+				if (romOffset >= 0 && romOffset < _romSize) {
+					rom[romOffset] = data[i];
+				}
+			}
+		}
+
+		// Copy program data if provided (legacy API)
 		if (_programData.Length > 0) {
 			var copyLength = Math.Min(_programData.Length, _romSize - 8);  // Leave room for vectors
 			Array.Copy(_programData, 0, rom, 0, copyLength);

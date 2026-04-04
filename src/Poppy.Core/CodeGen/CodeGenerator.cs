@@ -202,6 +202,30 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			}
 		}
 
+		// Build TurboGrafx-16/PCE ROM if configured (for HuC6280 target only)
+		if (_target == TargetArchitecture.HuC6280) {
+			var romBuilder = new TurboGrafxRomBuilder();
+
+			// Add all segments to the ROM builder
+			foreach (var segment in _segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+
+			return romBuilder.Build();
+		}
+
+		// Build WonderSwan ROM if configured (for V30MZ target only)
+		if (_target == TargetArchitecture.V30MZ) {
+			var romBuilder = new WonderSwanRomBuilder();
+
+			// Add all segments to the ROM builder
+			foreach (var segment in _segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+
+			return romBuilder.Build();
+		}
+
 		return binary;
 	}
 

@@ -10,8 +10,71 @@ namespace Poppy.Core.CodeGen;
 
 /// <summary>
 /// Builds WonderSwan ROM images with proper header structure.
+/// Supports segment-based assembly for CodeGenerator integration.
 /// </summary>
-public static class WonderSwanRomBuilder {
+public class WonderSwanRomBuilder {
+	private readonly WonderSwanHeader _header;
+	private readonly List<(int Address, byte[] Data)> _segments = [];
+
+	/// <summary>
+	/// Creates a new WonderSwan ROM builder with optional header configuration.
+	/// </summary>
+	/// <param name="header">Optional header configuration. Uses defaults if null.</param>
+	public WonderSwanRomBuilder(WonderSwanHeader? header = null) {
+		_header = header ?? new WonderSwanHeader();
+	}
+
+	/// <summary>
+	/// Adds a code/data segment to the ROM at the given address.
+	/// </summary>
+	/// <param name="address">The logical address for the segment</param>
+	/// <param name="data">The binary data to write</param>
+	public void AddSegment(int address, byte[] data) {
+		_segments.Add((address, data));
+	}
+
+	/// <summary>
+	/// Builds the complete WonderSwan ROM from added segments.
+	/// </summary>
+	/// <returns>Complete ROM image with header, padding, and checksum.</returns>
+	public byte[] Build() {
+		// Collect all segment data to determine total size
+		int totalBytes = 0;
+		foreach (var (_, data) in _segments) {
+			totalBytes += data.Length;
+		}
+
+		// Determine minimum ROM size (must be power of 2, minimum 128KB)
+		int targetSize = GetMinimumRomSize(totalBytes + 10);  // +10 for header
+		_header.RomSize = GetRomSizeCode(targetSize);
+
+		// Create ROM buffer
+		var rom = new byte[targetSize];
+
+		// Fill with $ff (unprogrammed flash)
+		Array.Fill(rom, (byte)0xff);
+
+		// Copy segments into ROM (address masked to ROM size)
+		foreach (var (address, data) in _segments) {
+			for (int i = 0; i < data.Length; i++) {
+				var romOffset = (address + i) % (targetSize - 10);
+				if (romOffset >= 0 && romOffset < targetSize - 10) {
+					rom[romOffset] = data[i];
+				}
+			}
+		}
+
+		// Write header at end of ROM (last 10 bytes)
+		int headerOffset = targetSize - 10;
+		WriteHeader(rom, headerOffset, _header);
+
+		// Calculate and write checksum
+		ushort checksum = CalculateChecksum(rom);
+		rom[targetSize - 2] = (byte)(checksum & 0xff);
+		rom[targetSize - 1] = (byte)((checksum >> 8) & 0xff);
+
+		return rom;
+	}
 	/// <summary>
 	/// WonderSwan ROM header structure (10 bytes at end of ROM).
 	/// </summary>
@@ -105,38 +168,15 @@ public static class WonderSwanRomBuilder {
 	};
 
 	/// <summary>
-	/// Builds a complete WonderSwan ROM with header.
+	/// Builds a complete WonderSwan ROM with header (legacy static API).
 	/// </summary>
 	/// <param name="code">The assembled code bytes.</param>
 	/// <param name="header">Optional header configuration.</param>
 	/// <returns>Complete ROM image with header and padding.</returns>
 	public static byte[] BuildRom(byte[] code, WonderSwanHeader? header = null) {
-		header ??= new WonderSwanHeader();
-
-		// Determine minimum ROM size (must be power of 2, minimum 128KB)
-		int targetSize = GetMinimumRomSize(code.Length + 10);  // +10 for header
-		header.RomSize = GetRomSizeCode(targetSize);
-
-		// Create ROM buffer
-		var rom = new byte[targetSize];
-
-		// Fill with $ff (unprogrammed flash)
-		Array.Fill(rom, (byte)0xff);
-
-		// Copy code to beginning of ROM
-		// WonderSwan maps ROM to end of address space, code starts at beginning
-		Array.Copy(code, 0, rom, 0, Math.Min(code.Length, targetSize - 10));
-
-		// Write header at end of ROM (last 10 bytes)
-		int headerOffset = targetSize - 10;
-		WriteHeader(rom, headerOffset, header);
-
-		// Calculate and write checksum
-		ushort checksum = CalculateChecksum(rom);
-		rom[targetSize - 2] = (byte)(checksum & 0xff);
-		rom[targetSize - 1] = (byte)((checksum >> 8) & 0xff);
-
-		return rom;
+		var builder = new WonderSwanRomBuilder(header);
+		builder.AddSegment(0, code);
+		return builder.Build();
 	}
 
 	/// <summary>
