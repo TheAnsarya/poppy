@@ -74,7 +74,7 @@
 				},
 				{
 					"name": "keyword.control.directive.conditional.pasm",
-					"match": "(?i)\\.(if|ifdef|ifndef|else|elseif|elif|endif|assert)\\b"
+					"match": "(?i)\\.(if|ifdef|ifndef|else|elseif|elif|endif|assert|ifeq|ifne|ifgt|iflt|ifge|ifle|ifexist)\\b"
 				},
 				{
 					"name": "keyword.control.directive.macro.pasm",
@@ -90,7 +90,7 @@
 				},
 				{
 					"name": "keyword.control.directive.segment.pasm",
-					"match": "(?i)\\.(segment|bank|section|endsection)\\b"
+					"match": "(?i)\\.(segment|bank|banksize|section|endsection)\\b"
 				},
 				{
 					"name": "keyword.control.directive.target.pasm",
@@ -98,15 +98,15 @@
 				},
 				{
 					"name": "keyword.control.directive.output.pasm",
-					"match": "(?i)\\.(ines|ines2|ines1|snes|gb|gameboy|genesis|gba|sms|tg16|pce|a2600|lynx|ws|wonderswan|spc700|header)\\b"
+					"match": "(?i)\\.(ines|ines2|ines1|snes|gb|gameboy|genesis|gba|sms|tg16|pce|a2600|lynx|ws|wonderswan|spc700|channelf|channel-f|f8|header)\\b"
 				},
 				{
 					"name": "keyword.control.directive.ines.pasm",
-					"match": "(?i)\\.(ines_prg|ines_chr|ines_prg_banks|ines_chr_banks|ines_mirroring|ines_battery|ines_trainer|ines_four_screen|ines_mapper|ines_submapper|ines_timing|ines_prg_ram|ines_chr_ram|ines_battery_prg_ram|ines_battery_chr_ram|ines_misc_roms|ines_default_expansion|ines_region)\\b"
+					"match": "(?i)\\.(ines_prg|ines_chr|ines_prg_banks|ines_chr_banks|ines_mirroring|ines_battery|ines_trainer|ines_four_screen|ines_fourscreen|ines_mapper|ines_submapper|ines_timing|ines_prg_ram|ines_chr_ram|ines_prgram|ines_chrram|ines_pal|ines_battery_prg_ram|ines_battery_chr_ram|ines_misc_roms|ines_default_expansion|ines_region|mapper)\\b"
 				},
 				{
 					"name": "keyword.control.directive.snes.pasm",
-					"match": "(?i)\\.(snes_title|snes_rom_layout|snes_cartridge_type|snes_rom_size|snes_ram_size|snes_region|snes_developer_id|snes_version|lorom|hirom|exhirom|exlorom)\\b"
+					"match": "(?i)\\.(snes_title|snes_rom_layout|snes_cartridge_type|snes_rom_size|snes_ram_size|snes_region|snes_developer_id|snes_version|snes_fastrom|lorom|hirom|exhirom|exlorom)\\b"
 				},
 				{
 					"name": "keyword.control.directive.gb.pasm",
@@ -134,7 +134,7 @@
 				},
 				{
 					"name": "keyword.control.directive.lynx.pasm",
-					"match": "(?i)\\.(lynx_title|lynx_manufacturer|lynx_rotation)\\b"
+					"match": "(?i)\\.(lynx_title|lynx_name|lynx_manufacturer|lynx_rotation|lynx_bank0_size|lynx_bank1_size|lynxentry|lynxboot)\\b"
 				},
 				{
 					"name": "keyword.control.directive.ws.pasm",
@@ -145,8 +145,12 @@
 					"match": "(?i)\\.(a8|a16|i8|i16|dp|abs|long|smart)\\b"
 				},
 				{
+					"name": "keyword.control.directive.assign.pasm",
+					"match": "(?i)\\.equ\\b"
+				},
+				{
 					"name": "keyword.control.directive.misc.pasm",
-					"match": "(?i)\\.(enum|endenum|struct|endstruct|union|endunion|error|warning|message|print|align|pad)\\b"
+					"match": "(?i)\\.(enum|endenum|ende|struct|endstruct|union|endunion|error|warning|message|print|align|pad)\\b"
 				}
 			]
 		},

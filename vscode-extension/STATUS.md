@@ -1,8 +1,8 @@
-# � VS Code Extension - Complete Status Report
+# 🌸 VS Code Extension - Status Report
 
-**Date:** January 14, 2026  
-**Epic:** #47 - VS Code Extension  
-**Status:** ✅ **FEATURE COMPLETE** - Ready for marketplace publication
+**Date:** January 18, 2026
+**Epic:** #218 - VS Code Extension v2.1.0
+**Status:** ✅ **FEATURE COMPLETE** - All 12 target platforms supported
 
 ---
 
@@ -47,10 +47,10 @@
 
 **Features:**
 
-- **Architecture Detection:** Auto-detects NES/SNES/GB from directives
-- **Opcode Completion:** 200+ opcodes with descriptions and addressing modes
-- **Directive Completion:** All assembler directives with parameter hints
-- **Register Completion:** Architecture-specific registers (A, X, Y, SP, etc.)
+- **Architecture Detection:** Auto-detects all 12 target platforms from `.target` directive and platform-specific directives
+- **Opcode Completion:** 700+ opcodes across 10 instruction set architectures (6502, 65SC02, 65816, SM83, Z80, M68000, ARM7TDMI, HuC6280, V30MZ, SPC700)
+- **Directive Completion:** 100+ assembler directives including all platform headers and mode switches
+- **Register Completion:** Architecture-specific registers for all platforms
 - **Label Completion:** Shows all defined labels in current file
 - **Context-Aware:** Only shows relevant completions based on position
 

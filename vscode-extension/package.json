@@ -240,7 +240,7 @@
 		"vscode:prepublish": "yarn compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"lint": "eslint src --ext ts",
+		"lint": "eslint src/",
 		"pretest": "yarn compile",
 		"test": "node ./out/test/runTests.js",
 		"package": "vsce package",
@@ -249,13 +249,12 @@
 	"devDependencies": {
 		"@types/glob": "^8.1.0",
 		"@types/mocha": "^10.0.0",
-		"@types/node": "^20.0.0",
+		"@types/node": "^22.0.0",
 		"@types/vscode": "^1.80.0",
-		"@typescript-eslint/eslint-plugin": "^6.0.0",
-		"@typescript-eslint/parser": "^6.0.0",
-		"@vscode/test-electron": "^2.3.0",
-		"eslint": "^8.0.0",
+		"@vscode/test-electron": "^2.4.0",
+		"eslint": "^9.0.0",
 		"mocha": "^10.0.0",
-		"typescript": "^5.0.0"
+		"typescript": "^5.8.0",
+		"typescript-eslint": "^8.0.0"
 	}
 }

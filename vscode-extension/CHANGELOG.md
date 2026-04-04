@@ -5,6 +5,38 @@ All notable changes to the Poppy Assembly extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-01-18
+
+### Added
+
+- 🎮 **Full 12-Platform Completions** - IntelliSense now provides 700+ opcodes across 10 ISAs:
+	- 6502 (56 opcodes), 65SC02 (64), 65816 (92), SM83 (47), Z80 (75+)
+	- M68000 (90+), ARM7TDMI (55+), HuC6280 (80+), V30MZ (75+), SPC700 (80+)
+- 🔍 **Full 12-Platform Hover** - Instruction documentation for all architectures
+	- SM83, Z80, M68000, ARM7TDMI, HuC6280, V30MZ, SPC700 instructions added
+	- 40+ new directive hover entries
+- 🎯 **Smart Target Detection** - Detects all 12 platforms from `.target` directive aliases and platform-specific directives
+- 📝 **Grammar Additions** - New syntax highlighting patterns:
+	- Conditional: `.ifeq`, `.ifne`, `.ifgt`, `.iflt`, `.ifge`, `.ifle`, `.ifexist`
+	- Segment: `.banksize`
+	- Output: `.channelf`, `.channel-f`, `.f8`
+	- SNES: `.snes_fastrom`
+	- Lynx: `.lynx_name`, `.lynx_bank0_size`, `.lynx_bank1_size`, `.lynxentry`, `.lynxboot`
+	- iNES: no-underscore aliases (`.ines_fourscreen`, `.ines_prgram`, `.ines_chrram`, `.ines_pal`)
+	- Misc: `.equ` constant definition, `.ende` alias for `.endenum`
+
+### Changed
+
+- ⬆️ **ESLint 9 Migration** - Upgraded to ESLint 9 with flat config (`eslint.config.mjs`)
+- ⬆️ **typescript-eslint v8** - Unified package replacing separate plugin/parser
+- ⬆️ **@types/node ^22** - Updated Node.js type definitions
+- ⬆️ **TypeScript ^5.8** - Latest TypeScript compiler
+
+### Removed
+
+- 🧹 **Stale Artifacts** - Removed `package-lock.json` (using Yarn) and old `.vsix` build
+- 🧹 **Legacy ESLint** - Removed `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` (replaced by unified `typescript-eslint`)
+
 ## [2.0.0] - 2026-01-16
 
 ### Added
