@@ -1889,13 +1889,16 @@ main_loop:
 		}
 
 		// Create CDL generator for instruction tracking (always, for Pansy cross-refs)
-		var cdlGenerator = new CdlGenerator(analyzer.SymbolTable, analyzer.Target, []);
+		// Use the analyzer's resolved target (from .target directive or CLI --target)
+		var resolvedTarget = analyzer.Target;
+
+		var cdlGenerator = new CdlGenerator(analyzer.SymbolTable, resolvedTarget, []);
 
 		// Create listing generator for source map tracking
 		var listingGenerator = new ListingGenerator();
 
 		// Code generation (with optional CDL tracking and listing)
-		var generator = new CodeGenerator(analyzer, options.Target, cdlGenerator, listingGenerator);
+		var generator = new CodeGenerator(analyzer, resolvedTarget, cdlGenerator, listingGenerator);
 		var code = generator.Generate(program);
 
 		if (generator.HasErrors) {
@@ -2231,8 +2234,17 @@ main_loop:
 					if (i + 1 < args.Length) {
 						options.Target = args[++i].ToLowerInvariant() switch {
 							"6502" or "nes" => TargetArchitecture.MOS6502,
+							"6507" or "atari2600" or "2600" => TargetArchitecture.MOS6507,
+							"65sc02" or "lynx" or "atarilynx" => TargetArchitecture.MOS65SC02,
 							"65816" or "snes" => TargetArchitecture.WDC65816,
 							"sm83" or "gb" or "gameboy" => TargetArchitecture.SM83,
+							"m68000" or "68000" or "m68k" or "genesis" or "megadrive" or "md" => TargetArchitecture.M68000,
+							"z80" or "sms" or "mastersystem" => TargetArchitecture.Z80,
+							"v30mz" or "ws" or "wonderswan" or "wsc" => TargetArchitecture.V30MZ,
+							"arm7tdmi" or "arm" or "gba" or "gameboyadvance" => TargetArchitecture.ARM7TDMI,
+							"spc700" => TargetArchitecture.SPC700,
+							"huc6280" or "tg16" or "turbografx16" or "pcengine" or "pce" => TargetArchitecture.HuC6280,
+							"f8" or "channelf" or "channel-f" => TargetArchitecture.F8,
 							_ => options.Target
 						};
 					}
