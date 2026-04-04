@@ -309,6 +309,7 @@ Key rules to enforce:
 - **MD031** — Blank lines around fenced code blocks
 - **MD032** — Blank lines around lists (ordered and unordered)
 - **MD047** — Files must end with a single newline character
+- **MD007** — Disabled (tab indentation is 1 character, not 4)
 - **MD010** — Disabled (hard tabs are REQUIRED per our indentation rules)
 
 When generating new markdown content, **always include proper blank line spacing** around headings, lists, and code blocks.
