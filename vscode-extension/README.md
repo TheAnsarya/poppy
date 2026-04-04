@@ -138,22 +138,22 @@ The extension provides language support. For building, you need the Poppy compil
 2. Build the extension:
    ```bash
    cd vscode-extension
-   npm install
-   npm run compile
+   yarn install
+   yarn compile
    ```
 3. Package:
    ```bash
-   npx @vscode/vsce package
+   yarn package
    ```
 4. Install:
    ```bash
-   code --install-extension poppy-assembly-0.1.0.vsix
+   code --install-extension poppy-assembly-2.1.0.vsix
    ```
 
 ### Development Mode
 
 1. Open `vscode-extension/` folder in VS Code
-2. Run `npm install`
+2. Run `yarn install`
 3. Press `F5` to launch Extension Development Host
 4. Open a `.pasm` file to test
 
@@ -177,9 +177,9 @@ For authoring and debugging the TextMate grammar ([syntaxes/pasm.tmLanguage.json
 ### Running Tests
 
 ```bash
-npm run test        # Run all tests
-npm run compile     # Compile TypeScript
-npm run watch       # Watch mode for development
+yarn test           # Run all tests
+yarn compile        # Compile TypeScript
+yarn watch          # Watch mode for development
 ```
 
 ## ⚙️ Configuration
@@ -196,6 +196,8 @@ npm run watch       # Watch mode for development
 ## 📋 Supported File Extensions
 
 - `.pasm` - Poppy Assembly source files
+- `.src` - Generic assembly source files
+- `.asm` - Legacy assembly source files
 - `.inc` - Include files (shared headers, constants, macros)
 
 ## 📚 Usage Examples

@@ -1,6 +1,6 @@
 ﻿# 🌸 Poppy Assembly VS Code Extension - User Guide
 
-**Version:** 1.0.0
+**Version:** 2.1.0
 **Publisher:** TheAnsarya
 
 ---
@@ -50,8 +50,8 @@ reset:
 
 Syntax highlighting activates automatically for `.pasm` files. The extension recognizes:
 
-- All 6502, 65816, and SM83 instructions
-- Assembler directives (`.org`, `.db`, `.macro`, etc.)
+- All instruction sets: 6502, 65SC02, 65816, SM83, Z80, M68000, ARM7TDMI, HuC6280, V30MZ, SPC700
+- Assembler directives (`.org`, `.db`, `.macro`, `.target`, etc.)
 - Labels (global, local, anonymous)
 - Comments and literals
 
@@ -59,10 +59,10 @@ Syntax highlighting activates automatically for `.pasm` files. The extension rec
 
 Press `Ctrl+Space` to trigger IntelliSense:
 
-- **Opcodes** - All instructions for current target architecture
-- **Directives** - Assembler directives with documentation
+- **Opcodes** - 700+ instructions across 10 ISAs for current target architecture
+- **Directives** - 100+ assembler directives with documentation
 - **Labels** - All defined labels in the current file
-- **Registers** - Valid registers (a, x, y, sp, etc.)
+- **Registers** - Valid registers for each architecture (a, x, y, sp, hl, de, d0-d7, r0-r15, etc.)
 
 **Example:**
 ```asm
@@ -132,8 +132,15 @@ The extension provides comprehensive syntax highlighting:
 **Supported Instruction Sets:**
 
 - 6502 (NES) - 56 opcodes
-- 65816 (SNES) - 256 opcodes
-- SM83 (Game Boy) - 512 opcodes (including CB-prefixed)
+- 65SC02 (Lynx) - 64 opcodes
+- 65816 (SNES) - 92 opcodes
+- SM83 (Game Boy) - 47 opcodes
+- Z80 (Master System) - 75+ opcodes
+- M68000 (Genesis) - 90+ opcodes
+- ARM7TDMI (GBA) - 55+ opcodes
+- HuC6280 (TurboGrafx-16) - 90+ opcodes
+- V30MZ (WonderSwan) - 75+ opcodes
+- SPC700 (SNES Audio) - 80+ opcodes
 
 ### IntelliSense Completion
 
@@ -148,7 +155,7 @@ Context-aware code completion with documentation:
 
 **Details:**
 
-- Architecture-specific (detects `.target nes/snes/gb`)
+- Architecture-specific (detects `.target` for all 12 platforms)
 - Shows valid addressing modes
 - Includes opcode description
 
