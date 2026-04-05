@@ -1,4 +1,4 @@
-﻿namespace Poppy.Core.Arch.Profiles;
+﻿﻿namespace Poppy.Core.Arch.Profiles;
 
 using System.Collections.Frozen;
 using Poppy.Core.CodeGen;
