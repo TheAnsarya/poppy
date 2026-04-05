@@ -3,6 +3,10 @@ import * as vscode from 'vscode';
 import { PoppyCompletionProvider } from '../../completionProvider';
 import { PoppyHoverProvider } from '../../hoverProvider';
 import { PoppySymbolProvider } from '../../symbolProvider';
+import { PoppyReferenceProvider } from '../../referenceProvider';
+import { PoppyRenameProvider } from '../../renameProvider';
+import { PoppyDocumentLinkProvider } from '../../documentLinkProvider';
+import { PoppyWorkspaceSymbolProvider } from '../../workspaceSymbolProvider';
 
 suite('Completion Provider Test Suite', () => {
 	vscode.window.showInformationMessage('Running completion provider tests');
@@ -532,6 +536,188 @@ suite('Formatting Provider Test Suite', () => {
 		assert.ok(edits);
 		// Should indent the lda instruction
 		assert.ok(edits.length > 0);
+	});
+});
+
+suite('Reference Provider Test Suite', () => {
+	test('Should create reference provider instance', () => {
+		const provider = new PoppyReferenceProvider();
+		assert.ok(provider, 'Should create reference provider');
+	});
+
+	test('Should find references in same document', async () => {
+		const provider = new PoppyReferenceProvider();
+		const document = await createTestDocument('ref-test.pasm',
+			'start:\n\tnop\nloop:\n\tjmp start\n\tjsr start');
+
+		// Position on 'start' label definition
+		const position = new vscode.Position(0, 2);
+		const refs = await provider.provideReferences(
+			document, position,
+			{ includeDeclaration: true },
+			{} as any
+		);
+
+		assert.ok(refs, 'Should return references');
+		assert.ok(refs.length >= 2, 'Should find at least 2 references (definition + usages)');
+	});
+
+	test('Should respect includeDeclaration flag', async () => {
+		const provider = new PoppyReferenceProvider();
+		const document = await createTestDocument('ref-decl.pasm',
+			'myvar = $42\n\tlda #myvar\n\tsta myvar');
+
+		// Position on 'myvar' usage
+		const position = new vscode.Position(1, 8);
+		const refsWithDecl = await provider.provideReferences(
+			document, position,
+			{ includeDeclaration: true },
+			{} as any
+		);
+		const refsWithoutDecl = await provider.provideReferences(
+			document, position,
+			{ includeDeclaration: false },
+			{} as any
+		);
+
+		assert.ok(refsWithDecl, 'Should return refs with declaration');
+		assert.ok(refsWithoutDecl, 'Should return refs without declaration');
+		assert.ok(refsWithDecl.length >= refsWithoutDecl.length,
+			'Refs with declaration should be >= refs without');
+	});
+
+	test('Should return empty for non-symbol positions', async () => {
+		const provider = new PoppyReferenceProvider();
+		const document = await createTestDocument('ref-empty.pasm', '\tnop');
+
+		// Position on whitespace
+		const position = new vscode.Position(0, 0);
+		const refs = await provider.provideReferences(
+			document, position,
+			{ includeDeclaration: true },
+			{} as any
+		);
+
+		// Should return empty or undefined for non-symbol
+		assert.ok(!refs || refs.length === 0, 'Should not find references for whitespace');
+	});
+});
+
+suite('Rename Provider Test Suite', () => {
+	test('Should create rename provider instance', () => {
+		const provider = new PoppyRenameProvider();
+		assert.ok(provider, 'Should create rename provider');
+	});
+
+	test('Should reject rename of opcodes', async () => {
+		const provider = new PoppyRenameProvider();
+		const document = await createTestDocument('rename-opcode.pasm', '\tlda #$80');
+
+		// Position on 'lda' opcode
+		const position = new vscode.Position(0, 2);
+
+		try {
+			await provider.prepareRename(document, position, {} as any);
+			assert.fail('Should throw for opcode rename');
+		} catch (e: any) {
+			assert.ok(e.message.includes('Cannot rename'), 'Should reject opcode rename');
+		}
+	});
+
+	test('Should reject rename of directives', async () => {
+		const provider = new PoppyRenameProvider();
+		const document = await createTestDocument('rename-dir.pasm', '.org $8000');
+
+		// Position on '.org' directive
+		const position = new vscode.Position(0, 1);
+
+		try {
+			await provider.prepareRename(document, position, {} as any);
+			assert.fail('Should throw for directive rename');
+		} catch (e: any) {
+			assert.ok(e.message.includes('Cannot rename'), 'Should reject directive rename');
+		}
+	});
+
+	test('Should allow rename of labels', async () => {
+		const provider = new PoppyRenameProvider();
+		const document = await createTestDocument('rename-label.pasm',
+			'start:\n\tnop\n\tjmp start');
+
+		// Position on 'start' label
+		const position = new vscode.Position(0, 2);
+		const result = await provider.prepareRename(document, position, {} as any);
+
+		assert.ok(result, 'Should allow label rename');
+	});
+
+	test('Should provide rename edits', async () => {
+		const provider = new PoppyRenameProvider();
+		const document = await createTestDocument('rename-edit.pasm',
+			'myLabel:\n\tnop\n\tjmp myLabel');
+
+		// Position on 'myLabel'
+		const position = new vscode.Position(0, 2);
+		const edits = await provider.provideRenameEdits(document, position, 'newLabel', {} as any);
+
+		assert.ok(edits, 'Should return workspace edit');
+		const entries = edits.entries();
+		assert.ok(entries.length > 0, 'Should have edit entries');
+	});
+});
+
+suite('Document Link Provider Test Suite', () => {
+	test('Should create document link provider instance', () => {
+		const provider = new PoppyDocumentLinkProvider();
+		assert.ok(provider, 'Should create document link provider');
+	});
+
+	test('Should detect .include directives', async () => {
+		const provider = new PoppyDocumentLinkProvider();
+		const document = await createTestDocument('link-include.pasm',
+			'.include "header.pasm"\n\tnop');
+
+		const links = await provider.provideDocumentLinks(document, {} as any);
+
+		assert.ok(links, 'Should return links');
+		assert.ok(links.length >= 1, 'Should find at least 1 link');
+	});
+
+	test('Should detect .incbin directives', async () => {
+		const provider = new PoppyDocumentLinkProvider();
+		const document = await createTestDocument('link-incbin.pasm',
+			'.incbin "data.bin"\n\tnop');
+
+		const links = await provider.provideDocumentLinks(document, {} as any);
+
+		assert.ok(links, 'Should return links');
+		assert.ok(links.length >= 1, 'Should find at least 1 link');
+	});
+
+	test('Should not detect links in non-include lines', async () => {
+		const provider = new PoppyDocumentLinkProvider();
+		const document = await createTestDocument('link-none.pasm',
+			'\tlda #$80\n\tsta $2000');
+
+		const links = await provider.provideDocumentLinks(document, {} as any);
+
+		assert.ok(!links || links.length === 0, 'Should not find links in regular code');
+	});
+});
+
+suite('Workspace Symbol Provider Test Suite', () => {
+	test('Should create workspace symbol provider instance', () => {
+		const provider = new PoppyWorkspaceSymbolProvider();
+		assert.ok(provider, 'Should create workspace symbol provider');
+	});
+
+	test('Should return empty for empty query', async () => {
+		const provider = new PoppyWorkspaceSymbolProvider();
+		const symbols = await provider.provideWorkspaceSymbols('', {} as any);
+
+		// Empty query should return empty or all symbols
+		assert.ok(symbols !== undefined, 'Should return a result');
+		assert.ok(Array.isArray(symbols), 'Should return an array');
 	});
 });
 

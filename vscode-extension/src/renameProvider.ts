@@ -36,12 +36,23 @@ export class PoppyRenameProvider implements vscode.RenameProvider {
 
 		const edit = new vscode.WorkspaceEdit();
 
+		// Search current document first
+		const currentReplacements = this.findAllOccurrences(document, oldName);
+		for (const range of currentReplacements) {
+			edit.replace(document.uri, range, newName);
+		}
+
 		// Search all workspace files
 		const files = await vscode.workspace.findFiles('**/*.{pasm,inc}', '**/node_modules/**', 500);
 
 		for (const file of files) {
 			if (token.isCancellationRequested) {
 				break;
+			}
+
+			// Skip current document (already searched)
+			if (file.toString() === document.uri.toString()) {
+				continue;
 			}
 
 			try {
