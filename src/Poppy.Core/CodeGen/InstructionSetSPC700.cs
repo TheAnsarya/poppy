@@ -807,4 +807,11 @@ public static class InstructionSetSPC700 {
 		/// <summary>Timer 2 counter (read-only)</summary>
 		public const byte T2OUT = 0xff;
 	}
+
+	/// <summary>
+	/// Gets all unique mnemonics recognized by the SPC700 instruction set.
+	/// </summary>
+	public static IEnumerable<string> GetAllMnemonics() {
+		return Opcodes.Keys;
+	}
 }

@@ -11,6 +11,7 @@ namespace Poppy.Core.Lexer;
 public sealed class Lexer {
 	private readonly string _source;
 	private readonly string _filePath;
+	private readonly IReadOnlySet<string>? _targetMnemonics;
 	private int _position;
 	private int _line;
 	private int _column;
@@ -20,9 +21,11 @@ public sealed class Lexer {
 	/// </summary>
 	/// <param name="source">The source code to tokenize.</param>
 	/// <param name="filePath">The path to the source file (for error reporting).</param>
-	public Lexer(string source, string filePath = "<input>") {
+	/// <param name="targetMnemonics">Optional target-specific mnemonic set. If null, all known mnemonics are accepted.</param>
+	public Lexer(string source, string filePath = "<input>", IReadOnlySet<string>? targetMnemonics = null) {
 		_source = source ?? throw new ArgumentNullException(nameof(source));
 		_filePath = filePath;
+		_targetMnemonics = targetMnemonics;
 		_position = 0;
 		_line = 1;
 		_column = 1;
@@ -443,7 +446,7 @@ public sealed class Lexer {
 	private static bool IsSizeSuffix(char c) =>
 		c == 'b' || c == 'w' || c == 'l' || c == 'B' || c == 'W' || c == 'L';
 
-	private static TokenType ClassifyIdentifier(string text) {
+	private TokenType ClassifyIdentifier(string text) {
 		// Check if it's a directive (starts with .)
 		if (text.StartsWith('.')) {
 			return TokenType.Directive;
@@ -468,8 +471,13 @@ public sealed class Lexer {
 		return TokenType.Identifier;
 	}
 
-	private static bool IsMnemonic(string text) {
-		// TODO: Make this architecture-aware
+	private bool IsMnemonic(string text) {
+		// If a target-specific mnemonic set was provided, use it for precise matching
+		if (_targetMnemonics is not null) {
+			return _targetMnemonics.Contains(text);
+		}
+
+		// Fallback: accept all known mnemonics from all architectures
 		return text switch {
 			// 6502 mnemonics
 			"adc" or "and" or "asl" or "bcc" or "bcs" or "beq" or "bit" or "bmi" or

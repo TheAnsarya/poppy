@@ -831,5 +831,12 @@ public static class InstructionSetM68000 {
 		size = 0;
 		return false;
 	}
+
+	/// <summary>
+	/// Gets all unique mnemonics recognized by the M68000 instruction set.
+	/// </summary>
+	public static IEnumerable<string> GetAllMnemonics() {
+		return _baseOpcodes.Keys;
+	}
 }
 

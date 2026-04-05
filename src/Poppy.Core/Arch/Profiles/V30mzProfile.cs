@@ -1,5 +1,6 @@
 ﻿namespace Poppy.Core.Arch.Profiles;
 
+using System.Collections.Frozen;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
@@ -17,6 +18,8 @@ internal sealed class V30mzProfile : ITargetProfile {
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
 
 	private sealed class V30mzEncoder : IInstructionEncoder {
+		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetV30MZ.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSetV30MZ.TryGetEncodingFromShared(mnemonic, mode, out var opcode, out var size)) {
 				encoding = new EncodedInstruction(opcode, size);

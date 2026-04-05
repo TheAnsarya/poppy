@@ -22,4 +22,10 @@ public interface IInstructionEncoder {
 	/// Returns true if the mnemonic is a relative branch instruction.
 	/// </summary>
 	bool IsBranchInstruction(string mnemonic);
+
+	/// <summary>
+	/// Gets the set of all mnemonics recognized by this encoder.
+	/// Used by the lexer for target-aware mnemonic tokenization.
+	/// </summary>
+	IReadOnlySet<string> Mnemonics { get; }
 }

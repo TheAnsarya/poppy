@@ -713,5 +713,16 @@ public static class InstructionSetZ80 {
 			_ => null
 		};
 	}
+
+	/// <summary>
+	/// Gets all unique mnemonics recognized by the Z80 instruction set.
+	/// </summary>
+	public static IEnumerable<string> GetAllMnemonics() {
+		return _basicOpcodes.Keys
+			.Concat(_cbOpcodes.Keys)
+			.Concat(_edOpcodes.Keys)
+			.Select(k => k.Item1)
+			.Distinct(StringComparer.OrdinalIgnoreCase);
+	}
 }
 

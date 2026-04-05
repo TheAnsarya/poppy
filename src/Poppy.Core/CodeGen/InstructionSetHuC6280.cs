@@ -691,4 +691,13 @@ public static class InstructionSetHuC6280 {
 		/// <summary>Sprite attribute table address</summary>
 		public const byte SATB = 0x13;
 	}
+
+	/// <summary>
+	/// Gets all unique mnemonics recognized by the HuC6280 instruction set.
+	/// </summary>
+	public static IEnumerable<string> GetAllMnemonics() {
+		return Opcodes.Keys
+			.Concat(BitInstructionBase.Keys)
+			.Distinct(StringComparer.OrdinalIgnoreCase);
+	}
 }

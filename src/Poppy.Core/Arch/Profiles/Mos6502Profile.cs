@@ -1,5 +1,6 @@
 ﻿namespace Poppy.Core.Arch.Profiles;
 
+using System.Collections.Frozen;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
@@ -17,6 +18,8 @@ internal sealed class Mos6502Profile : ITargetProfile {
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
 
 	private sealed class Mos6502Encoder : IInstructionEncoder {
+		public IReadOnlySet<string> Mnemonics { get; } = InstructionSet6502.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSet6502.TryGetEncoding(mnemonic, mode, out var enc)) {
 				encoding = new EncodedInstruction(enc.Opcode, enc.Size);

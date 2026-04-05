@@ -1137,4 +1137,11 @@ public static class InstructionSetARM7TDMI {
 			(byte)((value >> 8) & 0xff)
 		];
 	}
+
+	/// <summary>
+	/// Gets all unique mnemonics recognized by the ARM7TDMI instruction set.
+	/// </summary>
+	public static IEnumerable<string> GetAllMnemonics() {
+		return ArmMnemonics.Concat(ThumbMnemonics).Distinct(StringComparer.OrdinalIgnoreCase);
+	}
 }

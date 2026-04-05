@@ -1,5 +1,6 @@
 ﻿namespace Poppy.Core.Arch.Profiles;
 
+using System.Collections.Frozen;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
@@ -17,6 +18,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
 
 	private sealed class Arm7tdmiEncoder : IInstructionEncoder {
+		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetARM7TDMI.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			// ARM7TDMI uses a different encoding model; TryGetInstructionEncoding
 			// is not dispatched through the shared pipeline currently.
