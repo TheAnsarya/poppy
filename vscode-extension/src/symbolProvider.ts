@@ -243,7 +243,7 @@ export class PoppySymbolProvider implements vscode.DefinitionProvider, vscode.Do
 		_currentDocument: vscode.TextDocument
 	): Promise<PoppySymbol | undefined> {
 		// Search all .pasm and .inc files in the workspace
-		const files = await vscode.workspace.findFiles('**/*.{pasm,inc}', '**/node_modules/**', 50);
+		const files = await vscode.workspace.findFiles('**/*.{pasm,inc}', '**/node_modules/**', 500);
 
 		for (const file of files) {
 			try {

@@ -362,11 +362,11 @@ export class PoppyHoverProvider implements vscode.HoverProvider {
 	/**
 	 * Provides hover information for a position in a document.
 	 */
-	provideHover(
+	async provideHover(
 		document: vscode.TextDocument,
 		position: vscode.Position,
 		_token: vscode.CancellationToken
-	): vscode.ProviderResult<vscode.Hover> {
+	): Promise<vscode.Hover | undefined> {
 		const wordRange = document.getWordRangeAtPosition(position, /[.%]?[a-zA-Z_@][a-zA-Z0-9_]*/);
 		if (!wordRange) {
 			return undefined;
@@ -388,13 +388,14 @@ export class PoppyHoverProvider implements vscode.HoverProvider {
 			return this.createInstructionHover(instruction);
 		}
 
-		// Check for symbol definition in document
+		// Check for symbol definition in current document first
 		const symbolHover = this.findSymbolHover(document, word);
 		if (symbolHover) {
 			return symbolHover;
 		}
 
-		return undefined;
+		// Fall back to workspace-wide search
+		return this.findWorkspaceSymbolHover(document, word);
 	}
 
 	/**
@@ -437,37 +438,41 @@ export class PoppyHoverProvider implements vscode.HoverProvider {
 	}
 
 	/**
-	 * Finds and creates hover content for a symbol in the document.
+	 * Finds and creates hover content for a symbol in the given document.
 	 */
-	private findSymbolHover(document: vscode.TextDocument, symbolName: string): vscode.Hover | undefined {
+	private findSymbolInDocument(document: vscode.TextDocument, symbolName: string): { hover: vscode.Hover; file: string } | undefined {
 		const text = document.getText();
 		const lines = text.split('\n');
+		const fileName = vscode.workspace.asRelativePath(document.uri);
+		const escapedName = symbolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 
 			// Check for label definition
-			const labelMatch = line.match(new RegExp(`^(${symbolName}):`, 'i'));
+			const labelMatch = line.match(new RegExp(`^(${escapedName}):`, 'i'));
 			if (labelMatch) {
 				const md = new vscode.MarkdownString();
 				md.appendMarkdown(`## Label: ${symbolName}\n\n`);
-				md.appendMarkdown(`Defined at line ${i + 1}\n`);
-				return new vscode.Hover(md);
+				md.appendMarkdown(`**File:** ${fileName}\n\n`);
+				md.appendMarkdown(`**Line:** ${i + 1}\n`);
+				return { hover: new vscode.Hover(md), file: fileName };
 			}
 
 			// Check for constant definition
-			const constMatch = line.match(new RegExp(`^(${symbolName})\\s*(?:=|\\.equ)\\s*(.+)`, 'i'));
+			const constMatch = line.match(new RegExp(`^(${escapedName})\\s*(?:=|\\.equ)\\s*(.+)`, 'i'));
 			if (constMatch) {
 				const value = constMatch[2].split(';')[0].trim();
 				const md = new vscode.MarkdownString();
 				md.appendMarkdown(`## Constant: ${symbolName}\n\n`);
 				md.appendMarkdown(`**Value:** \`${value}\`\n\n`);
-				md.appendMarkdown(`Defined at line ${i + 1}\n`);
-				return new vscode.Hover(md);
+				md.appendMarkdown(`**File:** ${fileName}\n\n`);
+				md.appendMarkdown(`**Line:** ${i + 1}\n`);
+				return { hover: new vscode.Hover(md), file: fileName };
 			}
 
 			// Check for macro definition
-			const macroMatch = line.match(new RegExp(`^\\.macro\\s+(${symbolName})(.*)`, 'i'));
+			const macroMatch = line.match(new RegExp(`^\\.macro\\s+(${escapedName})(.*)`, 'i'));
 			if (macroMatch) {
 				const params = macroMatch[2].trim();
 				const md = new vscode.MarkdownString();
@@ -476,8 +481,47 @@ export class PoppyHoverProvider implements vscode.HoverProvider {
 					md.appendMarkdown(`**Parameters:** ${params}\n\n`);
 				}
 
-				md.appendMarkdown(`Defined at line ${i + 1}\n`);
-				return new vscode.Hover(md);
+				md.appendMarkdown(`**File:** ${fileName}\n\n`);
+				md.appendMarkdown(`**Line:** ${i + 1}\n`);
+				return { hover: new vscode.Hover(md), file: fileName };
+			}
+		}
+
+		return undefined;
+	}
+
+	/**
+	 * Finds symbol hover in current document first, then searches workspace.
+	 */
+	private findSymbolHover(document: vscode.TextDocument, symbolName: string): vscode.Hover | undefined {
+		// Search current document first
+		const localResult = this.findSymbolInDocument(document, symbolName);
+		if (localResult) {
+			return localResult.hover;
+		}
+
+		return undefined;
+	}
+
+	/**
+	 * Searches workspace for a symbol hover asynchronously.
+	 */
+	private async findWorkspaceSymbolHover(document: vscode.TextDocument, symbolName: string): Promise<vscode.Hover | undefined> {
+		const files = await vscode.workspace.findFiles('**/*.{pasm,inc}', '**/node_modules/**', 500);
+
+		for (const file of files) {
+			if (file.toString() === document.uri.toString()) {
+				continue; // Already searched current document
+			}
+
+			try {
+				const doc = await vscode.workspace.openTextDocument(file);
+				const result = this.findSymbolInDocument(doc, symbolName);
+				if (result) {
+					return result.hover;
+				}
+			} catch {
+				continue;
 			}
 		}
 

@@ -9,6 +9,10 @@ import { PoppySymbolProvider } from './symbolProvider';
 import { PoppyHoverProvider } from './hoverProvider';
 import { PoppyCompletionProvider } from './completionProvider';
 import { PoppyFormattingProvider } from './formattingProvider';
+import { PoppyReferenceProvider } from './referenceProvider';
+import { PoppyRenameProvider } from './renameProvider';
+import { PoppyDocumentLinkProvider } from './documentLinkProvider';
+import { PoppyWorkspaceSymbolProvider } from './workspaceSymbolProvider';
 
 // Document selector for Poppy Assembly files
 const PASM_SELECTOR: vscode.DocumentSelector = { language: 'pasm', scheme: 'file' };
@@ -67,6 +71,30 @@ export function activate(context: vscode.ExtensionContext) {
 	const formattingProvider = new PoppyFormattingProvider();
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(PASM_SELECTOR, formattingProvider)
+	);
+
+	// Create reference provider (Find All References)
+	const referenceProvider = new PoppyReferenceProvider();
+	context.subscriptions.push(
+		vscode.languages.registerReferenceProvider(PASM_SELECTOR, referenceProvider)
+	);
+
+	// Create rename provider (F2 rename)
+	const renameProvider = new PoppyRenameProvider();
+	context.subscriptions.push(
+		vscode.languages.registerRenameProvider(PASM_SELECTOR, renameProvider)
+	);
+
+	// Create document link provider (clickable .include/.incbin paths)
+	const documentLinkProvider = new PoppyDocumentLinkProvider();
+	context.subscriptions.push(
+		vscode.languages.registerDocumentLinkProvider(PASM_SELECTOR, documentLinkProvider)
+	);
+
+	// Create workspace symbol provider (Ctrl+T search)
+	const workspaceSymbolProvider = new PoppyWorkspaceSymbolProvider();
+	context.subscriptions.push(
+		vscode.languages.registerWorkspaceSymbolProvider(workspaceSymbolProvider)
 	);
 
 	// Register the task provider

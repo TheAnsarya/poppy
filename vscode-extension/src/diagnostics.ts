@@ -114,10 +114,20 @@ export class PoppyDiagnosticsProvider {
 				));
 			}
 
-			// Invalid hex number (non-hex characters after $)
-			const hexMatch = line.match(/\$([^0-9a-fA-F\s,;)}\]]+)/);
-			if (hexMatch) {
-				const startCol = line.indexOf('$' + hexMatch[1]);
+			// Invalid hex number (non-hex characters after $, but not $label identifiers)
+			// Skip if it looks like a symbol reference ($label_name, $my_var)
+			const hexMatches = line.matchAll(/\$([^\s,;)}\]]+)/g);
+			for (const hexMatch of hexMatches) {
+				const afterDollar = hexMatch[1];
+				// If it looks like an identifier (starts with letter/underscore, has underscore or length > 4), skip
+				if (/^[a-zA-Z_]/.test(afterDollar) && (/[_]/.test(afterDollar) || afterDollar.length > 4)) {
+					continue;
+				}
+				// If it's all valid hex chars, skip
+				if (/^[0-9a-fA-F]+$/.test(afterDollar)) {
+					continue;
+				}
+				const startCol = line.indexOf('$' + afterDollar);
 				const range = new vscode.Range(i, startCol, i, startCol + hexMatch[0].length);
 				diagnostics.push(new vscode.Diagnostic(
 					range,
@@ -126,10 +136,20 @@ export class PoppyDiagnosticsProvider {
 				));
 			}
 
-			// Invalid binary number (non-binary characters after %)
-			const binMatch = line.match(/%([^01\s,;)}\]]+)/);
-			if (binMatch) {
-				const startCol = line.indexOf('%' + binMatch[1]);
+			// Invalid binary number (non-binary characters after %, but not %param macro parameters)
+			// Skip if it looks like a macro parameter (%name_with_underscore, %long_param)
+			const binMatches = line.matchAll(/%([^\s,;)}\]]+)/g);
+			for (const binMatch of binMatches) {
+				const afterPercent = binMatch[1];
+				// If it looks like a macro parameter (has underscore or starts with letter and is long), skip
+				if (/^[a-zA-Z_]/.test(afterPercent) && (/[_]/.test(afterPercent) || afterPercent.length > 4)) {
+					continue;
+				}
+				// If it's all valid binary chars, skip
+				if (/^[01]+$/.test(afterPercent)) {
+					continue;
+				}
+				const startCol = line.indexOf('%' + afterPercent);
 				const range = new vscode.Range(i, startCol, i, startCol + binMatch[0].length);
 				diagnostics.push(new vscode.Diagnostic(
 					range,
@@ -154,9 +174,10 @@ export class PoppyDiagnosticsProvider {
 				}
 			}
 
-			// Mismatched parentheses
-			const openParens = (line.match(/\(/g) || []).length;
-			const closeParens = (line.match(/\)/g) || []).length;
+			// Mismatched parentheses (strip comments and strings first)
+			const codeOnly = line.replace(/;.*$/, '').replace(/"[^"]*"/g, '').replace(/'[^']*'/g, '');
+			const openParens = (codeOnly.match(/\(/g) || []).length;
+			const closeParens = (codeOnly.match(/\)/g) || []).length;
 			if (openParens !== closeParens) {
 				const range = new vscode.Range(i, 0, i, line.length);
 				diagnostics.push(new vscode.Diagnostic(

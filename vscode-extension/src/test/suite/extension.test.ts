@@ -313,6 +313,62 @@ suite('Diagnostics Provider Test Suite', () => {
 		outputChannel.dispose();
 		provider.collection.dispose();
 	});
+
+	test('Should not flag $label_name as invalid hex (#251)', async () => {
+		const { PoppyDiagnosticsProvider } = await import('../../diagnostics');
+		const outputChannel = vscode.window.createOutputChannel('Poppy Test');
+		const provider = new PoppyDiagnosticsProvider(outputChannel);
+		const document = await createTestDocument('diag-label.pasm', '\tlda $my_label');
+
+		const diagnostics: vscode.Diagnostic[] = (provider as any).quickSyntaxCheck(document);
+		const hexError = diagnostics.find(d => d.message.includes('Invalid hex'));
+		assert.ok(!hexError, '$label_name should not be flagged as invalid hex');
+
+		outputChannel.dispose();
+		provider.collection.dispose();
+	});
+
+	test('Should not flag %param as invalid binary (#251)', async () => {
+		const { PoppyDiagnosticsProvider } = await import('../../diagnostics');
+		const outputChannel = vscode.window.createOutputChannel('Poppy Test');
+		const provider = new PoppyDiagnosticsProvider(outputChannel);
+		const document = await createTestDocument('diag-param.pasm', '\tlda %macro_param');
+
+		const diagnostics: vscode.Diagnostic[] = (provider as any).quickSyntaxCheck(document);
+		const binError = diagnostics.find(d => d.message.includes('Invalid binary'));
+		assert.ok(!binError, '%param should not be flagged as invalid binary');
+
+		outputChannel.dispose();
+		provider.collection.dispose();
+	});
+
+	test('Should not flag parentheses in comments (#252)', async () => {
+		const { PoppyDiagnosticsProvider } = await import('../../diagnostics');
+		const outputChannel = vscode.window.createOutputChannel('Poppy Test');
+		const provider = new PoppyDiagnosticsProvider(outputChannel);
+		const document = await createTestDocument('diag-comment-paren.pasm', '\tlda #$00 ; fix for (issue');
+
+		const diagnostics: vscode.Diagnostic[] = (provider as any).quickSyntaxCheck(document);
+		const parenWarn = diagnostics.find(d => d.message.includes('parentheses'));
+		assert.ok(!parenWarn, 'Parentheses in comments should not trigger diagnostic');
+
+		outputChannel.dispose();
+		provider.collection.dispose();
+	});
+
+	test('Should still detect real $GG invalid hex after fix', async () => {
+		const { PoppyDiagnosticsProvider } = await import('../../diagnostics');
+		const outputChannel = vscode.window.createOutputChannel('Poppy Test');
+		const provider = new PoppyDiagnosticsProvider(outputChannel);
+		const document = await createTestDocument('diag-real-hex.pasm', '\tlda $GG');
+
+		const diagnostics: vscode.Diagnostic[] = (provider as any).quickSyntaxCheck(document);
+		const hexError = diagnostics.find(d => d.message.includes('Invalid hex'));
+		assert.ok(hexError, 'Should still detect truly invalid hex like $GG');
+
+		outputChannel.dispose();
+		provider.collection.dispose();
+	});
 });
 
 suite('Symbol Provider Test Suite', () => {
