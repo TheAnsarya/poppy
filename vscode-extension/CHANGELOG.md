@@ -5,6 +5,26 @@ All notable changes to the Poppy Assembly extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-02-01
+
+### Added
+
+- 🔗 **Reference Provider** - Find All References (Shift+F12) across workspace `.pasm`/`.inc` files
+- ✏️ **Rename Provider** - Rename symbols (F2) across all workspace files with validation
+- 📄 **Document Link Provider** - Clickable `.include`/`.incbin` paths with Ctrl+Click navigation
+- 🔎 **Workspace Symbol Provider** - Search symbols across workspace with Ctrl+T
+- 🌐 **Cross-File Hover** - Hover now searches workspace-wide for symbol definitions with file path display
+
+### Fixed
+
+- 🐛 **Hex Diagnostic Regex** - Fixed false positives: identifiers like `$GG` are now flagged while label-like tokens (starting with letter + underscore or length > 4) are correctly skipped
+- 🐛 **Binary Diagnostic Regex** - Same heuristic fix applied to binary literal validation
+- 🐛 **Parenthesis Check** - Now strips comments and strings before counting parentheses
+
+### Changed
+
+- ⬆️ **Symbol Provider File Limit** - Raised from 50 to 500 workspace files for better large-project support
+
 ## [2.1.0] - 2026-01-18
 
 ### Added

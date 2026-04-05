@@ -2,7 +2,7 @@
 	"name": "poppy-assembly",
 	"displayName": "🌸 Poppy Assembly",
 	"description": "Complete language support for Poppy Assembly (.pasm) - Multi-system retro game development for NES, SNES, Game Boy, Genesis, GBA, Master System, TurboGrafx-16, Atari 2600, Lynx, WonderSwan, and SPC700. Features IntelliSense, formatting, diagnostics, and build integration.",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"publisher": "TheAnsarya",
 	"icon": "images/icon.png",
 	"author": {
