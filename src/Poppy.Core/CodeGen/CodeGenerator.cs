@@ -1137,7 +1137,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// <param name="mode">The addressing mode.</param>
 	/// <param name="encoding">The instruction encoding.</param>
 	/// <returns>The operand size in bytes.</returns>
-	private int GetOperandSize(string mnemonic, AddressingMode mode, InstructionSet6502.InstructionEncoding encoding) {
+	private int GetOperandSize(string mnemonic, AddressingMode mode, EncodedInstruction encoding) {
 		// For 65816 immediate mode, size depends on M/X flags
 		if (_target == TargetArchitecture.WDC65816 && mode == AddressingMode.Immediate) {
 			var lower = mnemonic.ToLowerInvariant();
@@ -1173,14 +1173,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	/// <summary>
 	/// Tries to get instruction encoding from the appropriate instruction set.
 	/// </summary>
-	private bool TryGetInstructionEncoding(string mnemonic, AddressingMode mode, out InstructionSet6502.InstructionEncoding encoding) {
+	private bool TryGetInstructionEncoding(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 		// Delegate to architecture profile's encoder
-		if (_profile.Encoder.TryEncode(mnemonic, mode, out var enc)) {
-			encoding = new InstructionSet6502.InstructionEncoding(enc.Opcode, enc.Size);
-			return true;
-		}
-		encoding = default;
-		return false;
+		return _profile.Encoder.TryEncode(mnemonic, mode, out encoding);
 	}
 
 	/// <summary>
