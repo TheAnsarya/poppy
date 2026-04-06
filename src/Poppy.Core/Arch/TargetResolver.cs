@@ -25,7 +25,7 @@ public static class TargetResolver {
 			"arm7tdmi" or "arm" or "gba" or "gameboyadvance" => TargetArchitecture.ARM7TDMI,
 			"spc700" => TargetArchitecture.SPC700,
 			"huc6280" or "tg16" or "turbografx16" or "pcengine" or "pce" => TargetArchitecture.HuC6280,
-			"f8" or "channelf" or "channel-f" or "channel_f" => TargetArchitecture.F8,
+			"f8" or "channelf" or "channel_f" => TargetArchitecture.F8,
 			_ => null
 		};
 	}

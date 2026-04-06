@@ -77,7 +77,6 @@ public sealed class TargetResolverTests {
 	[InlineData("pcengine", TargetArchitecture.HuC6280)]
 	[InlineData("pce", TargetArchitecture.HuC6280)]
 	[InlineData("channelf", TargetArchitecture.F8)]
-	[InlineData("channel-f", TargetArchitecture.F8)]
 	[InlineData("channel_f", TargetArchitecture.F8)]
 	public void Resolve_PlatformNames_ReturnsCorrectArchitecture(string name, TargetArchitecture expected) {
 		Assert.Equal(expected, TargetResolver.Resolve(name));
