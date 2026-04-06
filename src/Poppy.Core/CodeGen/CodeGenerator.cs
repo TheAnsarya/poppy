@@ -253,6 +253,57 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return romBuilder.Build();
 		}
 
+		// Build GBA ROM if configured (for ARM7TDMI target only)
+		if (_target == TargetArchitecture.ARM7TDMI) {
+			var headerBuilder = _analyzer.GetGbaHeaderBuilder();
+			var header = headerBuilder?.Build() ?? new byte[192];
+
+			// GBA ROM addresses start at $08000000; file offset = address - $08000000
+			const uint gbaRomBase = 0x08000000;
+
+			// Determine ROM size from segments
+			long maxOffset = header.Length;
+			foreach (var segment in _segments) {
+				var fileOffset = segment.StartAddress >= gbaRomBase
+					? segment.StartAddress - gbaRomBase
+					: segment.StartAddress;
+				var end = fileOffset + (uint)segment.Data.Count;
+				if (end > maxOffset) maxOffset = end;
+			}
+
+			var rom = new byte[maxOffset];
+			Array.Copy(header, 0, rom, 0, header.Length);
+
+			// Copy segments into ROM
+			foreach (var segment in _segments) {
+				var fileOffset = segment.StartAddress >= gbaRomBase
+					? (int)(segment.StartAddress - gbaRomBase)
+					: (int)segment.StartAddress;
+				segment.Data.CopyTo(rom, fileOffset);
+			}
+
+			return rom;
+		}
+
+		// Build SPC file if configured (for SPC700 target only)
+		if (_target == TargetArchitecture.SPC700) {
+			var spcBuilder = _analyzer.GetSpcFileBuilder() ?? new SpcFileBuilder();
+
+			// Load each segment into SPC700 RAM (64KB address space)
+			foreach (var segment in _segments) {
+				if (segment.StartAddress <= 0xffff) {
+					spcBuilder.SetRamAt((ushort)segment.StartAddress, segment.Data.ToArray());
+				}
+			}
+
+			// If no explicit entry point was set, use the first segment's address
+			if (_segments.Count > 0 && _analyzer.GetSpcFileBuilder() is null) {
+				spcBuilder.SetPC((ushort)_segments[0].StartAddress);
+			}
+
+			return spcBuilder.Build();
+		}
+
 		return binary;
 	}
 

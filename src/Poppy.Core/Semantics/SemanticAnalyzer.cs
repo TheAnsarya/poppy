@@ -65,6 +65,19 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	private int? _lynxEntryPoint;
 	private bool _lynxUseBootCode;
 
+	// GBA header configuration
+	private string? _gbaTitle;
+	private string? _gbaGameCode;
+	private string? _gbaMakerCode;
+	private int? _gbaVersion;
+	private int? _gbaEntryPoint;
+
+	// SPC700 file configuration
+	private string? _spcSongTitle;
+	private string? _spcGameTitle;
+	private string? _spcArtist;
+	private int? _spcEntryPoint;
+
 	// 65816 M/X flag tracking
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
 	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
@@ -247,6 +260,47 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			EntryPoint: _lynxEntryPoint ?? 0x0200,
 			UseBootCode: _lynxUseBootCode
 		);
+	}
+
+	/// <summary>
+	/// Gets a GBA header builder if GBA header directives were used, or null if not configured.
+	/// </summary>
+	public CodeGen.GbaRomBuilder? GetGbaHeaderBuilder() {
+		// Only create if at least one GBA directive was used
+		if (_gbaTitle == null && _gbaGameCode == null && _gbaMakerCode == null &&
+			_gbaVersion == null && _gbaEntryPoint == null) {
+			return null;
+		}
+
+		var builder = new CodeGen.GbaRomBuilder();
+
+		if (_gbaTitle != null) builder.SetTitle(_gbaTitle);
+		if (_gbaGameCode != null) builder.SetGameCode(_gbaGameCode);
+		if (_gbaMakerCode != null) builder.SetMakerCode(_gbaMakerCode);
+		if (_gbaVersion != null) builder.SetVersion((byte)_gbaVersion.Value);
+		if (_gbaEntryPoint != null) builder.SetEntryPointAddress((uint)_gbaEntryPoint.Value);
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Gets an SPC file builder if SPC700 directives were used, or null if not configured.
+	/// </summary>
+	public CodeGen.SpcFileBuilder? GetSpcFileBuilder() {
+		// Only create if at least one SPC directive was used
+		if (_spcSongTitle == null && _spcGameTitle == null && _spcArtist == null &&
+			_spcEntryPoint == null) {
+			return null;
+		}
+
+		var builder = new CodeGen.SpcFileBuilder();
+
+		if (_spcSongTitle != null) builder.SetSongTitle(_spcSongTitle);
+		if (_spcGameTitle != null) builder.SetGameTitle(_spcGameTitle);
+		if (_spcArtist != null) builder.SetArtistName(_spcArtist);
+		if (_spcEntryPoint != null) builder.SetPC((ushort)_spcEntryPoint.Value);
+
+		return builder;
 	}
 
 	/// <summary>
@@ -578,6 +632,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				SetTarget(TargetArchitecture.F8, node);
 				break;
 
+			case "gba":
+			case "gameboyadvance":
+				SetTarget(TargetArchitecture.ARM7TDMI, node);
+				break;
+
+			case "spc700":
+			case "spc":
+				SetTarget(TargetArchitecture.SPC700, node);
+				break;
+
 			// SNES memory mapping
 			case "lorom":
 			case "hirom":
@@ -654,6 +718,23 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "lynxentry":
 			case "lynxboot":
 				HandleLynxDirective(node);
+				break;
+
+			// GBA header directives
+			case "gba_title":
+			case "gba_game_code":
+			case "gba_maker_code":
+			case "gba_version":
+			case "gba_entry":
+				HandleGbaDirective(node);
+				break;
+
+			// SPC700 file directives
+			case "spc_song_title":
+			case "spc_game_title":
+			case "spc_artist":
+			case "spc_entry":
+				HandleSpcDirective(node);
 				break;
 
 			// Assertions and diagnostics
@@ -1770,6 +1851,221 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		if (Target != TargetArchitecture.MOS65SC02) {
 			_errors.Add(new SemanticError(
 				$".{directiveName} directive is only valid for Atari Lynx/65SC02 target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles GBA header directives (.gba_title, .gba_game_code, .gba_maker_code, .gba_version, .gba_entry).
+	/// </summary>
+	private void HandleGbaDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		var directiveName = node.Name.ToLowerInvariant();
+
+		// Get the value from the first argument (if any)
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				value = EvaluateExpression(node.Arguments[0]);
+			}
+		}
+
+		switch (directiveName) {
+			case "gba_title":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".gba_title directive requires a string value (max 12 characters, uppercase ASCII)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 12) {
+					_errors.Add(new SemanticError(
+						$".gba_title is too long ({stringValue.Length} characters, maximum is 12)",
+						node.Location));
+					return;
+				}
+
+				_gbaTitle = stringValue;
+				break;
+
+			case "gba_game_code":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".gba_game_code directive requires a 4-character string (e.g., \"AXVE\")",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length != 4) {
+					_errors.Add(new SemanticError(
+						$".gba_game_code must be exactly 4 characters (got {stringValue.Length})",
+						node.Location));
+					return;
+				}
+
+				_gbaGameCode = stringValue;
+				break;
+
+			case "gba_maker_code":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".gba_maker_code directive requires a 2-character string (e.g., \"01\")",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length != 2) {
+					_errors.Add(new SemanticError(
+						$".gba_maker_code must be exactly 2 characters (got {stringValue.Length})",
+						node.Location));
+					return;
+				}
+
+				_gbaMakerCode = stringValue;
+				break;
+
+			case "gba_version":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gba_version directive requires a version number (0-255)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 255) {
+					_errors.Add(new SemanticError(
+						$".gba_version must be 0-255 (got {value})",
+						node.Location));
+					return;
+				}
+
+				_gbaVersion = (int)value;
+				break;
+
+			case "gba_entry":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".gba_entry directive requires an entry point address",
+						node.Location));
+					return;
+				}
+
+				_gbaEntryPoint = (int)value;
+				break;
+		}
+
+		// Ensure target is GBA
+		if (Target != TargetArchitecture.ARM7TDMI) {
+			_errors.Add(new SemanticError(
+				$".{directiveName} directive is only valid for GBA/ARM7TDMI target",
+				node.Location));
+		}
+	}
+
+	/// <summary>
+	/// Handles SPC700 file directives (.spc_song_title, .spc_game_title, .spc_artist, .spc_entry).
+	/// </summary>
+	private void HandleSpcDirective(DirectiveNode node) {
+		if (_pass != 1) return;
+
+		var directiveName = node.Name.ToLowerInvariant();
+
+		// Get the value from the first argument (if any)
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				value = EvaluateExpression(node.Arguments[0]);
+			}
+		}
+
+		switch (directiveName) {
+			case "spc_song_title":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".spc_song_title directive requires a string value (max 32 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 32) {
+					_errors.Add(new SemanticError(
+						$".spc_song_title is too long ({stringValue.Length} characters, maximum is 32)",
+						node.Location));
+					return;
+				}
+
+				_spcSongTitle = stringValue;
+				break;
+
+			case "spc_game_title":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".spc_game_title directive requires a string value (max 32 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 32) {
+					_errors.Add(new SemanticError(
+						$".spc_game_title is too long ({stringValue.Length} characters, maximum is 32)",
+						node.Location));
+					return;
+				}
+
+				_spcGameTitle = stringValue;
+				break;
+
+			case "spc_artist":
+				if (stringValue is null) {
+					_errors.Add(new SemanticError(
+						".spc_artist directive requires a string value (max 32 characters)",
+						node.Location));
+					return;
+				}
+
+				if (stringValue.Length > 32) {
+					_errors.Add(new SemanticError(
+						$".spc_artist is too long ({stringValue.Length} characters, maximum is 32)",
+						node.Location));
+					return;
+				}
+
+				_spcArtist = stringValue;
+				break;
+
+			case "spc_entry":
+				if (value is null) {
+					_errors.Add(new SemanticError(
+						".spc_entry directive requires an entry point address ($0000-$ffff)",
+						node.Location));
+					return;
+				}
+
+				if (value < 0 || value > 0xffff) {
+					_errors.Add(new SemanticError(
+						$".spc_entry address must be $0000-$ffff (got ${value:x4})",
+						node.Location));
+					return;
+				}
+
+				_spcEntryPoint = (int)value;
+				break;
+		}
+
+		// Ensure target is SPC700
+		if (Target != TargetArchitecture.SPC700) {
+			_errors.Add(new SemanticError(
+				$".{directiveName} directive is only valid for SPC700 target",
 				node.Location));
 		}
 	}
