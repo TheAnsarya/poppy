@@ -23,8 +23,26 @@ public sealed class SnesHeaderBuilder {
 	private const int VersionOffset = 0x1b;        // 1 byte
 	private const int ChecksumComplementOffset = 0x1c; // 2 bytes
 	private const int ChecksumOffset = 0x1e;       // 2 bytes
-	// Native vectors: $ffe0-$ffef
-	// Emulation vectors: $fff0-$ffff
+
+	// Native interrupt vector offsets ($ffe0-$ffef)
+	private const int NativeUnused1Offset = 0x20;  // $ffe0
+	private const int NativeUnused2Offset = 0x22;  // $ffe2
+	private const int NativeCopOffset = 0x24;      // $ffe4
+	private const int NativeBrkOffset = 0x26;      // $ffe6
+	private const int NativeAbortOffset = 0x28;    // $ffe8
+	private const int NativeNmiOffset = 0x2a;      // $ffea
+	private const int NativeResetOffset = 0x2c;    // $ffec
+	private const int NativeIrqOffset = 0x2e;      // $ffee
+
+	// Emulation interrupt vector offsets ($fff0-$ffff)
+	private const int EmulationUnused1Offset = 0x30; // $fff0
+	private const int EmulationUnused2Offset = 0x32; // $fff2
+	private const int EmulationCopOffset = 0x34;     // $fff4
+	private const int EmulationUnused3Offset = 0x36; // $fff6
+	private const int EmulationAbortOffset = 0x38;   // $fff8
+	private const int EmulationNmiOffset = 0x3a;     // $fffa
+	private const int EmulationResetOffset = 0x3c;   // $fffc
+	private const int EmulationIrqOffset = 0x3e;     // $fffe
 
 	// SMC copier header size
 	private const int SmcHeaderSize = 512;
@@ -260,24 +278,24 @@ public sealed class SnesHeaderBuilder {
 		header[ChecksumOffset + 1] = 0x00;
 
 		// Native interrupt vectors ($ffe0-$ffef)
-		WriteWord(header, 0x20, 0xffff);        // Unused ($ffe0)
-		WriteWord(header, 0x22, 0xffff);        // Unused ($ffe2)
-		WriteWord(header, 0x24, _nativeCop);    // COP ($ffe4)
-		WriteWord(header, 0x26, _nativeBrk);    // BRK ($ffe6)
-		WriteWord(header, 0x28, _nativeAbort);  // ABORT ($ffe8)
-		WriteWord(header, 0x2a, _nativeNmi);    // NMI ($ffea)
-		WriteWord(header, 0x2c, _nativeReset);  // RESET ($ffec) - unused in native mode
-		WriteWord(header, 0x2e, _nativeIrq);    // IRQ ($ffee)
+		WriteWord(header, NativeUnused1Offset, 0xffff);        // Unused ($ffe0)
+		WriteWord(header, NativeUnused2Offset, 0xffff);        // Unused ($ffe2)
+		WriteWord(header, NativeCopOffset, _nativeCop);        // COP ($ffe4)
+		WriteWord(header, NativeBrkOffset, _nativeBrk);        // BRK ($ffe6)
+		WriteWord(header, NativeAbortOffset, _nativeAbort);    // ABORT ($ffe8)
+		WriteWord(header, NativeNmiOffset, _nativeNmi);        // NMI ($ffea)
+		WriteWord(header, NativeResetOffset, _nativeReset);    // RESET ($ffec) - unused in native mode
+		WriteWord(header, NativeIrqOffset, _nativeIrq);        // IRQ ($ffee)
 
 		// Emulation interrupt vectors ($fff0-$ffff)
-		WriteWord(header, 0x30, 0xffff);          // Unused ($fff0)
-		WriteWord(header, 0x32, 0xffff);          // Unused ($fff2)
-		WriteWord(header, 0x34, _emulationCop);   // COP ($fff4)
-		WriteWord(header, 0x36, 0xffff);          // Unused ($fff6)
-		WriteWord(header, 0x38, _emulationAbort); // ABORT ($fff8)
-		WriteWord(header, 0x3a, _emulationNmi);   // NMI ($fffa)
-		WriteWord(header, 0x3c, _emulationReset); // RESET ($fffc)
-		WriteWord(header, 0x3e, _emulationIrq);   // IRQ/BRK ($fffe)
+		WriteWord(header, EmulationUnused1Offset, 0xffff);          // Unused ($fff0)
+		WriteWord(header, EmulationUnused2Offset, 0xffff);          // Unused ($fff2)
+		WriteWord(header, EmulationCopOffset, _emulationCop);       // COP ($fff4)
+		WriteWord(header, EmulationUnused3Offset, 0xffff);          // Unused ($fff6)
+		WriteWord(header, EmulationAbortOffset, _emulationAbort);   // ABORT ($fff8)
+		WriteWord(header, EmulationNmiOffset, _emulationNmi);       // NMI ($fffa)
+		WriteWord(header, EmulationResetOffset, _emulationReset);   // RESET ($fffc)
+		WriteWord(header, EmulationIrqOffset, _emulationIrq);       // IRQ/BRK ($fffe)
 
 		return header;
 	}

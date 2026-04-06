@@ -26,6 +26,28 @@ namespace Poppy.Core.CodeGen;
 /// - Global checksum (2 bytes at $014e-$014f)
 /// </remarks>
 public sealed class GbHeaderBuilder {
+	// Header size (80 bytes: $0100-$014f)
+	private const int HeaderSize = 80;
+
+	// Header field offsets (relative to $0100)
+	private const int EntryPointOffset = 0;       // 4 bytes ($0100-$0103)
+	private const int LogoOffset = 4;             // 48 bytes ($0104-$0133)
+	private const int LogoSize = 48;
+	private const int TitleOffset = 52;           // 16 bytes ($0134-$0143)
+	private const int TitleMaxLength = 16;
+	private const int CgbFlagOffset = 67;         // 1 byte ($0143)
+	private const int LicenseeHighOffset = 68;    // 1 byte ($0144)
+	private const int LicenseeLowOffset = 69;     // 1 byte ($0145)
+	private const int SgbFlagOffset = 70;         // 1 byte ($0146)
+	private const int CartridgeTypeOffset = 71;   // 1 byte ($0147)
+	private const int RomSizeOffset = 72;         // 1 byte ($0148)
+	private const int RamSizeOffset = 73;         // 1 byte ($0149)
+	private const int DestinationOffset = 74;     // 1 byte ($014a)
+	private const int OldLicenseeOffset = 75;     // 1 byte ($014b)
+	private const int VersionOffset = 76;         // 1 byte ($014c)
+	private const int HeaderChecksumOffset = 77;  // 1 byte ($014d)
+	private const int GlobalChecksumOffset = 78;  // 2 bytes ($014e-$014f)
+
 	private string _title = "";
 	private GbCgbMode _cgbMode = GbCgbMode.DmgOnly;
 	private bool _sgbEnabled = false;
@@ -103,56 +125,56 @@ public sealed class GbHeaderBuilder {
 	/// Builds the complete 80-byte Game Boy header ($0100-$014f).
 	/// </summary>
 	public byte[] Build() {
-		var header = new byte[80];
+		var header = new byte[HeaderSize];
 
 		// Entry point at $0100-$0103 (4 bytes): nop; jp $0150
-		header[0] = 0x00;  // nop
-		header[1] = 0xc3;  // jp
-		header[2] = 0x50;  // $0150 (low byte)
-		header[3] = 0x01;  // $0150 (high byte)
+		header[EntryPointOffset] = 0x00;      // nop
+		header[EntryPointOffset + 1] = 0xc3;  // jp
+		header[EntryPointOffset + 2] = 0x50;  // $0150 (low byte)
+		header[EntryPointOffset + 3] = 0x01;  // $0150 (high byte)
 
 		// Nintendo logo at $0104-$0133 (48 bytes)
 		var logo = GetNintendoLogo();
-		Array.Copy(logo, 0, header, 4, 48);
+		Array.Copy(logo, 0, header, LogoOffset, LogoSize);
 
 		// Title at $0134-$0143 (16 bytes) or $0134-$0142 (15 bytes) for newer ROMs
-		var titleBytes = System.Text.Encoding.ASCII.GetBytes(_title.Length > 16 ? _title.Substring(0, 16) : _title);
-		Array.Copy(titleBytes, 0, header, 52, Math.Min(titleBytes.Length, 16));
+		var titleBytes = System.Text.Encoding.ASCII.GetBytes(_title.Length > TitleMaxLength ? _title.Substring(0, TitleMaxLength) : _title);
+		Array.Copy(titleBytes, 0, header, TitleOffset, Math.Min(titleBytes.Length, TitleMaxLength));
 
 		// CGB flag at $0143
-		header[67] = (byte)_cgbMode;
+		header[CgbFlagOffset] = (byte)_cgbMode;
 
 		// New licensee code at $0144-$0145 (use "00" for unlicensed)
-		header[68] = 0x30;  // '0'
-		header[69] = 0x30;  // '0'
+		header[LicenseeHighOffset] = 0x30;  // '0'
+		header[LicenseeLowOffset] = 0x30;   // '0'
 
 		// SGB flag at $0146
-		header[70] = _sgbEnabled ? (byte)0x03 : (byte)0x00;
+		header[SgbFlagOffset] = _sgbEnabled ? (byte)0x03 : (byte)0x00;
 
 		// Cartridge type at $0147
-		header[71] = (byte)_cartridgeType;
+		header[CartridgeTypeOffset] = (byte)_cartridgeType;
 
 		// ROM size at $0148
-		header[72] = CalculateRomSizeCode(_romSizeKb);
+		header[RomSizeOffset] = CalculateRomSizeCode(_romSizeKb);
 
 		// RAM size at $0149
-		header[73] = CalculateRamSizeCode(_ramSizeKb);
+		header[RamSizeOffset] = CalculateRamSizeCode(_ramSizeKb);
 
 		// Destination code at $014a
-		header[74] = (byte)_region;
+		header[DestinationOffset] = (byte)_region;
 
 		// Old licensee code at $014b (0x33 = use new licensee code)
-		header[75] = 0x33;
+		header[OldLicenseeOffset] = 0x33;
 
 		// Mask ROM version at $014c
-		header[76] = _version;
+		header[VersionOffset] = _version;
 
 		// Header checksum at $014d
-		header[77] = CalculateHeaderChecksum(header);
+		header[HeaderChecksumOffset] = CalculateHeaderChecksum(header);
 
 		// Global checksum at $014e-$014f (calculated by emulator, set to 0 for now)
-		header[78] = 0x00;
-		header[79] = 0x00;
+		header[GlobalChecksumOffset] = 0x00;
+		header[GlobalChecksumOffset + 1] = 0x00;
 
 		return header;
 	}
@@ -209,7 +231,7 @@ public sealed class GbHeaderBuilder {
 	/// </summary>
 	private static byte CalculateHeaderChecksum(byte[] header) {
 		int checksum = 0;
-		for (int i = 52; i <= 76; i++) {  // $0134-$014c
+		for (int i = TitleOffset; i <= VersionOffset; i++) {  // $0134-$014c
 			checksum = checksum - header[i] - 1;
 		}
 		return (byte)(checksum & 0xff);
