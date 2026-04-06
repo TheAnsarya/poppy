@@ -898,6 +898,24 @@ public class SemanticAnalyzerTests {
 		Assert.Contains(analyzer.Errors, e => e.Message.Contains("NES"));
 	}
 
+	[Theory]
+	[InlineData("6502", TargetArchitecture.MOS6502)]
+	[InlineData("6507", TargetArchitecture.MOS6507)]
+	[InlineData("2600", TargetArchitecture.MOS6507)]
+	[InlineData("65816", TargetArchitecture.WDC65816)]
+	[InlineData("68000", TargetArchitecture.M68000)]
+	public void Analyze_TargetDirective_NumericAliases_ResolveCorrectly(string alias, TargetArchitecture expected) {
+		var source = $"""
+			.target {alias}
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(expected, analyzer.Target);
+	}
+
 	// ========================================================================
 	// Assertion Directive Tests
 	// ========================================================================

@@ -113,7 +113,9 @@ reset:
 	[Fact]
 	public void Generate_GenesisTargetAlias_AllAliasesWork() {
 		// All target aliases should produce valid Genesis ROMs
-		string[] aliases = ["genesis", "megadrive", "m68000", "m68k", "md"];
+		// Numeric alias (68000) works because SemanticAnalyzer
+		// accepts NumberLiteralNode for .target directive
+		string[] aliases = ["genesis", "megadrive", "m68000", "68000", "m68k", "md"];
 
 		foreach (var alias in aliases) {
 			var source = $@"

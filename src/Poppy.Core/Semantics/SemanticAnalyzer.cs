@@ -1087,18 +1087,25 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			return;
 		}
 
-		if (node.Arguments[0] is not IdentifierNode targetNode) {
+		// Accept both identifiers (e.g., "nes") and numeric literals (e.g., 6502, 65816)
+		// since common CPU names like 6502, 6507, 2600, 65816, 68000 are registered aliases
+		string targetName;
+		if (node.Arguments[0] is IdentifierNode targetNode) {
+			targetName = targetNode.Name;
+		} else if (node.Arguments[0] is NumberLiteralNode numNode) {
+			targetName = numNode.Value.ToString();
+		} else {
 			_errors.Add(new SemanticError(
-				".target directive requires an identifier",
+				".target directive requires an identifier or numeric CPU name (e.g., nes, 6502, 65816)",
 				node.Location));
 			return;
 		}
 
-		var target = Arch.TargetResolver.Resolve(targetNode.Name);
+		var target = Arch.TargetResolver.Resolve(targetName);
 
 		if (target is null) {
 			_errors.Add(new SemanticError(
-				$"Unknown target architecture: {targetNode.Name}",
+				$"Unknown target architecture: {targetName}",
 				node.Location));
 			return;
 		}

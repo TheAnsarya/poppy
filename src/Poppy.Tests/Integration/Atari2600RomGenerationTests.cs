@@ -167,7 +167,9 @@ loop:
 	[Fact]
 	public void Generate_Atari2600TargetAlias_AllAliasesWork() {
 		// All target aliases should produce valid Atari 2600 ROMs
-		string[] aliases = ["atari2600"];
+		// Numeric aliases (2600, 6507) work because SemanticAnalyzer
+		// accepts NumberLiteralNode for .target directive
+		string[] aliases = ["atari2600", "2600", "6507"];
 
 		foreach (var alias in aliases) {
 			var source = $@"
