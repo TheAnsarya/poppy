@@ -252,7 +252,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// <summary>
 	/// Gets all semantic errors.
 	/// </summary>
-	public IReadOnlyList<SemanticError> Errors => _errors.Concat(_macroExpander.Errors).ToList();
+	public IReadOnlyList<SemanticError> Errors => _errors;
 
 	/// <summary>
 	/// Gets whether analysis encountered any errors.
@@ -320,12 +320,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		_errors.AddRange(_macroExpander.Errors);
 
 		// Second pass: resolve references
+		var macroErrorsBeforePass2 = _macroExpander.Errors.Count;
 		_pass = 2;
 		CurrentAddress = 0;
 		program.Accept(this);
 
 		// Collect any errors from pass 2 (e.g., anonymous label resolution)
 		_errors.AddRange(SymbolTable.Errors.Skip(_errors.Count));
+		for (var i = macroErrorsBeforePass2; i < _macroExpander.Errors.Count; i++) {
+			_errors.Add(_macroExpander.Errors[i]);
+		}
 	}
 
 	/// <inheritdoc />
