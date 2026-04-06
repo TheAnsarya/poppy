@@ -167,7 +167,7 @@ loop:
 	[Fact]
 	public void Generate_LynxTargetAlias_AllAliasesWork() {
 		// All target aliases should produce valid Lynx ROMs
-		string[] aliases = ["lynx", "atarilynx"];
+		string[] aliases = ["lynx", "atarilynx", "mos65sc02"];
 
 		foreach (var alias in aliases) {
 			var source = $@"

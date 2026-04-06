@@ -916,6 +916,31 @@ public class SemanticAnalyzerTests {
 		Assert.Equal(expected, analyzer.Target);
 	}
 
+	[Theory]
+	[InlineData("mos6502", TargetArchitecture.MOS6502)]
+	[InlineData("mos6507", TargetArchitecture.MOS6507)]
+	[InlineData("mos65sc02", TargetArchitecture.MOS65SC02)]
+	[InlineData("wdc65816", TargetArchitecture.WDC65816)]
+	[InlineData("famicom", TargetArchitecture.MOS6502)]
+	[InlineData("fc", TargetArchitecture.MOS6502)]
+	[InlineData("a26", TargetArchitecture.MOS6507)]
+	[InlineData("vcs", TargetArchitecture.MOS6507)]
+	[InlineData("superfamicom", TargetArchitecture.WDC65816)]
+	[InlineData("sfc", TargetArchitecture.WDC65816)]
+	[InlineData("gbc", TargetArchitecture.SM83)]
+	[InlineData("gameboycolor", TargetArchitecture.SM83)]
+	public void Analyze_TargetDirective_NewAliases_ResolveCorrectly(string alias, TargetArchitecture expected) {
+		var source = $"""
+			.target {alias}
+			.org $8000
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(expected, analyzer.Target);
+	}
+
 	// ========================================================================
 	// Assertion Directive Tests
 	// ========================================================================

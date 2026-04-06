@@ -14,11 +14,11 @@ public static class TargetResolver {
 	/// <returns>The resolved architecture, or null if unrecognized.</returns>
 	public static TargetArchitecture? Resolve(string name) {
 		return name.ToLowerInvariant() switch {
-			"6502" or "nes" => TargetArchitecture.MOS6502,
-			"6507" or "atari2600" or "2600" => TargetArchitecture.MOS6507,
-			"65sc02" or "lynx" or "atarilynx" => TargetArchitecture.MOS65SC02,
-			"65816" or "snes" => TargetArchitecture.WDC65816,
-			"sm83" or "gb" or "gameboy" => TargetArchitecture.SM83,
+			"6502" or "mos6502" or "nes" or "famicom" or "fc" => TargetArchitecture.MOS6502,
+			"6507" or "mos6507" or "atari2600" or "2600" or "a26" or "vcs" => TargetArchitecture.MOS6507,
+			"65sc02" or "mos65sc02" or "lynx" or "atarilynx" => TargetArchitecture.MOS65SC02,
+			"65816" or "wdc65816" or "snes" or "superfamicom" or "sfc" => TargetArchitecture.WDC65816,
+			"sm83" or "gb" or "gbc" or "gameboy" or "gameboycolor" => TargetArchitecture.SM83,
 			"m68000" or "68000" or "m68k" or "genesis" or "megadrive" or "md" => TargetArchitecture.M68000,
 			"z80" or "sms" or "mastersystem" => TargetArchitecture.Z80,
 			"v30mz" or "ws" or "wonderswan" or "wsc" => TargetArchitecture.V30MZ,
