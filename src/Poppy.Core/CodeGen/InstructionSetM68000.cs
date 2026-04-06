@@ -238,21 +238,6 @@ public static class InstructionSetM68000 {
 	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// Custom comparer for case-insensitive mnemonic lookup.
-	/// </summary>
-	private sealed class MnemonicComparer : IEqualityComparer<string> {
-		public static readonly MnemonicComparer Instance = new();
-
-		public bool Equals(string? x, string? y) {
-			return string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
-		}
-
-		public int GetHashCode(string obj) {
-			return obj.ToLowerInvariant().GetHashCode();
-		}
-	}
-
-	/// <summary>
 	/// Base opcode lookup table. Actual encoding varies by operand types.
 	/// This maps mnemonics to their base opcode patterns.
 	/// </summary>
@@ -264,7 +249,7 @@ public static class InstructionSetM68000 {
 	/// - Effective address register (bits 2-0)
 	/// - For two-operand instructions, destination may be encoded in bits 11-9
 	/// </remarks>
-	private static readonly FrozenDictionary<string, ushort> _baseOpcodes = new Dictionary<string, ushort>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<string, ushort> _baseOpcodes = new Dictionary<string, ushort>(StringComparer.OrdinalIgnoreCase) {
 		// =========================================================================
 		// Data Movement Instructions
 		// =========================================================================
@@ -595,7 +580,7 @@ public static class InstructionSetM68000 {
 		// =========================================================================
 
 		{ "tas", 0x4ac0 },       // Test and set
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Checks if a mnemonic is a valid M68000 instruction.

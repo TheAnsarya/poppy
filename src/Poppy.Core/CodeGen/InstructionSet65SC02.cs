@@ -23,26 +23,11 @@ public static class InstructionSet65SC02 {
 	public readonly record struct InstructionEncoding(byte Opcode, int Size);
 
 	/// <summary>
-	/// Custom comparer for case-insensitive mnemonic lookup.
-	/// </summary>
-	private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, AddressingMode Mode)> {
-		public static readonly MnemonicComparer Instance = new();
-
-		public bool Equals((string Mnemonic, AddressingMode Mode) x, (string Mnemonic, AddressingMode Mode) y) {
-			return string.Equals(x.Mnemonic, y.Mnemonic, StringComparison.OrdinalIgnoreCase) && x.Mode == y.Mode;
-		}
-
-		public int GetHashCode((string Mnemonic, AddressingMode Mode) obj) {
-			return HashCode.Combine(obj.Mnemonic.ToLowerInvariant(), obj.Mode);
-		}
-	}
-
-	/// <summary>
 	/// Lookup table for 65SC02-specific instructions and addressing modes.
 	/// This dictionary contains only the NEW instructions and modes added in the 65SC02.
 	/// For 6502-compatible instructions, we fall back to InstructionSet6502.
 	/// </summary>
-	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicModeComparer<AddressingMode>.Instance) {
 		// BRA - Branch Always (new in 65C02)
 		{ ("bra", AddressingMode.Relative), new(0x80, 2) },
 
@@ -107,7 +92,7 @@ public static class InstructionSet65SC02 {
 		// INC/DEC A - Accumulator mode (new in 65C02)
 		{ ("inc", AddressingMode.Accumulator), new(0x1a, 1) },
 		{ ("dec", AddressingMode.Accumulator), new(0x3a, 1) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<AddressingMode>.Instance);
 
 	/// <summary>
 	/// Attempts to get the instruction encoding for the given mnemonic and addressing mode.

@@ -207,24 +207,9 @@ public static class InstructionSetZ80 {
 	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// Custom comparer for case-insensitive lookup.
-	/// </summary>
-	private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, Z80AddressingMode Mode)> {
-		public static readonly MnemonicComparer Instance = new();
-
-		public bool Equals((string Mnemonic, Z80AddressingMode Mode) x, (string Mnemonic, Z80AddressingMode Mode) y) {
-			return string.Equals(x.Mnemonic, y.Mnemonic, StringComparison.OrdinalIgnoreCase) && x.Mode == y.Mode;
-		}
-
-		public int GetHashCode((string Mnemonic, Z80AddressingMode Mode) obj) {
-			return HashCode.Combine(obj.Mnemonic.ToLowerInvariant(), obj.Mode);
-		}
-	}
-
-	/// <summary>
 	/// Basic (unprefixed) opcode lookup table.
 	/// </summary>
-	private static readonly FrozenDictionary<(string, Z80AddressingMode), InstructionEncoding> _basicOpcodes = new Dictionary<(string, Z80AddressingMode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string, Z80AddressingMode), InstructionEncoding> _basicOpcodes = new Dictionary<(string, Z80AddressingMode), InstructionEncoding>(MnemonicModeComparer<Z80AddressingMode>.Instance) {
 		// =========================================================================
 		// 8-Bit Load Instructions
 		// =========================================================================
@@ -455,12 +440,12 @@ public static class InstructionSetZ80 {
 		{ ("im 0", Z80AddressingMode.Implied), new([Prefixes.ED], 0x46, 2) },
 		{ ("im 1", Z80AddressingMode.Implied), new([Prefixes.ED], 0x56, 2) },
 		{ ("im 2", Z80AddressingMode.Implied), new([Prefixes.ED], 0x5e, 2) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<Z80AddressingMode>.Instance);
 
 	/// <summary>
 	/// CB-prefixed opcodes (bit manipulation, rotates).
 	/// </summary>
-	private static readonly FrozenDictionary<(string, Z80AddressingMode), InstructionEncoding> _cbOpcodes = new Dictionary<(string, Z80AddressingMode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string, Z80AddressingMode), InstructionEncoding> _cbOpcodes = new Dictionary<(string, Z80AddressingMode), InstructionEncoding>(MnemonicModeComparer<Z80AddressingMode>.Instance) {
 		// Rotates (CB prefix)
 		// RLC r - Opcode = $00 | reg
 		{ ("rlc", Z80AddressingMode.Register8), new([Prefixes.CB], 0x00, 2) },
@@ -498,12 +483,12 @@ public static class InstructionSetZ80 {
 
 		// SET b, r - Opcode = $c0 | (b << 3) | reg
 		{ ("set", Z80AddressingMode.Bit), new([Prefixes.CB], 0xc0, 2) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<Z80AddressingMode>.Instance);
 
 	/// <summary>
 	/// ED-prefixed opcodes (extended instructions).
 	/// </summary>
-	private static readonly FrozenDictionary<(string, Z80AddressingMode), InstructionEncoding> _edOpcodes = new Dictionary<(string, Z80AddressingMode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string, Z80AddressingMode), InstructionEncoding> _edOpcodes = new Dictionary<(string, Z80AddressingMode), InstructionEncoding>(MnemonicModeComparer<Z80AddressingMode>.Instance) {
 		// Block transfer
 		{ ("ldi", Z80AddressingMode.Implied), new([Prefixes.ED], 0xa0, 2) },
 		{ ("ldir", Z80AddressingMode.Implied), new([Prefixes.ED], 0xb0, 2) },
@@ -556,7 +541,7 @@ public static class InstructionSetZ80 {
 
 		{ ("rrd", Z80AddressingMode.Implied), new([Prefixes.ED], 0x67, 2) },
 		{ ("rld", Z80AddressingMode.Implied), new([Prefixes.ED], 0x6f, 2) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<Z80AddressingMode>.Instance);
 
 	/// <summary>
 	/// Checks if a mnemonic is a valid Z80 instruction.

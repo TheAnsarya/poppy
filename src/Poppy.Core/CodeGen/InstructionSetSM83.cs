@@ -65,25 +65,10 @@ public static class InstructionSetSM83 {
 	}
 
 	/// <summary>
-	/// Custom comparer for case-insensitive mnemonic lookup.
-	/// </summary>
-	private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, AddressingMode Mode)> {
-		public static readonly MnemonicComparer Instance = new();
-
-		public bool Equals((string Mnemonic, AddressingMode Mode) x, (string Mnemonic, AddressingMode Mode) y) {
-			return string.Equals(x.Mnemonic, y.Mnemonic, StringComparison.OrdinalIgnoreCase) && x.Mode == y.Mode;
-		}
-
-		public int GetHashCode((string Mnemonic, AddressingMode Mode) obj) {
-			return HashCode.Combine(obj.Mnemonic.ToLowerInvariant(), obj.Mode);
-		}
-	}
-
-	/// <summary>
 	/// Lookup table for instruction opcodes by mnemonic and addressing mode.
 	/// Uses the parser's AddressingMode for compatibility with the code generator.
 	/// </summary>
-	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicModeComparer<AddressingMode>.Instance) {
 		// ========================================================================
 		// 8-Bit Load Instructions
 		// ========================================================================
@@ -445,7 +430,7 @@ public static class InstructionSetSM83 {
 		{ ("rst $28", AddressingMode.Implied), new(0xef, 1) },
 		{ ("rst $30", AddressingMode.Implied), new(0xf7, 1) },
 		{ ("rst $38", AddressingMode.Implied), new(0xff, 1) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<AddressingMode>.Instance);
 
 	/// <summary>
 	/// CB-prefixed instructions (bit manipulation, rotates, shifts).

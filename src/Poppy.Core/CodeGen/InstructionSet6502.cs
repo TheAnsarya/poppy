@@ -21,24 +21,9 @@ public static class InstructionSet6502 {
 	public readonly record struct InstructionEncoding(byte Opcode, int Size);
 
 	/// <summary>
-	/// Custom comparer for case-insensitive mnemonic lookup.
-	/// </summary>
-	private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, AddressingMode Mode)> {
-		public static readonly MnemonicComparer Instance = new();
-
-		public bool Equals((string Mnemonic, AddressingMode Mode) x, (string Mnemonic, AddressingMode Mode) y) {
-			return string.Equals(x.Mnemonic, y.Mnemonic, StringComparison.OrdinalIgnoreCase) && x.Mode == y.Mode;
-		}
-
-		public int GetHashCode((string Mnemonic, AddressingMode Mode) obj) {
-			return HashCode.Combine(obj.Mnemonic.ToLowerInvariant(), obj.Mode);
-		}
-	}
-
-	/// <summary>
 	/// Lookup table for instruction opcodes by mnemonic and addressing mode.
 	/// </summary>
-	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicModeComparer<AddressingMode>.Instance) {
 		// ADC - Add with Carry
 		{ ("adc", AddressingMode.Immediate), new(0x69, 2) },
 		{ ("adc", AddressingMode.ZeroPage), new(0x65, 2) },
@@ -313,7 +298,7 @@ public static class InstructionSet6502 {
 
 		// TYA - Transfer Y to Accumulator
 		{ ("tya", AddressingMode.Implied), new(0x98, 1) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<AddressingMode>.Instance);
 
 	/// <summary>
 	/// Tries to get the encoding for an instruction.

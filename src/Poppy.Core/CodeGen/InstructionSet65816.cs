@@ -29,25 +29,10 @@ public static class InstructionSet65816 {
 	public readonly record struct InstructionEncoding(byte Opcode, int Size);
 
 	/// <summary>
-	/// Custom comparer for case-insensitive mnemonic lookup.
-	/// </summary>
-	private sealed class MnemonicComparer : IEqualityComparer<(string Mnemonic, AddressingMode Mode)> {
-		public static readonly MnemonicComparer Instance = new();
-
-		public bool Equals((string Mnemonic, AddressingMode Mode) x, (string Mnemonic, AddressingMode Mode) y) {
-			return string.Equals(x.Mnemonic, y.Mnemonic, StringComparison.OrdinalIgnoreCase) && x.Mode == y.Mode;
-		}
-
-		public int GetHashCode((string Mnemonic, AddressingMode Mode) obj) {
-			return HashCode.Combine(obj.Mnemonic.ToLowerInvariant(), obj.Mode);
-		}
-	}
-
-	/// <summary>
 	/// Lookup table for instruction opcodes by mnemonic and addressing mode.
 	/// Includes all 6502 instructions plus 65816 extensions.
 	/// </summary>
-	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicComparer.Instance) {
+	private static readonly FrozenDictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding> _opcodes = new Dictionary<(string Mnemonic, AddressingMode Mode), InstructionEncoding>(MnemonicModeComparer<AddressingMode>.Instance) {
 		// ========================================================================
 		// ADC - Add with Carry
 		// ========================================================================
@@ -497,7 +482,7 @@ public static class InstructionSet65816 {
 		// XCE - Exchange Carry and Emulation
 		// ========================================================================
 		{ ("xce", AddressingMode.Implied), new(0xfb, 1) },
-	}.ToFrozenDictionary(MnemonicComparer.Instance);
+	}.ToFrozenDictionary(MnemonicModeComparer<AddressingMode>.Instance);
 
 	/// <summary>
 	/// Tries to get the encoding for an instruction.
