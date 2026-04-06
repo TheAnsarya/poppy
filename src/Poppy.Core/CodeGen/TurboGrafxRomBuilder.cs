@@ -12,7 +12,7 @@ namespace Poppy.Core.CodeGen;
 /// PCE ROMs have a simpler structure compared to other systems.
 /// The format differs slightly between HuCard and CD-ROM.
 /// </summary>
-public class TurboGrafxRomBuilder {
+public sealed class TurboGrafxRomBuilder {
 	// ROM size constants
 	private const int MinRomSize = 0x2000;     // 8KB minimum
 	private const int MaxRomSize = 0x100000;   // 1MB maximum for HuCard

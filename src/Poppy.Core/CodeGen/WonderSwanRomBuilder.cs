@@ -12,7 +12,7 @@ namespace Poppy.Core.CodeGen;
 /// Builds WonderSwan ROM images with proper header structure.
 /// Supports segment-based assembly for CodeGenerator integration.
 /// </summary>
-public class WonderSwanRomBuilder {
+public sealed class WonderSwanRomBuilder {
 	private readonly WonderSwanHeader _header;
 	private readonly List<(int Address, byte[] Data)> _segments = [];
 

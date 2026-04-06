@@ -7,7 +7,7 @@ namespace Poppy.Core.CodeGen;
 /// <summary>
 /// Builds iNES 1.0 and iNES 2.0 headers for NES ROMs
 /// </summary>
-public class INesHeaderBuilder {
+public sealed class INesHeaderBuilder {
 	private int _prgRomSize;        // in 16KB units
 	private int _chrRomSize;        // in 8KB units
 	private int _mapper;            // mapper number (0-4095)

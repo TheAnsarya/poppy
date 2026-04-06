@@ -12,7 +12,7 @@ namespace Poppy.Core.CodeGen;
 /// SPC files contain the full state of the SPC700 audio processor.
 /// Format specification: https://wiki.superfamicom.org/spc-file-format
 /// </summary>
-public class SpcFileBuilder {
+public sealed class SpcFileBuilder {
 	// SPC file constants
 	private const int HeaderSize = 256;         // $100 bytes
 	private const int RamSize = 65536;          // $10000 bytes (64KB)

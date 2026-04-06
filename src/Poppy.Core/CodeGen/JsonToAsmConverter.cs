@@ -6,7 +6,7 @@ using System.Text.Json;
 /// <summary>
 /// Converts JSON data files to Poppy assembly source code
 /// </summary>
-public class JsonToAsmConverter {
+public sealed class JsonToAsmConverter {
 	/// <summary>
 	/// Options for JSON to ASM conversion
 	/// </summary>

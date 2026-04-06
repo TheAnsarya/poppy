@@ -11,7 +11,7 @@ namespace Poppy.Core.CodeGen;
 /// Builder for generating Game Boy Advance ROM headers.
 /// The header is located at $000000-$0000BF (192 bytes).
 /// </summary>
-public class GbaRomBuilder {
+public sealed class GbaRomBuilder {
 	// Header constants
 	private const int HeaderSize = 192;        // $c0 bytes
 	private const int NintendoLogoOffset = 4;  // $004
