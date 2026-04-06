@@ -17,6 +17,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="Poppy.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="StreamHash" Version="1.10.0" />
 	</ItemGroup>
 

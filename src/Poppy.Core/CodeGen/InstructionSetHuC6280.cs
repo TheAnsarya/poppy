@@ -8,6 +8,48 @@ using Parser = Poppy.Core.Parser;
 namespace Poppy.Core.CodeGen;
 
 /// <summary>
+/// Addressing mode types for HuC6280
+/// </summary>
+public enum HuC6280AddressingMode {
+	/// <summary>No operand (CLC)</summary>
+	Implied,
+	/// <summary>Accumulator operand (ASL A)</summary>
+	Accumulator,
+	/// <summary>Immediate value (LDA #$ff)</summary>
+	Immediate,
+	/// <summary>Zero page address (LDA $00)</summary>
+	ZeroPage,
+	/// <summary>Zero page indexed by X (LDA $00,X)</summary>
+	ZeroPageX,
+	/// <summary>Zero page indexed by Y (LDX $00,Y)</summary>
+	ZeroPageY,
+	/// <summary>Absolute address (LDA $1234)</summary>
+	Absolute,
+	/// <summary>Absolute indexed by X (LDA $1234,X)</summary>
+	AbsoluteX,
+	/// <summary>Absolute indexed by Y (LDA $1234,Y)</summary>
+	AbsoluteY,
+	/// <summary>Indirect address (JMP ($1234))</summary>
+	Indirect,
+	/// <summary>Indexed indirect (LDA ($00,X))</summary>
+	IndirectX,
+	/// <summary>Indirect indexed (LDA ($00),Y)</summary>
+	IndirectY,
+	/// <summary>Zero page indirect - 65C02 extension (LDA ($00))</summary>
+	ZeroPageIndirect,
+	/// <summary>Absolute indirect indexed - 65C02 extension (JMP ($1234,X))</summary>
+	AbsoluteIndirectX,
+	/// <summary>Relative branch (BEQ label)</summary>
+	Relative,
+	/// <summary>Block transfer (TII $1234,$5678,$9abc)</summary>
+	BlockTransfer,
+	/// <summary>Zero page bit operation (SMB0 $00, RMB0 $00)</summary>
+	ZeroPageBit,
+	/// <summary>Zero page with relative branch (BBR0 $00,label / BBS0 $00,label)</summary>
+	ZeroPageRelative
+}
+
+/// <summary>
 /// HuC6280 instruction set implementation for TurboGrafx-16 / PC Engine assembly.
 /// The HuC6280 is a modified 65C02 with additional instructions for:
 /// - Block transfer operations (TAI, TDD, TIA, TII, TIN)
@@ -16,341 +58,300 @@ namespace Poppy.Core.CodeGen;
 /// - Speed control (CSL, CSH)
 /// - Timer and interrupt handling
 /// </summary>
-public static class InstructionSetHuC6280 {
-	/// <summary>
-	/// Addressing mode types for HuC6280
-	/// </summary>
-	public enum AddressingMode {
-		/// <summary>No operand (CLC)</summary>
-		Implied,
-		/// <summary>Accumulator operand (ASL A)</summary>
-		Accumulator,
-		/// <summary>Immediate value (LDA #$ff)</summary>
-		Immediate,
-		/// <summary>Zero page address (LDA $00)</summary>
-		ZeroPage,
-		/// <summary>Zero page indexed by X (LDA $00,X)</summary>
-		ZeroPageX,
-		/// <summary>Zero page indexed by Y (LDX $00,Y)</summary>
-		ZeroPageY,
-		/// <summary>Absolute address (LDA $1234)</summary>
-		Absolute,
-		/// <summary>Absolute indexed by X (LDA $1234,X)</summary>
-		AbsoluteX,
-		/// <summary>Absolute indexed by Y (LDA $1234,Y)</summary>
-		AbsoluteY,
-		/// <summary>Indirect address (JMP ($1234))</summary>
-		Indirect,
-		/// <summary>Indexed indirect (LDA ($00,X))</summary>
-		IndirectX,
-		/// <summary>Indirect indexed (LDA ($00),Y)</summary>
-		IndirectY,
-		/// <summary>Zero page indirect - 65C02 extension (LDA ($00))</summary>
-		ZeroPageIndirect,
-		/// <summary>Absolute indirect indexed - 65C02 extension (JMP ($1234,X))</summary>
-		AbsoluteIndirectX,
-		/// <summary>Relative branch (BEQ label)</summary>
-		Relative,
-		/// <summary>Block transfer (TII $1234,$5678,$9abc)</summary>
-		BlockTransfer,
-		/// <summary>Zero page bit operation (SMB0 $00, RMB0 $00)</summary>
-		ZeroPageBit,
-		/// <summary>Zero page with relative branch (BBR0 $00,label / BBS0 $00,label)</summary>
-		ZeroPageRelative
-	}
+internal static class InstructionSetHuC6280 {
 
 	/// <summary>
 	/// HuC6280 opcode definitions with base encoding
 	/// </summary>
-	private static readonly FrozenDictionary<string, Dictionary<AddressingMode, byte>> Opcodes = new Dictionary<string, Dictionary<AddressingMode, byte>>(StringComparer.OrdinalIgnoreCase) {
+	private static readonly FrozenDictionary<string, Dictionary<HuC6280AddressingMode, byte>> Opcodes = new Dictionary<string, Dictionary<HuC6280AddressingMode, byte>>(StringComparer.OrdinalIgnoreCase) {
 		// Load/Store operations
 		["lda"] = new() {
-			[AddressingMode.Immediate] = 0xa9,
-			[AddressingMode.ZeroPage] = 0xa5,
-			[AddressingMode.ZeroPageX] = 0xb5,
-			[AddressingMode.Absolute] = 0xad,
-			[AddressingMode.AbsoluteX] = 0xbd,
-			[AddressingMode.AbsoluteY] = 0xb9,
-			[AddressingMode.IndirectX] = 0xa1,
-			[AddressingMode.IndirectY] = 0xb1,
-			[AddressingMode.ZeroPageIndirect] = 0xb2
+			[HuC6280AddressingMode.Immediate] = 0xa9,
+			[HuC6280AddressingMode.ZeroPage] = 0xa5,
+			[HuC6280AddressingMode.ZeroPageX] = 0xb5,
+			[HuC6280AddressingMode.Absolute] = 0xad,
+			[HuC6280AddressingMode.AbsoluteX] = 0xbd,
+			[HuC6280AddressingMode.AbsoluteY] = 0xb9,
+			[HuC6280AddressingMode.IndirectX] = 0xa1,
+			[HuC6280AddressingMode.IndirectY] = 0xb1,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0xb2
 		},
 		["ldx"] = new() {
-			[AddressingMode.Immediate] = 0xa2,
-			[AddressingMode.ZeroPage] = 0xa6,
-			[AddressingMode.ZeroPageY] = 0xb6,
-			[AddressingMode.Absolute] = 0xae,
-			[AddressingMode.AbsoluteY] = 0xbe
+			[HuC6280AddressingMode.Immediate] = 0xa2,
+			[HuC6280AddressingMode.ZeroPage] = 0xa6,
+			[HuC6280AddressingMode.ZeroPageY] = 0xb6,
+			[HuC6280AddressingMode.Absolute] = 0xae,
+			[HuC6280AddressingMode.AbsoluteY] = 0xbe
 		},
 		["ldy"] = new() {
-			[AddressingMode.Immediate] = 0xa0,
-			[AddressingMode.ZeroPage] = 0xa4,
-			[AddressingMode.ZeroPageX] = 0xb4,
-			[AddressingMode.Absolute] = 0xac,
-			[AddressingMode.AbsoluteX] = 0xbc
+			[HuC6280AddressingMode.Immediate] = 0xa0,
+			[HuC6280AddressingMode.ZeroPage] = 0xa4,
+			[HuC6280AddressingMode.ZeroPageX] = 0xb4,
+			[HuC6280AddressingMode.Absolute] = 0xac,
+			[HuC6280AddressingMode.AbsoluteX] = 0xbc
 		},
 		["sta"] = new() {
-			[AddressingMode.ZeroPage] = 0x85,
-			[AddressingMode.ZeroPageX] = 0x95,
-			[AddressingMode.Absolute] = 0x8d,
-			[AddressingMode.AbsoluteX] = 0x9d,
-			[AddressingMode.AbsoluteY] = 0x99,
-			[AddressingMode.IndirectX] = 0x81,
-			[AddressingMode.IndirectY] = 0x91,
-			[AddressingMode.ZeroPageIndirect] = 0x92
+			[HuC6280AddressingMode.ZeroPage] = 0x85,
+			[HuC6280AddressingMode.ZeroPageX] = 0x95,
+			[HuC6280AddressingMode.Absolute] = 0x8d,
+			[HuC6280AddressingMode.AbsoluteX] = 0x9d,
+			[HuC6280AddressingMode.AbsoluteY] = 0x99,
+			[HuC6280AddressingMode.IndirectX] = 0x81,
+			[HuC6280AddressingMode.IndirectY] = 0x91,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0x92
 		},
 		["stx"] = new() {
-			[AddressingMode.ZeroPage] = 0x86,
-			[AddressingMode.ZeroPageY] = 0x96,
-			[AddressingMode.Absolute] = 0x8e
+			[HuC6280AddressingMode.ZeroPage] = 0x86,
+			[HuC6280AddressingMode.ZeroPageY] = 0x96,
+			[HuC6280AddressingMode.Absolute] = 0x8e
 		},
 		["sty"] = new() {
-			[AddressingMode.ZeroPage] = 0x84,
-			[AddressingMode.ZeroPageX] = 0x94,
-			[AddressingMode.Absolute] = 0x8c
+			[HuC6280AddressingMode.ZeroPage] = 0x84,
+			[HuC6280AddressingMode.ZeroPageX] = 0x94,
+			[HuC6280AddressingMode.Absolute] = 0x8c
 		},
 		["stz"] = new() {  // 65C02 extension
-			[AddressingMode.ZeroPage] = 0x64,
-			[AddressingMode.ZeroPageX] = 0x74,
-			[AddressingMode.Absolute] = 0x9c,
-			[AddressingMode.AbsoluteX] = 0x9e
+			[HuC6280AddressingMode.ZeroPage] = 0x64,
+			[HuC6280AddressingMode.ZeroPageX] = 0x74,
+			[HuC6280AddressingMode.Absolute] = 0x9c,
+			[HuC6280AddressingMode.AbsoluteX] = 0x9e
 		},
 
 		// Arithmetic operations
 		["adc"] = new() {
-			[AddressingMode.Immediate] = 0x69,
-			[AddressingMode.ZeroPage] = 0x65,
-			[AddressingMode.ZeroPageX] = 0x75,
-			[AddressingMode.Absolute] = 0x6d,
-			[AddressingMode.AbsoluteX] = 0x7d,
-			[AddressingMode.AbsoluteY] = 0x79,
-			[AddressingMode.IndirectX] = 0x61,
-			[AddressingMode.IndirectY] = 0x71,
-			[AddressingMode.ZeroPageIndirect] = 0x72
+			[HuC6280AddressingMode.Immediate] = 0x69,
+			[HuC6280AddressingMode.ZeroPage] = 0x65,
+			[HuC6280AddressingMode.ZeroPageX] = 0x75,
+			[HuC6280AddressingMode.Absolute] = 0x6d,
+			[HuC6280AddressingMode.AbsoluteX] = 0x7d,
+			[HuC6280AddressingMode.AbsoluteY] = 0x79,
+			[HuC6280AddressingMode.IndirectX] = 0x61,
+			[HuC6280AddressingMode.IndirectY] = 0x71,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0x72
 		},
 		["sbc"] = new() {
-			[AddressingMode.Immediate] = 0xe9,
-			[AddressingMode.ZeroPage] = 0xe5,
-			[AddressingMode.ZeroPageX] = 0xf5,
-			[AddressingMode.Absolute] = 0xed,
-			[AddressingMode.AbsoluteX] = 0xfd,
-			[AddressingMode.AbsoluteY] = 0xf9,
-			[AddressingMode.IndirectX] = 0xe1,
-			[AddressingMode.IndirectY] = 0xf1,
-			[AddressingMode.ZeroPageIndirect] = 0xf2
+			[HuC6280AddressingMode.Immediate] = 0xe9,
+			[HuC6280AddressingMode.ZeroPage] = 0xe5,
+			[HuC6280AddressingMode.ZeroPageX] = 0xf5,
+			[HuC6280AddressingMode.Absolute] = 0xed,
+			[HuC6280AddressingMode.AbsoluteX] = 0xfd,
+			[HuC6280AddressingMode.AbsoluteY] = 0xf9,
+			[HuC6280AddressingMode.IndirectX] = 0xe1,
+			[HuC6280AddressingMode.IndirectY] = 0xf1,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0xf2
 		},
 
 		// Increment/Decrement
 		["inc"] = new() {
-			[AddressingMode.Accumulator] = 0x1a,  // 65C02 extension: INC A
-			[AddressingMode.ZeroPage] = 0xe6,
-			[AddressingMode.ZeroPageX] = 0xf6,
-			[AddressingMode.Absolute] = 0xee,
-			[AddressingMode.AbsoluteX] = 0xfe
+			[HuC6280AddressingMode.Accumulator] = 0x1a,  // 65C02 extension: INC A
+			[HuC6280AddressingMode.ZeroPage] = 0xe6,
+			[HuC6280AddressingMode.ZeroPageX] = 0xf6,
+			[HuC6280AddressingMode.Absolute] = 0xee,
+			[HuC6280AddressingMode.AbsoluteX] = 0xfe
 		},
 		["dec"] = new() {
-			[AddressingMode.Accumulator] = 0x3a,  // 65C02 extension: DEC A
-			[AddressingMode.ZeroPage] = 0xc6,
-			[AddressingMode.ZeroPageX] = 0xd6,
-			[AddressingMode.Absolute] = 0xce,
-			[AddressingMode.AbsoluteX] = 0xde
+			[HuC6280AddressingMode.Accumulator] = 0x3a,  // 65C02 extension: DEC A
+			[HuC6280AddressingMode.ZeroPage] = 0xc6,
+			[HuC6280AddressingMode.ZeroPageX] = 0xd6,
+			[HuC6280AddressingMode.Absolute] = 0xce,
+			[HuC6280AddressingMode.AbsoluteX] = 0xde
 		},
-		["inx"] = new() { [AddressingMode.Implied] = 0xe8 },
-		["iny"] = new() { [AddressingMode.Implied] = 0xc8 },
-		["dex"] = new() { [AddressingMode.Implied] = 0xca },
-		["dey"] = new() { [AddressingMode.Implied] = 0x88 },
+		["inx"] = new() { [HuC6280AddressingMode.Implied] = 0xe8 },
+		["iny"] = new() { [HuC6280AddressingMode.Implied] = 0xc8 },
+		["dex"] = new() { [HuC6280AddressingMode.Implied] = 0xca },
+		["dey"] = new() { [HuC6280AddressingMode.Implied] = 0x88 },
 
 		// Logical operations
 		["and"] = new() {
-			[AddressingMode.Immediate] = 0x29,
-			[AddressingMode.ZeroPage] = 0x25,
-			[AddressingMode.ZeroPageX] = 0x35,
-			[AddressingMode.Absolute] = 0x2d,
-			[AddressingMode.AbsoluteX] = 0x3d,
-			[AddressingMode.AbsoluteY] = 0x39,
-			[AddressingMode.IndirectX] = 0x21,
-			[AddressingMode.IndirectY] = 0x31,
-			[AddressingMode.ZeroPageIndirect] = 0x32
+			[HuC6280AddressingMode.Immediate] = 0x29,
+			[HuC6280AddressingMode.ZeroPage] = 0x25,
+			[HuC6280AddressingMode.ZeroPageX] = 0x35,
+			[HuC6280AddressingMode.Absolute] = 0x2d,
+			[HuC6280AddressingMode.AbsoluteX] = 0x3d,
+			[HuC6280AddressingMode.AbsoluteY] = 0x39,
+			[HuC6280AddressingMode.IndirectX] = 0x21,
+			[HuC6280AddressingMode.IndirectY] = 0x31,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0x32
 		},
 		["ora"] = new() {
-			[AddressingMode.Immediate] = 0x09,
-			[AddressingMode.ZeroPage] = 0x05,
-			[AddressingMode.ZeroPageX] = 0x15,
-			[AddressingMode.Absolute] = 0x0d,
-			[AddressingMode.AbsoluteX] = 0x1d,
-			[AddressingMode.AbsoluteY] = 0x19,
-			[AddressingMode.IndirectX] = 0x01,
-			[AddressingMode.IndirectY] = 0x11,
-			[AddressingMode.ZeroPageIndirect] = 0x12
+			[HuC6280AddressingMode.Immediate] = 0x09,
+			[HuC6280AddressingMode.ZeroPage] = 0x05,
+			[HuC6280AddressingMode.ZeroPageX] = 0x15,
+			[HuC6280AddressingMode.Absolute] = 0x0d,
+			[HuC6280AddressingMode.AbsoluteX] = 0x1d,
+			[HuC6280AddressingMode.AbsoluteY] = 0x19,
+			[HuC6280AddressingMode.IndirectX] = 0x01,
+			[HuC6280AddressingMode.IndirectY] = 0x11,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0x12
 		},
 		["eor"] = new() {
-			[AddressingMode.Immediate] = 0x49,
-			[AddressingMode.ZeroPage] = 0x45,
-			[AddressingMode.ZeroPageX] = 0x55,
-			[AddressingMode.Absolute] = 0x4d,
-			[AddressingMode.AbsoluteX] = 0x5d,
-			[AddressingMode.AbsoluteY] = 0x59,
-			[AddressingMode.IndirectX] = 0x41,
-			[AddressingMode.IndirectY] = 0x51,
-			[AddressingMode.ZeroPageIndirect] = 0x52
+			[HuC6280AddressingMode.Immediate] = 0x49,
+			[HuC6280AddressingMode.ZeroPage] = 0x45,
+			[HuC6280AddressingMode.ZeroPageX] = 0x55,
+			[HuC6280AddressingMode.Absolute] = 0x4d,
+			[HuC6280AddressingMode.AbsoluteX] = 0x5d,
+			[HuC6280AddressingMode.AbsoluteY] = 0x59,
+			[HuC6280AddressingMode.IndirectX] = 0x41,
+			[HuC6280AddressingMode.IndirectY] = 0x51,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0x52
 		},
 
 		// Shift/Rotate operations
 		["asl"] = new() {
-			[AddressingMode.Accumulator] = 0x0a,
-			[AddressingMode.ZeroPage] = 0x06,
-			[AddressingMode.ZeroPageX] = 0x16,
-			[AddressingMode.Absolute] = 0x0e,
-			[AddressingMode.AbsoluteX] = 0x1e
+			[HuC6280AddressingMode.Accumulator] = 0x0a,
+			[HuC6280AddressingMode.ZeroPage] = 0x06,
+			[HuC6280AddressingMode.ZeroPageX] = 0x16,
+			[HuC6280AddressingMode.Absolute] = 0x0e,
+			[HuC6280AddressingMode.AbsoluteX] = 0x1e
 		},
 		["lsr"] = new() {
-			[AddressingMode.Accumulator] = 0x4a,
-			[AddressingMode.ZeroPage] = 0x46,
-			[AddressingMode.ZeroPageX] = 0x56,
-			[AddressingMode.Absolute] = 0x4e,
-			[AddressingMode.AbsoluteX] = 0x5e
+			[HuC6280AddressingMode.Accumulator] = 0x4a,
+			[HuC6280AddressingMode.ZeroPage] = 0x46,
+			[HuC6280AddressingMode.ZeroPageX] = 0x56,
+			[HuC6280AddressingMode.Absolute] = 0x4e,
+			[HuC6280AddressingMode.AbsoluteX] = 0x5e
 		},
 		["rol"] = new() {
-			[AddressingMode.Accumulator] = 0x2a,
-			[AddressingMode.ZeroPage] = 0x26,
-			[AddressingMode.ZeroPageX] = 0x36,
-			[AddressingMode.Absolute] = 0x2e,
-			[AddressingMode.AbsoluteX] = 0x3e
+			[HuC6280AddressingMode.Accumulator] = 0x2a,
+			[HuC6280AddressingMode.ZeroPage] = 0x26,
+			[HuC6280AddressingMode.ZeroPageX] = 0x36,
+			[HuC6280AddressingMode.Absolute] = 0x2e,
+			[HuC6280AddressingMode.AbsoluteX] = 0x3e
 		},
 		["ror"] = new() {
-			[AddressingMode.Accumulator] = 0x6a,
-			[AddressingMode.ZeroPage] = 0x66,
-			[AddressingMode.ZeroPageX] = 0x76,
-			[AddressingMode.Absolute] = 0x6e,
-			[AddressingMode.AbsoluteX] = 0x7e
+			[HuC6280AddressingMode.Accumulator] = 0x6a,
+			[HuC6280AddressingMode.ZeroPage] = 0x66,
+			[HuC6280AddressingMode.ZeroPageX] = 0x76,
+			[HuC6280AddressingMode.Absolute] = 0x6e,
+			[HuC6280AddressingMode.AbsoluteX] = 0x7e
 		},
 
 		// Compare/Test operations
 		["cmp"] = new() {
-			[AddressingMode.Immediate] = 0xc9,
-			[AddressingMode.ZeroPage] = 0xc5,
-			[AddressingMode.ZeroPageX] = 0xd5,
-			[AddressingMode.Absolute] = 0xcd,
-			[AddressingMode.AbsoluteX] = 0xdd,
-			[AddressingMode.AbsoluteY] = 0xd9,
-			[AddressingMode.IndirectX] = 0xc1,
-			[AddressingMode.IndirectY] = 0xd1,
-			[AddressingMode.ZeroPageIndirect] = 0xd2
+			[HuC6280AddressingMode.Immediate] = 0xc9,
+			[HuC6280AddressingMode.ZeroPage] = 0xc5,
+			[HuC6280AddressingMode.ZeroPageX] = 0xd5,
+			[HuC6280AddressingMode.Absolute] = 0xcd,
+			[HuC6280AddressingMode.AbsoluteX] = 0xdd,
+			[HuC6280AddressingMode.AbsoluteY] = 0xd9,
+			[HuC6280AddressingMode.IndirectX] = 0xc1,
+			[HuC6280AddressingMode.IndirectY] = 0xd1,
+			[HuC6280AddressingMode.ZeroPageIndirect] = 0xd2
 		},
 		["cpx"] = new() {
-			[AddressingMode.Immediate] = 0xe0,
-			[AddressingMode.ZeroPage] = 0xe4,
-			[AddressingMode.Absolute] = 0xec
+			[HuC6280AddressingMode.Immediate] = 0xe0,
+			[HuC6280AddressingMode.ZeroPage] = 0xe4,
+			[HuC6280AddressingMode.Absolute] = 0xec
 		},
 		["cpy"] = new() {
-			[AddressingMode.Immediate] = 0xc0,
-			[AddressingMode.ZeroPage] = 0xc4,
-			[AddressingMode.Absolute] = 0xcc
+			[HuC6280AddressingMode.Immediate] = 0xc0,
+			[HuC6280AddressingMode.ZeroPage] = 0xc4,
+			[HuC6280AddressingMode.Absolute] = 0xcc
 		},
 		["bit"] = new() {
-			[AddressingMode.Immediate] = 0x89,  // 65C02 extension
-			[AddressingMode.ZeroPage] = 0x24,
-			[AddressingMode.ZeroPageX] = 0x34,  // 65C02 extension
-			[AddressingMode.Absolute] = 0x2c,
-			[AddressingMode.AbsoluteX] = 0x3c   // 65C02 extension
+			[HuC6280AddressingMode.Immediate] = 0x89,  // 65C02 extension
+			[HuC6280AddressingMode.ZeroPage] = 0x24,
+			[HuC6280AddressingMode.ZeroPageX] = 0x34,  // 65C02 extension
+			[HuC6280AddressingMode.Absolute] = 0x2c,
+			[HuC6280AddressingMode.AbsoluteX] = 0x3c   // 65C02 extension
 		},
 
 		// Branch instructions
-		["bcc"] = new() { [AddressingMode.Relative] = 0x90 },
-		["bcs"] = new() { [AddressingMode.Relative] = 0xb0 },
-		["beq"] = new() { [AddressingMode.Relative] = 0xf0 },
-		["bmi"] = new() { [AddressingMode.Relative] = 0x30 },
-		["bne"] = new() { [AddressingMode.Relative] = 0xd0 },
-		["bpl"] = new() { [AddressingMode.Relative] = 0x10 },
-		["bvc"] = new() { [AddressingMode.Relative] = 0x50 },
-		["bvs"] = new() { [AddressingMode.Relative] = 0x70 },
-		["bra"] = new() { [AddressingMode.Relative] = 0x80 },  // 65C02 extension: unconditional branch
+		["bcc"] = new() { [HuC6280AddressingMode.Relative] = 0x90 },
+		["bcs"] = new() { [HuC6280AddressingMode.Relative] = 0xb0 },
+		["beq"] = new() { [HuC6280AddressingMode.Relative] = 0xf0 },
+		["bmi"] = new() { [HuC6280AddressingMode.Relative] = 0x30 },
+		["bne"] = new() { [HuC6280AddressingMode.Relative] = 0xd0 },
+		["bpl"] = new() { [HuC6280AddressingMode.Relative] = 0x10 },
+		["bvc"] = new() { [HuC6280AddressingMode.Relative] = 0x50 },
+		["bvs"] = new() { [HuC6280AddressingMode.Relative] = 0x70 },
+		["bra"] = new() { [HuC6280AddressingMode.Relative] = 0x80 },  // 65C02 extension: unconditional branch
 
 		// Jump/Call/Return
 		["jmp"] = new() {
-			[AddressingMode.Absolute] = 0x4c,
-			[AddressingMode.Indirect] = 0x6c,
-			[AddressingMode.AbsoluteIndirectX] = 0x7c  // 65C02 extension
+			[HuC6280AddressingMode.Absolute] = 0x4c,
+			[HuC6280AddressingMode.Indirect] = 0x6c,
+			[HuC6280AddressingMode.AbsoluteIndirectX] = 0x7c  // 65C02 extension
 		},
-		["jsr"] = new() { [AddressingMode.Absolute] = 0x20 },
-		["rts"] = new() { [AddressingMode.Implied] = 0x60 },
-		["rti"] = new() { [AddressingMode.Implied] = 0x40 },
+		["jsr"] = new() { [HuC6280AddressingMode.Absolute] = 0x20 },
+		["rts"] = new() { [HuC6280AddressingMode.Implied] = 0x60 },
+		["rti"] = new() { [HuC6280AddressingMode.Implied] = 0x40 },
 
 		// Stack operations
-		["pha"] = new() { [AddressingMode.Implied] = 0x48 },
-		["php"] = new() { [AddressingMode.Implied] = 0x08 },
-		["pla"] = new() { [AddressingMode.Implied] = 0x68 },
-		["plp"] = new() { [AddressingMode.Implied] = 0x28 },
-		["phx"] = new() { [AddressingMode.Implied] = 0xda },  // 65C02 extension
-		["phy"] = new() { [AddressingMode.Implied] = 0x5a },  // 65C02 extension
-		["plx"] = new() { [AddressingMode.Implied] = 0xfa },  // 65C02 extension
-		["ply"] = new() { [AddressingMode.Implied] = 0x7a },  // 65C02 extension
+		["pha"] = new() { [HuC6280AddressingMode.Implied] = 0x48 },
+		["php"] = new() { [HuC6280AddressingMode.Implied] = 0x08 },
+		["pla"] = new() { [HuC6280AddressingMode.Implied] = 0x68 },
+		["plp"] = new() { [HuC6280AddressingMode.Implied] = 0x28 },
+		["phx"] = new() { [HuC6280AddressingMode.Implied] = 0xda },  // 65C02 extension
+		["phy"] = new() { [HuC6280AddressingMode.Implied] = 0x5a },  // 65C02 extension
+		["plx"] = new() { [HuC6280AddressingMode.Implied] = 0xfa },  // 65C02 extension
+		["ply"] = new() { [HuC6280AddressingMode.Implied] = 0x7a },  // 65C02 extension
 
 		// Transfer operations
-		["tax"] = new() { [AddressingMode.Implied] = 0xaa },
-		["tay"] = new() { [AddressingMode.Implied] = 0xa8 },
-		["txa"] = new() { [AddressingMode.Implied] = 0x8a },
-		["tya"] = new() { [AddressingMode.Implied] = 0x98 },
-		["tsx"] = new() { [AddressingMode.Implied] = 0xba },
-		["txs"] = new() { [AddressingMode.Implied] = 0x9a },
+		["tax"] = new() { [HuC6280AddressingMode.Implied] = 0xaa },
+		["tay"] = new() { [HuC6280AddressingMode.Implied] = 0xa8 },
+		["txa"] = new() { [HuC6280AddressingMode.Implied] = 0x8a },
+		["tya"] = new() { [HuC6280AddressingMode.Implied] = 0x98 },
+		["tsx"] = new() { [HuC6280AddressingMode.Implied] = 0xba },
+		["txs"] = new() { [HuC6280AddressingMode.Implied] = 0x9a },
 
 		// Flag operations
-		["clc"] = new() { [AddressingMode.Implied] = 0x18 },
-		["cld"] = new() { [AddressingMode.Implied] = 0xd8 },
-		["cli"] = new() { [AddressingMode.Implied] = 0x58 },
-		["clv"] = new() { [AddressingMode.Implied] = 0xb8 },
-		["sec"] = new() { [AddressingMode.Implied] = 0x38 },
-		["sed"] = new() { [AddressingMode.Implied] = 0xf8 },
-		["sei"] = new() { [AddressingMode.Implied] = 0x78 },
+		["clc"] = new() { [HuC6280AddressingMode.Implied] = 0x18 },
+		["cld"] = new() { [HuC6280AddressingMode.Implied] = 0xd8 },
+		["cli"] = new() { [HuC6280AddressingMode.Implied] = 0x58 },
+		["clv"] = new() { [HuC6280AddressingMode.Implied] = 0xb8 },
+		["sec"] = new() { [HuC6280AddressingMode.Implied] = 0x38 },
+		["sed"] = new() { [HuC6280AddressingMode.Implied] = 0xf8 },
+		["sei"] = new() { [HuC6280AddressingMode.Implied] = 0x78 },
 
 		// Miscellaneous
-		["nop"] = new() { [AddressingMode.Implied] = 0xea },
-		["brk"] = new() { [AddressingMode.Implied] = 0x00 },
+		["nop"] = new() { [HuC6280AddressingMode.Implied] = 0xea },
+		["brk"] = new() { [HuC6280AddressingMode.Implied] = 0x00 },
 
 		// 65C02 extensions
 		["trb"] = new() {  // Test and Reset Bits
-			[AddressingMode.ZeroPage] = 0x14,
-			[AddressingMode.Absolute] = 0x1c
+			[HuC6280AddressingMode.ZeroPage] = 0x14,
+			[HuC6280AddressingMode.Absolute] = 0x1c
 		},
 		["tsb"] = new() {  // Test and Set Bits
-			[AddressingMode.ZeroPage] = 0x04,
-			[AddressingMode.Absolute] = 0x0c
+			[HuC6280AddressingMode.ZeroPage] = 0x04,
+			[HuC6280AddressingMode.Absolute] = 0x0c
 		},
 
 		// HuC6280-specific block transfer instructions
-		["tii"] = new() { [AddressingMode.BlockTransfer] = 0x73 },  // Transfer Increment Increment
-		["tdd"] = new() { [AddressingMode.BlockTransfer] = 0xc3 },  // Transfer Decrement Decrement
-		["tin"] = new() { [AddressingMode.BlockTransfer] = 0xd3 },  // Transfer Increment None
-		["tia"] = new() { [AddressingMode.BlockTransfer] = 0xe3 },  // Transfer Increment Alternate
-		["tai"] = new() { [AddressingMode.BlockTransfer] = 0xf3 },  // Transfer Alternate Increment
+		["tii"] = new() { [HuC6280AddressingMode.BlockTransfer] = 0x73 },  // Transfer Increment Increment
+		["tdd"] = new() { [HuC6280AddressingMode.BlockTransfer] = 0xc3 },  // Transfer Decrement Decrement
+		["tin"] = new() { [HuC6280AddressingMode.BlockTransfer] = 0xd3 },  // Transfer Increment None
+		["tia"] = new() { [HuC6280AddressingMode.BlockTransfer] = 0xe3 },  // Transfer Increment Alternate
+		["tai"] = new() { [HuC6280AddressingMode.BlockTransfer] = 0xf3 },  // Transfer Alternate Increment
 
 		// HuC6280-specific memory mapping
-		["tam"] = new() { [AddressingMode.Immediate] = 0x53 },  // Transfer A to MPR (memory page register)
-		["tma"] = new() { [AddressingMode.Immediate] = 0x43 },  // Transfer MPR to A
+		["tam"] = new() { [HuC6280AddressingMode.Immediate] = 0x53 },  // Transfer A to MPR (memory page register)
+		["tma"] = new() { [HuC6280AddressingMode.Immediate] = 0x43 },  // Transfer MPR to A
 
 		// HuC6280-specific CPU speed control
-		["csl"] = new() { [AddressingMode.Implied] = 0x54 },  // Clock Speed Low (1.79 MHz)
-		["csh"] = new() { [AddressingMode.Implied] = 0xd4 },  // Clock Speed High (7.16 MHz)
+		["csl"] = new() { [HuC6280AddressingMode.Implied] = 0x54 },  // Clock Speed Low (1.79 MHz)
+		["csh"] = new() { [HuC6280AddressingMode.Implied] = 0xd4 },  // Clock Speed High (7.16 MHz)
 
 		// HuC6280-specific: Set processor status flag T
-		["set"] = new() { [AddressingMode.Implied] = 0xf4 },  // Set T flag
+		["set"] = new() { [HuC6280AddressingMode.Implied] = 0xf4 },  // Set T flag
 
 		// HuC6280-specific: Store to memory, then A
-		["st0"] = new() { [AddressingMode.Immediate] = 0x03 },  // Store to VDC address register ($0000)
-		["st1"] = new() { [AddressingMode.Immediate] = 0x13 },  // Store to VDC data register low ($0002)
-		["st2"] = new() { [AddressingMode.Immediate] = 0x23 },  // Store to VDC data register high ($0003)
+		["st0"] = new() { [HuC6280AddressingMode.Immediate] = 0x03 },  // Store to VDC address register ($0000)
+		["st1"] = new() { [HuC6280AddressingMode.Immediate] = 0x13 },  // Store to VDC data register low ($0002)
+		["st2"] = new() { [HuC6280AddressingMode.Immediate] = 0x23 },  // Store to VDC data register high ($0003)
 
 		// HuC6280-specific: Swap A with register
-		["sax"] = new() { [AddressingMode.Implied] = 0x22 },  // Swap A and X
-		["say"] = new() { [AddressingMode.Implied] = 0x42 },  // Swap A and Y
-		["sxy"] = new() { [AddressingMode.Implied] = 0x02 },  // Swap X and Y
+		["sax"] = new() { [HuC6280AddressingMode.Implied] = 0x22 },  // Swap A and X
+		["say"] = new() { [HuC6280AddressingMode.Implied] = 0x42 },  // Swap A and Y
+		["sxy"] = new() { [HuC6280AddressingMode.Implied] = 0x02 },  // Swap X and Y
 
 		// HuC6280-specific: Test and branch
 		["tst"] = new() {  // Test bits - AND immediate with memory
-			[AddressingMode.ZeroPage] = 0x83,    // TST #imm,zp
-			[AddressingMode.Absolute] = 0x93,    // TST #imm,abs
-			[AddressingMode.ZeroPageX] = 0xa3,   // TST #imm,zp,X
-			[AddressingMode.AbsoluteX] = 0xb3    // TST #imm,abs,X
+			[HuC6280AddressingMode.ZeroPage] = 0x83,    // TST #imm,zp
+			[HuC6280AddressingMode.Absolute] = 0x93,    // TST #imm,abs
+			[HuC6280AddressingMode.ZeroPageX] = 0xa3,   // TST #imm,zp,X
+			[HuC6280AddressingMode.AbsoluteX] = 0xb3    // TST #imm,abs,X
 		}
 	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
@@ -401,7 +402,7 @@ public static class InstructionSetHuC6280 {
 	/// <param name="mode">Addressing mode</param>
 	/// <param name="opcode">Output: opcode byte</param>
 	/// <returns>True if valid combination</returns>
-	public static bool TryGetOpcode(string mnemonic, AddressingMode mode, out byte opcode) {
+	public static bool TryGetOpcode(string mnemonic, HuC6280AddressingMode mode, out byte opcode) {
 		opcode = 0;
 		if (string.IsNullOrEmpty(mnemonic)) {
 			return false;
@@ -421,13 +422,13 @@ public static class InstructionSetHuC6280 {
 
 			if (bitNum >= 0 && bitNum <= 7 && BitInstructionBase.TryGetValue(baseMnemonic, out var baseOpcode)) {
 				// RMB/SMB use ZeroPageBit mode
-				if ((baseMnemonic == "rmb" || baseMnemonic == "smb") && mode == AddressingMode.ZeroPageBit) {
+				if ((baseMnemonic == "rmb" || baseMnemonic == "smb") && mode == HuC6280AddressingMode.ZeroPageBit) {
 					opcode = (byte)(baseOpcode + (bitNum << 4));
 					return true;
 				}
 
 				// BBR/BBS use ZeroPageRelative mode
-				if ((baseMnemonic == "bbr" || baseMnemonic == "bbs") && mode == AddressingMode.ZeroPageRelative) {
+				if ((baseMnemonic == "bbr" || baseMnemonic == "bbs") && mode == HuC6280AddressingMode.ZeroPageRelative) {
 					opcode = (byte)(baseOpcode + (bitNum << 4));
 					return true;
 				}
@@ -442,33 +443,33 @@ public static class InstructionSetHuC6280 {
 	/// </summary>
 	/// <param name="mode">Addressing mode</param>
 	/// <returns>Instruction size in bytes</returns>
-	public static int GetInstructionSize(AddressingMode mode) {
+	public static int GetInstructionSize(HuC6280AddressingMode mode) {
 		return mode switch {
-			AddressingMode.Implied => 1,
-			AddressingMode.Accumulator => 1,
-			AddressingMode.Immediate => 2,
-			AddressingMode.ZeroPage => 2,
-			AddressingMode.ZeroPageX => 2,
-			AddressingMode.ZeroPageY => 2,
-			AddressingMode.Relative => 2,
-			AddressingMode.ZeroPageIndirect => 2,
-			AddressingMode.IndirectX => 2,
-			AddressingMode.IndirectY => 2,
-			AddressingMode.ZeroPageBit => 2,
-			AddressingMode.Absolute => 3,
-			AddressingMode.AbsoluteX => 3,
-			AddressingMode.AbsoluteY => 3,
-			AddressingMode.Indirect => 3,
-			AddressingMode.AbsoluteIndirectX => 3,
-			AddressingMode.ZeroPageRelative => 3,
-			AddressingMode.BlockTransfer => 7,  // opcode + src(2) + dst(2) + len(2)
+			HuC6280AddressingMode.Implied => 1,
+			HuC6280AddressingMode.Accumulator => 1,
+			HuC6280AddressingMode.Immediate => 2,
+			HuC6280AddressingMode.ZeroPage => 2,
+			HuC6280AddressingMode.ZeroPageX => 2,
+			HuC6280AddressingMode.ZeroPageY => 2,
+			HuC6280AddressingMode.Relative => 2,
+			HuC6280AddressingMode.ZeroPageIndirect => 2,
+			HuC6280AddressingMode.IndirectX => 2,
+			HuC6280AddressingMode.IndirectY => 2,
+			HuC6280AddressingMode.ZeroPageBit => 2,
+			HuC6280AddressingMode.Absolute => 3,
+			HuC6280AddressingMode.AbsoluteX => 3,
+			HuC6280AddressingMode.AbsoluteY => 3,
+			HuC6280AddressingMode.Indirect => 3,
+			HuC6280AddressingMode.AbsoluteIndirectX => 3,
+			HuC6280AddressingMode.ZeroPageRelative => 3,
+			HuC6280AddressingMode.BlockTransfer => 7,  // opcode + src(2) + dst(2) + len(2)
 			_ => 1
 		};
 	}
 
 	/// <summary>
 	/// Tries to get the encoding for a HuC6280 instruction using the shared addressing mode.
-	/// Maps from <see cref="Parser.AddressingMode"/> to <see cref="AddressingMode"/> and looks up the opcode.
+	/// Maps from <see cref="Parser.AddressingMode"/> to <see cref="HuC6280AddressingMode"/> and looks up the opcode.
 	/// </summary>
 	/// <param name="mnemonic">Instruction mnemonic.</param>
 	/// <param name="sharedMode">The shared addressing mode from the parser.</param>
@@ -489,23 +490,23 @@ public static class InstructionSetHuC6280 {
 	/// <summary>
 	/// Maps the shared parser addressing mode to HuC6280's local addressing mode.
 	/// </summary>
-	private static AddressingMode? MapAddressingMode(Parser.AddressingMode mode) {
+	private static HuC6280AddressingMode? MapAddressingMode(Parser.AddressingMode mode) {
 		return mode switch {
-			Parser.AddressingMode.Implied => AddressingMode.Implied,
-			Parser.AddressingMode.Accumulator => AddressingMode.Accumulator,
-			Parser.AddressingMode.Immediate => AddressingMode.Immediate,
-			Parser.AddressingMode.ZeroPage => AddressingMode.ZeroPage,
-			Parser.AddressingMode.ZeroPageX => AddressingMode.ZeroPageX,
-			Parser.AddressingMode.ZeroPageY => AddressingMode.ZeroPageY,
-			Parser.AddressingMode.Absolute => AddressingMode.Absolute,
-			Parser.AddressingMode.AbsoluteX => AddressingMode.AbsoluteX,
-			Parser.AddressingMode.AbsoluteY => AddressingMode.AbsoluteY,
-			Parser.AddressingMode.Indirect => AddressingMode.Indirect,
-			Parser.AddressingMode.IndexedIndirect => AddressingMode.IndirectX,
-			Parser.AddressingMode.IndirectIndexed => AddressingMode.IndirectY,
-			Parser.AddressingMode.ZeroPageIndirect => AddressingMode.ZeroPageIndirect,
-			Parser.AddressingMode.Relative => AddressingMode.Relative,
-			Parser.AddressingMode.AbsoluteIndexedIndirect => AddressingMode.AbsoluteIndirectX,
+			Parser.AddressingMode.Implied => HuC6280AddressingMode.Implied,
+			Parser.AddressingMode.Accumulator => HuC6280AddressingMode.Accumulator,
+			Parser.AddressingMode.Immediate => HuC6280AddressingMode.Immediate,
+			Parser.AddressingMode.ZeroPage => HuC6280AddressingMode.ZeroPage,
+			Parser.AddressingMode.ZeroPageX => HuC6280AddressingMode.ZeroPageX,
+			Parser.AddressingMode.ZeroPageY => HuC6280AddressingMode.ZeroPageY,
+			Parser.AddressingMode.Absolute => HuC6280AddressingMode.Absolute,
+			Parser.AddressingMode.AbsoluteX => HuC6280AddressingMode.AbsoluteX,
+			Parser.AddressingMode.AbsoluteY => HuC6280AddressingMode.AbsoluteY,
+			Parser.AddressingMode.Indirect => HuC6280AddressingMode.Indirect,
+			Parser.AddressingMode.IndexedIndirect => HuC6280AddressingMode.IndirectX,
+			Parser.AddressingMode.IndirectIndexed => HuC6280AddressingMode.IndirectY,
+			Parser.AddressingMode.ZeroPageIndirect => HuC6280AddressingMode.ZeroPageIndirect,
+			Parser.AddressingMode.Relative => HuC6280AddressingMode.Relative,
+			Parser.AddressingMode.AbsoluteIndexedIndirect => HuC6280AddressingMode.AbsoluteIndirectX,
 			_ => null
 		};
 	}

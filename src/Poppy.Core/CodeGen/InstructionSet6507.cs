@@ -12,7 +12,7 @@ namespace Poppy.Core.CodeGen;
 /// The 6507 is functionally identical to the 6502, with a reduced 13-bit address space.
 /// All instructions and opcodes are the same as the 6502.
 /// </summary>
-public static class InstructionSet6507 {
+internal static class InstructionSet6507 {
 	/// <summary>
 	/// Instruction encoding information.
 	/// </summary>

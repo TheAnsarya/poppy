@@ -17,7 +17,7 @@ namespace Poppy.Core.CodeGen;
 /// Provides instruction encoding for the Zilog Z80 processor (Sega Master System/Game Gear).
 /// The Z80 is an enhanced 8080-compatible processor with many additional features.
 /// </summary>
-public static class InstructionSetZ80 {
+internal static class InstructionSetZ80 {
 	/// <summary>
 	/// Instruction encoding information for Z80.
 	/// </summary>

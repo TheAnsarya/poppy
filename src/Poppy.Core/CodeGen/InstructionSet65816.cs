@@ -20,7 +20,7 @@ namespace Poppy.Core.CodeGen;
 /// - Block move instructions (MVP/MVN)
 /// - Long jumps and calls (JML, JSL)
 /// </remarks>
-public static class InstructionSet65816 {
+internal static class InstructionSet65816 {
 	/// <summary>
 	/// Instruction encoding information.
 	/// </summary>

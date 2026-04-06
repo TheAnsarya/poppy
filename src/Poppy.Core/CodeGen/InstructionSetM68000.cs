@@ -17,7 +17,7 @@ namespace Poppy.Core.CodeGen;
 /// Provides instruction encoding for the Motorola 68000 processor (Sega Genesis).
 /// The M68000 is a 16/32-bit big-endian processor with a rich instruction set.
 /// </summary>
-public static class InstructionSetM68000 {
+internal static class InstructionSetM68000 {
 	/// <summary>
 	/// Instruction encoding information for M68000.
 	/// </summary>

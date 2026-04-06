@@ -10,7 +10,7 @@ namespace Poppy.Core.CodeGen;
 /// ARM7TDMI instruction set implementation for GBA assembly.
 /// Supports ARM mode (32-bit instructions) and Thumb mode (16-bit instructions).
 /// </summary>
-public static class InstructionSetARM7TDMI {
+internal static class InstructionSetARM7TDMI {
 	/// <summary>
 	/// Condition codes for ARM instructions (bits 28-31)
 	/// </summary>

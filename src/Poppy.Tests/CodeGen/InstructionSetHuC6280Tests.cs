@@ -131,43 +131,43 @@ public class InstructionSetHuC6280Tests {
 
 	[Fact]
 	public void TryGetOpcode_LdaImmediate_ReturnsA9() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("lda", InstructionSetHuC6280.AddressingMode.Immediate, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("lda", HuC6280AddressingMode.Immediate, out byte opcode));
 		Assert.Equal(0xa9, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_LdaZeroPage_ReturnsA5() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("lda", InstructionSetHuC6280.AddressingMode.ZeroPage, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("lda", HuC6280AddressingMode.ZeroPage, out byte opcode));
 		Assert.Equal(0xa5, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_JmpAbsolute_Returns4C() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("jmp", InstructionSetHuC6280.AddressingMode.Absolute, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("jmp", HuC6280AddressingMode.Absolute, out byte opcode));
 		Assert.Equal(0x4c, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_Tii_Returns73() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("tii", InstructionSetHuC6280.AddressingMode.BlockTransfer, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("tii", HuC6280AddressingMode.BlockTransfer, out byte opcode));
 		Assert.Equal(0x73, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_Csl_Returns54() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("csl", InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("csl", HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(0x54, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_Csh_ReturnsD4() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("csh", InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("csh", HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(0xd4, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_InvalidMode_ReturnsFalse() {
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("lda", InstructionSetHuC6280.AddressingMode.Implied, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("lda", HuC6280AddressingMode.Implied, out _));
 	}
 
 	#endregion
@@ -175,13 +175,13 @@ public class InstructionSetHuC6280Tests {
 	#region Instruction Size Tests
 
 	[Theory]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Implied, 1)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Accumulator, 1)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Immediate, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPage, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Absolute, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.BlockTransfer, 7)]
-	public void GetInstructionSize_ReturnsCorrectSize(InstructionSetHuC6280.AddressingMode mode, int expected) {
+	[InlineData(HuC6280AddressingMode.Implied, 1)]
+	[InlineData(HuC6280AddressingMode.Accumulator, 1)]
+	[InlineData(HuC6280AddressingMode.Immediate, 2)]
+	[InlineData(HuC6280AddressingMode.ZeroPage, 2)]
+	[InlineData(HuC6280AddressingMode.Absolute, 3)]
+	[InlineData(HuC6280AddressingMode.BlockTransfer, 7)]
+	public void GetInstructionSize_ReturnsCorrectSize(HuC6280AddressingMode mode, int expected) {
 		Assert.Equal(expected, InstructionSetHuC6280.GetInstructionSize(mode));
 	}
 
@@ -336,7 +336,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("tia", 0xe3)]
 	[InlineData("tai", 0xf3)]
 	public void TryGetOpcode_BlockTransfer_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.BlockTransfer, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.BlockTransfer, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -370,7 +370,7 @@ public class InstructionSetHuC6280Tests {
 
 	[Fact]
 	public void BlockTransferSize_Is7Bytes() {
-		Assert.Equal(7, InstructionSetHuC6280.GetInstructionSize(InstructionSetHuC6280.AddressingMode.BlockTransfer));
+		Assert.Equal(7, InstructionSetHuC6280.GetInstructionSize(HuC6280AddressingMode.BlockTransfer));
 	}
 
 	[Theory]
@@ -380,7 +380,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("tia")]
 	[InlineData("tai")]
 	public void BlockTransfer_InvalidMode_ReturnsFalse(string mnemonic) {
-		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Absolute, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Absolute, out _));
 	}
 
 	#endregion
@@ -389,13 +389,13 @@ public class InstructionSetHuC6280Tests {
 
 	[Fact]
 	public void TryGetOpcode_Tam_Returns53() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("tam", InstructionSetHuC6280.AddressingMode.Immediate, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("tam", HuC6280AddressingMode.Immediate, out byte opcode));
 		Assert.Equal(0x53, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_Tma_Returns43() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("tma", InstructionSetHuC6280.AddressingMode.Immediate, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("tma", HuC6280AddressingMode.Immediate, out byte opcode));
 		Assert.Equal(0x43, opcode);
 	}
 
@@ -419,16 +419,16 @@ public class InstructionSetHuC6280Tests {
 
 	[Fact]
 	public void Tam_OnlyAllowsImmediate() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("tam", InstructionSetHuC6280.AddressingMode.Immediate, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("tam", InstructionSetHuC6280.AddressingMode.ZeroPage, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("tam", InstructionSetHuC6280.AddressingMode.Absolute, out _));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("tam", HuC6280AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("tam", HuC6280AddressingMode.ZeroPage, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("tam", HuC6280AddressingMode.Absolute, out _));
 	}
 
 	[Fact]
 	public void Tma_OnlyAllowsImmediate() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("tma", InstructionSetHuC6280.AddressingMode.Immediate, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("tma", InstructionSetHuC6280.AddressingMode.ZeroPage, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("tma", InstructionSetHuC6280.AddressingMode.Absolute, out _));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("tma", HuC6280AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("tma", HuC6280AddressingMode.ZeroPage, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("tma", HuC6280AddressingMode.Absolute, out _));
 	}
 
 	#endregion
@@ -440,7 +440,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("st1", 0x13)]
 	[InlineData("st2", 0x23)]
 	public void TryGetOpcode_VdcStore_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Immediate, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Immediate, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -449,9 +449,9 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("st1")]
 	[InlineData("st2")]
 	public void VdcStore_OnlyAllowsImmediate(string mnemonic) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Immediate, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.ZeroPage, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Absolute, out _));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.ZeroPage, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Absolute, out _));
 	}
 
 	[Fact]
@@ -469,20 +469,20 @@ public class InstructionSetHuC6280Tests {
 
 	[Fact]
 	public void TryGetOpcode_Csl_Returns54Implied() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("csl", InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("csl", HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(0x54, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_Csh_ReturnsD4Implied() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("csh", InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("csh", HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(0xd4, opcode);
 	}
 
 	[Fact]
 	public void CslCsh_OnlyAllowsImplied() {
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("csl", InstructionSetHuC6280.AddressingMode.Immediate, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("csh", InstructionSetHuC6280.AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("csl", HuC6280AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("csh", HuC6280AddressingMode.Immediate, out _));
 	}
 
 	#endregion
@@ -495,7 +495,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("say", 0x42)]
 	[InlineData("sxy", 0x02)]
 	public void TryGetOpcode_HuC6280Implied_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -513,7 +513,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("rmb6", 0x67)]
 	[InlineData("rmb7", 0x77)]
 	public void TryGetOpcode_Rmb_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.ZeroPageBit, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.ZeroPageBit, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -527,7 +527,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("smb6", 0xe7)]
 	[InlineData("smb7", 0xf7)]
 	public void TryGetOpcode_Smb_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.ZeroPageBit, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.ZeroPageBit, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -541,7 +541,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("bbr6", 0x6f)]
 	[InlineData("bbr7", 0x7f)]
 	public void TryGetOpcode_Bbr_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.ZeroPageRelative, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.ZeroPageRelative, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -555,7 +555,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("bbs6", 0xef)]
 	[InlineData("bbs7", 0xff)]
 	public void TryGetOpcode_Bbs_ReturnsCorrectOpcode(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.ZeroPageRelative, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.ZeroPageRelative, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -563,8 +563,8 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("rmb0")]
 	[InlineData("smb3")]
 	public void BitInstruction_WrongMode_ReturnsFalse(string mnemonic) {
-		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Absolute, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Absolute, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Immediate, out _));
 	}
 
 	[Fact]
@@ -598,12 +598,12 @@ public class InstructionSetHuC6280Tests {
 
 	[Fact]
 	public void ZeroPageBitSize_Is2Bytes() {
-		Assert.Equal(2, InstructionSetHuC6280.GetInstructionSize(InstructionSetHuC6280.AddressingMode.ZeroPageBit));
+		Assert.Equal(2, InstructionSetHuC6280.GetInstructionSize(HuC6280AddressingMode.ZeroPageBit));
 	}
 
 	[Fact]
 	public void ZeroPageRelativeSize_Is3Bytes() {
-		Assert.Equal(3, InstructionSetHuC6280.GetInstructionSize(InstructionSetHuC6280.AddressingMode.ZeroPageRelative));
+		Assert.Equal(3, InstructionSetHuC6280.GetInstructionSize(HuC6280AddressingMode.ZeroPageRelative));
 	}
 
 	[Theory]
@@ -627,19 +627,19 @@ public class InstructionSetHuC6280Tests {
 	#region TST Instruction Tests
 
 	[Theory]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPage, 0x83)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Absolute, 0x93)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPageX, 0xa3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.AbsoluteX, 0xb3)]
-	public void TryGetOpcode_Tst_AllModes(InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData(HuC6280AddressingMode.ZeroPage, 0x83)]
+	[InlineData(HuC6280AddressingMode.Absolute, 0x93)]
+	[InlineData(HuC6280AddressingMode.ZeroPageX, 0xa3)]
+	[InlineData(HuC6280AddressingMode.AbsoluteX, 0xb3)]
+	public void TryGetOpcode_Tst_AllModes(HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode("tst", mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Fact]
 	public void Tst_InvalidModes_ReturnsFalse() {
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("tst", InstructionSetHuC6280.AddressingMode.Immediate, out _));
-		Assert.False(InstructionSetHuC6280.TryGetOpcode("tst", InstructionSetHuC6280.AddressingMode.Implied, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("tst", HuC6280AddressingMode.Immediate, out _));
+		Assert.False(InstructionSetHuC6280.TryGetOpcode("tst", HuC6280AddressingMode.Implied, out _));
 	}
 
 	#endregion
@@ -647,43 +647,43 @@ public class InstructionSetHuC6280Tests {
 	#region 65C02 Base Opcode Compatibility Tests
 
 	[Theory]
-	[InlineData("lda", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0xb2)]
-	[InlineData("sta", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0x92)]
-	[InlineData("adc", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0x72)]
-	[InlineData("sbc", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0xf2)]
-	[InlineData("and", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0x32)]
-	[InlineData("ora", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0x12)]
-	[InlineData("eor", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0x52)]
-	[InlineData("cmp", InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 0xd2)]
-	public void TryGetOpcode_65C02_ZeroPageIndirect_CorrectOpcodes(string mnemonic, InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData("lda", HuC6280AddressingMode.ZeroPageIndirect, 0xb2)]
+	[InlineData("sta", HuC6280AddressingMode.ZeroPageIndirect, 0x92)]
+	[InlineData("adc", HuC6280AddressingMode.ZeroPageIndirect, 0x72)]
+	[InlineData("sbc", HuC6280AddressingMode.ZeroPageIndirect, 0xf2)]
+	[InlineData("and", HuC6280AddressingMode.ZeroPageIndirect, 0x32)]
+	[InlineData("ora", HuC6280AddressingMode.ZeroPageIndirect, 0x12)]
+	[InlineData("eor", HuC6280AddressingMode.ZeroPageIndirect, 0x52)]
+	[InlineData("cmp", HuC6280AddressingMode.ZeroPageIndirect, 0xd2)]
+	public void TryGetOpcode_65C02_ZeroPageIndirect_CorrectOpcodes(string mnemonic, HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Theory]
-	[InlineData("inc", InstructionSetHuC6280.AddressingMode.Accumulator, 0x1a)]
-	[InlineData("dec", InstructionSetHuC6280.AddressingMode.Accumulator, 0x3a)]
-	public void TryGetOpcode_65C02_IncDecAccumulator(string mnemonic, InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData("inc", HuC6280AddressingMode.Accumulator, 0x1a)]
+	[InlineData("dec", HuC6280AddressingMode.Accumulator, 0x3a)]
+	public void TryGetOpcode_65C02_IncDecAccumulator(string mnemonic, HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Theory]
-	[InlineData("stz", InstructionSetHuC6280.AddressingMode.ZeroPage, 0x64)]
-	[InlineData("stz", InstructionSetHuC6280.AddressingMode.ZeroPageX, 0x74)]
-	[InlineData("stz", InstructionSetHuC6280.AddressingMode.Absolute, 0x9c)]
-	[InlineData("stz", InstructionSetHuC6280.AddressingMode.AbsoluteX, 0x9e)]
-	public void TryGetOpcode_65C02_Stz_AllModes(string mnemonic, InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData("stz", HuC6280AddressingMode.ZeroPage, 0x64)]
+	[InlineData("stz", HuC6280AddressingMode.ZeroPageX, 0x74)]
+	[InlineData("stz", HuC6280AddressingMode.Absolute, 0x9c)]
+	[InlineData("stz", HuC6280AddressingMode.AbsoluteX, 0x9e)]
+	public void TryGetOpcode_65C02_Stz_AllModes(string mnemonic, HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Theory]
-	[InlineData("trb", InstructionSetHuC6280.AddressingMode.ZeroPage, 0x14)]
-	[InlineData("trb", InstructionSetHuC6280.AddressingMode.Absolute, 0x1c)]
-	[InlineData("tsb", InstructionSetHuC6280.AddressingMode.ZeroPage, 0x04)]
-	[InlineData("tsb", InstructionSetHuC6280.AddressingMode.Absolute, 0x0c)]
-	public void TryGetOpcode_65C02_TrbTsb(string mnemonic, InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData("trb", HuC6280AddressingMode.ZeroPage, 0x14)]
+	[InlineData("trb", HuC6280AddressingMode.Absolute, 0x1c)]
+	[InlineData("tsb", HuC6280AddressingMode.ZeroPage, 0x04)]
+	[InlineData("tsb", HuC6280AddressingMode.Absolute, 0x0c)]
+	public void TryGetOpcode_65C02_TrbTsb(string mnemonic, HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
@@ -694,31 +694,31 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("plx", 0xfa)]
 	[InlineData("ply", 0x7a)]
 	public void TryGetOpcode_65C02_StackExtensions(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_65C02_Bra_Returns80() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("bra", InstructionSetHuC6280.AddressingMode.Relative, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("bra", HuC6280AddressingMode.Relative, out byte opcode));
 		Assert.Equal(0x80, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_65C02_JmpAbsoluteIndirectX_Returns7C() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("jmp", InstructionSetHuC6280.AddressingMode.AbsoluteIndirectX, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("jmp", HuC6280AddressingMode.AbsoluteIndirectX, out byte opcode));
 		Assert.Equal(0x7c, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_65C02_BitExtendedModes() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("bit", InstructionSetHuC6280.AddressingMode.Immediate, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("bit", HuC6280AddressingMode.Immediate, out byte opcode));
 		Assert.Equal(0x89, opcode);
 
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("bit", InstructionSetHuC6280.AddressingMode.ZeroPageX, out opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("bit", HuC6280AddressingMode.ZeroPageX, out opcode));
 		Assert.Equal(0x34, opcode);
 
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("bit", InstructionSetHuC6280.AddressingMode.AbsoluteX, out opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("bit", HuC6280AddressingMode.AbsoluteX, out opcode));
 		Assert.Equal(0x3c, opcode);
 	}
 
@@ -727,26 +727,26 @@ public class InstructionSetHuC6280Tests {
 	#region Standard 6502 Opcode Verification Tests
 
 	[Theory]
-	[InlineData("lda", InstructionSetHuC6280.AddressingMode.Immediate, 0xa9)]
-	[InlineData("lda", InstructionSetHuC6280.AddressingMode.AbsoluteX, 0xbd)]
-	[InlineData("lda", InstructionSetHuC6280.AddressingMode.AbsoluteY, 0xb9)]
-	[InlineData("lda", InstructionSetHuC6280.AddressingMode.IndirectX, 0xa1)]
-	[InlineData("lda", InstructionSetHuC6280.AddressingMode.IndirectY, 0xb1)]
-	[InlineData("sta", InstructionSetHuC6280.AddressingMode.ZeroPage, 0x85)]
-	[InlineData("sta", InstructionSetHuC6280.AddressingMode.AbsoluteX, 0x9d)]
-	[InlineData("sta", InstructionSetHuC6280.AddressingMode.IndirectX, 0x81)]
-	[InlineData("sta", InstructionSetHuC6280.AddressingMode.IndirectY, 0x91)]
-	public void TryGetOpcode_Standard6502_LoadStoreOpcodes(string mnemonic, InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData("lda", HuC6280AddressingMode.Immediate, 0xa9)]
+	[InlineData("lda", HuC6280AddressingMode.AbsoluteX, 0xbd)]
+	[InlineData("lda", HuC6280AddressingMode.AbsoluteY, 0xb9)]
+	[InlineData("lda", HuC6280AddressingMode.IndirectX, 0xa1)]
+	[InlineData("lda", HuC6280AddressingMode.IndirectY, 0xb1)]
+	[InlineData("sta", HuC6280AddressingMode.ZeroPage, 0x85)]
+	[InlineData("sta", HuC6280AddressingMode.AbsoluteX, 0x9d)]
+	[InlineData("sta", HuC6280AddressingMode.IndirectX, 0x81)]
+	[InlineData("sta", HuC6280AddressingMode.IndirectY, 0x91)]
+	public void TryGetOpcode_Standard6502_LoadStoreOpcodes(string mnemonic, HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Theory]
-	[InlineData("asl", InstructionSetHuC6280.AddressingMode.Accumulator, 0x0a)]
-	[InlineData("lsr", InstructionSetHuC6280.AddressingMode.Accumulator, 0x4a)]
-	[InlineData("rol", InstructionSetHuC6280.AddressingMode.Accumulator, 0x2a)]
-	[InlineData("ror", InstructionSetHuC6280.AddressingMode.Accumulator, 0x6a)]
-	public void TryGetOpcode_Standard6502_ShiftAccumulator(string mnemonic, InstructionSetHuC6280.AddressingMode mode, byte expected) {
+	[InlineData("asl", HuC6280AddressingMode.Accumulator, 0x0a)]
+	[InlineData("lsr", HuC6280AddressingMode.Accumulator, 0x4a)]
+	[InlineData("rol", HuC6280AddressingMode.Accumulator, 0x2a)]
+	[InlineData("ror", HuC6280AddressingMode.Accumulator, 0x6a)]
+	public void TryGetOpcode_Standard6502_ShiftAccumulator(string mnemonic, HuC6280AddressingMode mode, byte expected) {
 		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, mode, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
@@ -761,7 +761,7 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("bvc", 0x50)]
 	[InlineData("bvs", 0x70)]
 	public void TryGetOpcode_Standard6502_Branches(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Relative, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Relative, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
@@ -792,19 +792,19 @@ public class InstructionSetHuC6280Tests {
 	[InlineData("dex", 0xca)]
 	[InlineData("dey", 0x88)]
 	public void TryGetOpcode_Standard6502_ImpliedOpcodes(string mnemonic, byte expected) {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, InstructionSetHuC6280.AddressingMode.Implied, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode(mnemonic, HuC6280AddressingMode.Implied, out byte opcode));
 		Assert.Equal(expected, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_Jsr_Returns20() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("jsr", InstructionSetHuC6280.AddressingMode.Absolute, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("jsr", HuC6280AddressingMode.Absolute, out byte opcode));
 		Assert.Equal(0x20, opcode);
 	}
 
 	[Fact]
 	public void TryGetOpcode_JmpIndirect_Returns6C() {
-		Assert.True(InstructionSetHuC6280.TryGetOpcode("jmp", InstructionSetHuC6280.AddressingMode.Indirect, out byte opcode));
+		Assert.True(InstructionSetHuC6280.TryGetOpcode("jmp", HuC6280AddressingMode.Indirect, out byte opcode));
 		Assert.Equal(0x6c, opcode);
 	}
 
@@ -813,25 +813,25 @@ public class InstructionSetHuC6280Tests {
 	#region Instruction Size Comprehensive Tests
 
 	[Theory]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Implied, 1)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Accumulator, 1)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Immediate, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPage, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPageX, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPageY, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Relative, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPageIndirect, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.IndirectX, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.IndirectY, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPageBit, 2)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Absolute, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.AbsoluteX, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.AbsoluteY, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.Indirect, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.AbsoluteIndirectX, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.ZeroPageRelative, 3)]
-	[InlineData(InstructionSetHuC6280.AddressingMode.BlockTransfer, 7)]
-	public void GetInstructionSize_AllModes_ReturnsCorrectSize(InstructionSetHuC6280.AddressingMode mode, int expected) {
+	[InlineData(HuC6280AddressingMode.Implied, 1)]
+	[InlineData(HuC6280AddressingMode.Accumulator, 1)]
+	[InlineData(HuC6280AddressingMode.Immediate, 2)]
+	[InlineData(HuC6280AddressingMode.ZeroPage, 2)]
+	[InlineData(HuC6280AddressingMode.ZeroPageX, 2)]
+	[InlineData(HuC6280AddressingMode.ZeroPageY, 2)]
+	[InlineData(HuC6280AddressingMode.Relative, 2)]
+	[InlineData(HuC6280AddressingMode.ZeroPageIndirect, 2)]
+	[InlineData(HuC6280AddressingMode.IndirectX, 2)]
+	[InlineData(HuC6280AddressingMode.IndirectY, 2)]
+	[InlineData(HuC6280AddressingMode.ZeroPageBit, 2)]
+	[InlineData(HuC6280AddressingMode.Absolute, 3)]
+	[InlineData(HuC6280AddressingMode.AbsoluteX, 3)]
+	[InlineData(HuC6280AddressingMode.AbsoluteY, 3)]
+	[InlineData(HuC6280AddressingMode.Indirect, 3)]
+	[InlineData(HuC6280AddressingMode.AbsoluteIndirectX, 3)]
+	[InlineData(HuC6280AddressingMode.ZeroPageRelative, 3)]
+	[InlineData(HuC6280AddressingMode.BlockTransfer, 7)]
+	public void GetInstructionSize_AllModes_ReturnsCorrectSize(HuC6280AddressingMode mode, int expected) {
 		Assert.Equal(expected, InstructionSetHuC6280.GetInstructionSize(mode));
 	}
 

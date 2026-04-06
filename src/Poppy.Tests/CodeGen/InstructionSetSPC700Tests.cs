@@ -97,42 +97,42 @@ public class InstructionSetSPC700Tests {
 	#region Instruction Size Tests
 
 	[Theory]
-	[InlineData(InstructionSetSPC700.AddressingMode.Implied, 1)]
-	[InlineData(InstructionSetSPC700.AddressingMode.Accumulator, 1)]
-	[InlineData(InstructionSetSPC700.AddressingMode.IndirectX, 1)]
-	[InlineData(InstructionSetSPC700.AddressingMode.IndirectY, 1)]
-	[InlineData(InstructionSetSPC700.AddressingMode.IndirectXInc, 1)]
-	[InlineData(InstructionSetSPC700.AddressingMode.TableCall, 1)]
-	public void GetInstructionSize_SingleByteMode_Returns1(InstructionSetSPC700.AddressingMode mode, int expected) {
+	[InlineData(Spc700AddressingMode.Implied, 1)]
+	[InlineData(Spc700AddressingMode.Accumulator, 1)]
+	[InlineData(Spc700AddressingMode.IndirectX, 1)]
+	[InlineData(Spc700AddressingMode.IndirectY, 1)]
+	[InlineData(Spc700AddressingMode.IndirectXInc, 1)]
+	[InlineData(Spc700AddressingMode.TableCall, 1)]
+	public void GetInstructionSize_SingleByteMode_Returns1(Spc700AddressingMode mode, int expected) {
 		int size = InstructionSetSPC700.GetInstructionSize(mode);
 		Assert.Equal(expected, size);
 	}
 
 	[Theory]
-	[InlineData(InstructionSetSPC700.AddressingMode.Immediate, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.DirectPage, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.DirectPageX, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.DirectPageY, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.IndirectPageX, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.IndirectPageY, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.Relative, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.BitDirect, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.PCall, 2)]
-	[InlineData(InstructionSetSPC700.AddressingMode.YA16, 2)]
-	public void GetInstructionSize_TwoByteMode_Returns2(InstructionSetSPC700.AddressingMode mode, int expected) {
+	[InlineData(Spc700AddressingMode.Immediate, 2)]
+	[InlineData(Spc700AddressingMode.DirectPage, 2)]
+	[InlineData(Spc700AddressingMode.DirectPageX, 2)]
+	[InlineData(Spc700AddressingMode.DirectPageY, 2)]
+	[InlineData(Spc700AddressingMode.IndirectPageX, 2)]
+	[InlineData(Spc700AddressingMode.IndirectPageY, 2)]
+	[InlineData(Spc700AddressingMode.Relative, 2)]
+	[InlineData(Spc700AddressingMode.BitDirect, 2)]
+	[InlineData(Spc700AddressingMode.PCall, 2)]
+	[InlineData(Spc700AddressingMode.YA16, 2)]
+	public void GetInstructionSize_TwoByteMode_Returns2(Spc700AddressingMode mode, int expected) {
 		int size = InstructionSetSPC700.GetInstructionSize(mode);
 		Assert.Equal(expected, size);
 	}
 
 	[Theory]
-	[InlineData(InstructionSetSPC700.AddressingMode.Absolute, 3)]
-	[InlineData(InstructionSetSPC700.AddressingMode.AbsoluteX, 3)]
-	[InlineData(InstructionSetSPC700.AddressingMode.AbsoluteY, 3)]
-	[InlineData(InstructionSetSPC700.AddressingMode.AbsoluteBit, 3)]
-	[InlineData(InstructionSetSPC700.AddressingMode.DirectPageRelative, 3)]
-	[InlineData(InstructionSetSPC700.AddressingMode.DirectPageDirect, 3)]
-	[InlineData(InstructionSetSPC700.AddressingMode.DirectPageImmediate, 3)]
-	public void GetInstructionSize_ThreeByteMode_Returns3(InstructionSetSPC700.AddressingMode mode, int expected) {
+	[InlineData(Spc700AddressingMode.Absolute, 3)]
+	[InlineData(Spc700AddressingMode.AbsoluteX, 3)]
+	[InlineData(Spc700AddressingMode.AbsoluteY, 3)]
+	[InlineData(Spc700AddressingMode.AbsoluteBit, 3)]
+	[InlineData(Spc700AddressingMode.DirectPageRelative, 3)]
+	[InlineData(Spc700AddressingMode.DirectPageDirect, 3)]
+	[InlineData(Spc700AddressingMode.DirectPageImmediate, 3)]
+	public void GetInstructionSize_ThreeByteMode_Returns3(Spc700AddressingMode mode, int expected) {
 		int size = InstructionSetSPC700.GetInstructionSize(mode);
 		Assert.Equal(expected, size);
 	}
@@ -449,33 +449,33 @@ public class InstructionSetSPC700Tests {
 
 	[Fact]
 	public void AddressingMode_HasAllModes() {
-		var modes = Enum.GetValues<InstructionSetSPC700.AddressingMode>();
+		var modes = Enum.GetValues<Spc700AddressingMode>();
 
-		Assert.Contains(InstructionSetSPC700.AddressingMode.Implied, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.Accumulator, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.Immediate, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPage, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageX, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageY, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.Absolute, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.AbsoluteX, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.AbsoluteY, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.IndirectX, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.IndirectY, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.IndirectXInc, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.IndirectPageX, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.IndirectPageY, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageBit, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.AbsoluteBit, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.Relative, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageRelative, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageDirect, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageImmediate, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.YA16, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.TableCall, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.PCall, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.BitDirect, modes);
-		Assert.Contains(InstructionSetSPC700.AddressingMode.DirectPageBitRelative, modes);
+		Assert.Contains(Spc700AddressingMode.Implied, modes);
+		Assert.Contains(Spc700AddressingMode.Accumulator, modes);
+		Assert.Contains(Spc700AddressingMode.Immediate, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPage, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageX, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageY, modes);
+		Assert.Contains(Spc700AddressingMode.Absolute, modes);
+		Assert.Contains(Spc700AddressingMode.AbsoluteX, modes);
+		Assert.Contains(Spc700AddressingMode.AbsoluteY, modes);
+		Assert.Contains(Spc700AddressingMode.IndirectX, modes);
+		Assert.Contains(Spc700AddressingMode.IndirectY, modes);
+		Assert.Contains(Spc700AddressingMode.IndirectXInc, modes);
+		Assert.Contains(Spc700AddressingMode.IndirectPageX, modes);
+		Assert.Contains(Spc700AddressingMode.IndirectPageY, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageBit, modes);
+		Assert.Contains(Spc700AddressingMode.AbsoluteBit, modes);
+		Assert.Contains(Spc700AddressingMode.Relative, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageRelative, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageDirect, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageImmediate, modes);
+		Assert.Contains(Spc700AddressingMode.YA16, modes);
+		Assert.Contains(Spc700AddressingMode.TableCall, modes);
+		Assert.Contains(Spc700AddressingMode.PCall, modes);
+		Assert.Contains(Spc700AddressingMode.BitDirect, modes);
+		Assert.Contains(Spc700AddressingMode.DirectPageBitRelative, modes);
 	}
 
 	#endregion

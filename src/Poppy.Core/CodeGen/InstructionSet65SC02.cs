@@ -14,7 +14,7 @@ namespace Poppy.Core.CodeGen;
 /// The 65SC02 is an enhanced version of the 6502 with additional instructions,
 /// addressing modes, and bug fixes (JMP indirect bug fixed).
 /// </summary>
-public static class InstructionSet65SC02 {
+internal static class InstructionSet65SC02 {
 	/// <summary>
 	/// Instruction encoding information.
 	/// </summary>

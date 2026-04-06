@@ -16,7 +16,7 @@ namespace Poppy.Core.CodeGen;
 /// Provides instruction encoding for the NEC V30MZ processor (WonderSwan).
 /// The V30MZ is Intel 8086/80186 compatible with some extensions.
 /// </summary>
-public static class InstructionSetV30MZ {
+internal static class InstructionSetV30MZ {
 	/// <summary>
 	/// Instruction encoding information for V30MZ.
 	/// </summary>

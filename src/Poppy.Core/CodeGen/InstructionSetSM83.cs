@@ -17,7 +17,7 @@ namespace Poppy.Core.CodeGen;
 /// differences. It has 8-bit and 16-bit operations, CB-prefixed bit manipulation
 /// instructions, and Game Boy specific instructions like STOP.
 /// </remarks>
-public static class InstructionSetSM83 {
+internal static class InstructionSetSM83 {
 	/// <summary>
 	/// Instruction encoding information.
 	/// </summary>

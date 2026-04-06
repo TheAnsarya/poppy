@@ -12,7 +12,7 @@ namespace Poppy.Core.CodeGen;
 /// <summary>
 /// Provides instruction encoding for the MOS 6502 processor.
 /// </summary>
-public static class InstructionSet6502 {
+internal static class InstructionSet6502 {
 	/// <summary>
 	/// Instruction encoding information.
 	/// </summary>
