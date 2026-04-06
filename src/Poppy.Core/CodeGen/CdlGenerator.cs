@@ -105,8 +105,7 @@ public sealed class CdlGenerator {
 				// Mark jump targets and sub entry points
 				if (symbol.Type == SymbolType.Label) {
 					// Labels that start with common subroutine prefixes
-					var name = symbol.Name.ToLowerInvariant();
-					if (name.StartsWith("sub_") || name.StartsWith("fn_") || name.StartsWith("func_")) {
+					if (symbol.Name.StartsWith("sub_", StringComparison.OrdinalIgnoreCase) || symbol.Name.StartsWith("fn_", StringComparison.OrdinalIgnoreCase) || symbol.Name.StartsWith("func_", StringComparison.OrdinalIgnoreCase)) {
 						flags |= MESEN_SUB_ENTRY_POINT;
 					}
 					flags |= MESEN_JUMP_TARGET;
@@ -114,8 +113,7 @@ public sealed class CdlGenerator {
 			} else {
 				// FCEUX format
 				if (symbol.Type == SymbolType.Label) {
-					var name = symbol.Name.ToLowerInvariant();
-					if (name.StartsWith("sub_") || name.StartsWith("fn_") || name.StartsWith("func_")) {
+					if (symbol.Name.StartsWith("sub_", StringComparison.OrdinalIgnoreCase) || symbol.Name.StartsWith("fn_", StringComparison.OrdinalIgnoreCase) || symbol.Name.StartsWith("func_", StringComparison.OrdinalIgnoreCase)) {
 						flags |= FCEUX_INDIRECT_CODE;
 					}
 				}
@@ -238,13 +236,13 @@ public sealed class CdlGenerator {
 	/// Detects CDL format from file path.
 	/// </summary>
 	private static CdlFormat DetectFormatFromPath(string path) {
-		var filename = Path.GetFileName(path).ToLowerInvariant();
+		var filename = Path.GetFileName(path);
 
 		// Check for emulator-specific naming patterns
-		if (filename.Contains("fceux") || filename.Contains("fce"))
+		if (filename.Contains("fceux", StringComparison.OrdinalIgnoreCase) || filename.Contains("fce", StringComparison.OrdinalIgnoreCase))
 			return CdlFormat.FCEUX;
 
-		if (filename.Contains("mesen"))
+		if (filename.Contains("mesen", StringComparison.OrdinalIgnoreCase))
 			return CdlFormat.Mesen;
 
 		// Default to Mesen format (more modern, includes header)

@@ -227,7 +227,7 @@ public sealed class ProjectCompiler {
 			}
 
 			if (Directory.Exists(searchDir)) {
-				var searchOption = pattern.Contains("**")
+				var searchOption = pattern.Contains("**", StringComparison.Ordinal)
 					? SearchOption.AllDirectories
 					: SearchOption.TopDirectoryOnly;
 

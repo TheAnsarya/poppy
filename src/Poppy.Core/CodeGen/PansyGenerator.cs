@@ -193,8 +193,7 @@ public sealed class PansyGenerator {
 			if (romOffset < 0 || romOffset >= romSize) continue;
 
 			if (symbol.Type == Semantics.SymbolType.Label) {
-				var name = symbol.Name.ToLowerInvariant();
-				if (name.StartsWith("sub_") || name.StartsWith("fn_") || name.StartsWith("func_")) {
+				if (symbol.Name.StartsWith("sub_", StringComparison.OrdinalIgnoreCase) || symbol.Name.StartsWith("fn_", StringComparison.OrdinalIgnoreCase) || symbol.Name.StartsWith("func_", StringComparison.OrdinalIgnoreCase)) {
 					writer.MarkAsSubroutine((uint)romOffset);
 				}
 				writer.MarkAsJumpTarget((uint)romOffset);

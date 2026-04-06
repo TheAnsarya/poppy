@@ -396,12 +396,12 @@ public sealed class ArchiveHandler {
 		pattern = pattern.Replace('\\', '/');
 		path = path.Replace('\\', '/');
 
-		if (pattern.Contains("**")) {
+		if (pattern.Contains("**", StringComparison.Ordinal)) {
 			var parts = pattern.Split("**");
 			return path.Contains(parts[0], StringComparison.OrdinalIgnoreCase);
 		}
 
-		if (pattern.Contains("*")) {
+		if (pattern.Contains('*')) {
 			var parts = pattern.Split('*');
 			var index = 0;
 			foreach (var part in parts) {
