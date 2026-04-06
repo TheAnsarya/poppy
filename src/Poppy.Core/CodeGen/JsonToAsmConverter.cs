@@ -203,7 +203,7 @@ public sealed class JsonToAsmConverter {
 
 			case JsonValueKind.Array:
 				sb.Append(".byte ");
-				var bytes = new List<string>();
+				List<string> bytes = [];
 				foreach (var elem in value.EnumerateArray()) {
 					if (elem.TryGetInt32(out int b)) {
 						bytes.Add(FormatHex(b & 0xff, 2, options.LowercaseHex));
@@ -263,7 +263,7 @@ public sealed class JsonToAsmConverter {
 	private static string[] GetFieldOrder(JsonElement record, string[]? customOrder) {
 		if (customOrder != null) return customOrder;
 
-		var fields = new List<string>();
+		List<string> fields = [];
 		foreach (var prop in record.EnumerateObject()) {
 			fields.Add(prop.Name);
 		}

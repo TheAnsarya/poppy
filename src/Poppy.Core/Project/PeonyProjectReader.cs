@@ -143,7 +143,7 @@ public sealed class PeonyProject {
 	/// </summary>
 	/// <returns>List of validation errors, empty if valid.</returns>
 	public List<string> Validate() {
-		var errors = new List<string>();
+		List<string> errors = [];
 
 		if (string.IsNullOrWhiteSpace(Version))
 			errors.Add("'version' is required");

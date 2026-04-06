@@ -93,7 +93,7 @@ public sealed class ProjectCompiler {
 		var includePaths = BuildIncludePaths();
 
 		// Compile all source files into a single AST
-		var allStatements = new List<StatementNode>();
+		List<StatementNode> allStatements = [];
 
 		foreach (var sourceFile in sourceFiles) {
 			var statements = CompileFile(sourceFile, includePaths);
@@ -186,7 +186,7 @@ public sealed class ProjectCompiler {
 	/// Resolves source file paths from project configuration.
 	/// </summary>
 	private List<string> ResolveSourceFiles() {
-		var files = new List<string>();
+		List<string> files = [];
 
 		// Add main file if specified
 		if (!string.IsNullOrEmpty(_project.Main)) {
@@ -212,7 +212,7 @@ public sealed class ProjectCompiler {
 	/// Resolves a glob pattern to a list of files.
 	/// </summary>
 	private List<string> ResolveGlobPattern(string pattern) {
-		var files = new List<string>();
+		List<string> files = [];
 
 		// Check if it's a glob pattern
 		if (pattern.Contains('*') || pattern.Contains('?')) {
@@ -258,7 +258,7 @@ public sealed class ProjectCompiler {
 	/// Builds include paths from project configuration.
 	/// </summary>
 	private List<string> BuildIncludePaths() {
-		var paths = new List<string> { _projectDir };
+		List<string> paths = [_projectDir];
 
 		foreach (var includePath in _project.Includes) {
 			var fullPath = ResolvePath(includePath);

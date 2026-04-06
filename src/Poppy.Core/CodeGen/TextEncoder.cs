@@ -489,7 +489,7 @@ public sealed class TextEncoder {
 	/// Encode a string to bytes
 	/// </summary>
 	public byte[] Encode(string text) {
-		var result = new List<byte>();
+		List<byte> result = [];
 		int pos = 0;
 
 		while (pos < text.Length) {

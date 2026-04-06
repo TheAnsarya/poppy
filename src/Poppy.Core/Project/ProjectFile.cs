@@ -155,7 +155,7 @@ public sealed class ProjectFile {
 	/// </summary>
 	/// <returns>List of validation errors, empty if valid.</returns>
 	public List<string> Validate() {
-		var errors = new List<string>();
+		List<string> errors = [];
 
 		if (string.IsNullOrWhiteSpace(Name)) {
 			errors.Add("Project name is required");

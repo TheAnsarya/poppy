@@ -212,7 +212,7 @@ public sealed class ArchiveHandler {
 	/// <param name="archivePath">Path to the .poppy archive.</param>
 	/// <returns>List of validation errors (empty if valid).</returns>
 	public static List<string> Validate(string archivePath) {
-		var errors = new List<string>();
+		List<string> errors = [];
 
 		if (!File.Exists(archivePath)) {
 			errors.Add($"Archive not found: {archivePath}");
@@ -318,7 +318,7 @@ public sealed class ArchiveHandler {
 	/// </summary>
 	private static void ValidateChecksums(string directory, string checksumsPath) {
 		var lines = File.ReadAllLines(checksumsPath);
-		var errors = new List<string>();
+		List<string> errors = [];
 
 		foreach (var line in lines) {
 			var parts = line.Split(':');

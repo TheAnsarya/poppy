@@ -105,7 +105,7 @@ public static class RoundtripVerifier {
 		}
 
 		// Find mismatches
-		var mismatches = new List<ByteMismatch>();
+		List<ByteMismatch> mismatches = [];
 		int totalMismatches = 0;
 		int compareLength = Math.Min(assembledBytes.Length, originalBytes.Length);
 

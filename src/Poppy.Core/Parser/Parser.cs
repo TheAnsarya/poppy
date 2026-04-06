@@ -39,7 +39,7 @@ public sealed class Parser {
 	/// Parses the tokens into a program AST.
 	/// </summary>
 	public ProgramNode Parse() {
-		var statements = new List<StatementNode>();
+		List<StatementNode> statements = [];
 
 		while (!IsAtEnd()) {
 			SkipNewlines();
@@ -177,7 +177,7 @@ public sealed class Parser {
 		}
 
 		// Parse directive arguments
-		var arguments = new List<ExpressionNode>();
+		List<ExpressionNode> arguments = [];
 
 		// Parse first argument if present
 		if (!IsAtEndOfStatement()) {
@@ -220,7 +220,7 @@ public sealed class Parser {
 
 		// It's a macro invocation (starts with @ and not followed by colon)
 		var macroName = token.Text[1..]; // Remove @ prefix
-		var arguments = new List<ExpressionNode>();
+		List<ExpressionNode> arguments = [];
 
 		if (!IsAtEndOfStatement()) {
 			arguments.Add(ParseExpression());
@@ -412,7 +412,7 @@ public sealed class Parser {
 		//   .macro name, param1, param2, param3           (comma-separated)
 		//   .macro name param1, param2, param3            (mixed)
 		//   .macro name param1=$00, param2, param3=$ff    (with defaults)
-		var parameters = new List<MacroParameter>();
+		List<MacroParameter> parameters = [];
 
 		// Skip optional comma after macro name
 		Match(TokenType.Comma);
@@ -426,7 +426,7 @@ public sealed class Parser {
 			// Check for default value (param=value)
 			if (Match(TokenType.Equals)) {
 				// Parse default value tokens until comma or end of statement
-				var defaultTokens = new List<Token>();
+				List<Token> defaultTokens = [];
 				while (!IsAtEndOfStatement() && !Check(TokenType.Comma)) {
 					defaultTokens.Add(Advance());
 				}
@@ -447,7 +447,7 @@ public sealed class Parser {
 		ExpectEndOfStatement();
 
 		// Parse body until .endmacro
-		var body = new List<StatementNode>();
+		List<StatementNode> body = [];
 		while (!IsAtEnd()) {
 			SkipNewlines();
 			if (IsAtEnd()) break;
@@ -473,8 +473,8 @@ public sealed class Parser {
 		ExpectEndOfStatement();
 
 		// Parse the then block
-		var thenBlock = new List<StatementNode>();
-		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode> thenBlock = [];
+		List<(ExpressionNode, IReadOnlyList<StatementNode>)> elseIfBranches = [];
 		List<StatementNode>? elseBlock = null;
 		bool hasElse = false;
 
@@ -498,7 +498,7 @@ public sealed class Parser {
 					var elseIfCondition = ParseExpression();
 					ExpectEndOfStatement();
 
-					var elseIfBlock = new List<StatementNode>();
+					List<StatementNode> elseIfBlock = [];
 					while (!IsAtEnd()) {
 						SkipNewlines();
 						if (IsAtEnd()) break;
@@ -526,7 +526,7 @@ public sealed class Parser {
 					Advance();
 					ExpectEndOfStatement();
 
-					elseBlock = new List<StatementNode>();
+					elseBlock = [];
 					while (!IsAtEnd()) {
 						SkipNewlines();
 						if (IsAtEnd()) break;
@@ -590,8 +590,8 @@ public sealed class Parser {
 		}
 
 		// Parse the then block (reuse conditional parsing logic)
-		var thenBlock = new List<StatementNode>();
-		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode> thenBlock = [];
+		List<(ExpressionNode, IReadOnlyList<StatementNode>)> elseIfBranches = [];
 		List<StatementNode>? elseBlock = null;
 
 		while (!IsAtEnd()) {
@@ -608,7 +608,7 @@ public sealed class Parser {
 					Advance();
 					ExpectEndOfStatement();
 
-					elseBlock = new List<StatementNode>();
+					elseBlock = [];
 					while (!IsAtEnd()) {
 						SkipNewlines();
 						if (IsAtEnd()) break;
@@ -661,8 +661,8 @@ public sealed class Parser {
 		var condition = new BinaryExpressionNode(location, left, comparisonOp, right);
 
 		// Parse the then block
-		var thenBlock = new List<StatementNode>();
-		var elseIfBranches = new List<(ExpressionNode, IReadOnlyList<StatementNode>)>();
+		List<StatementNode> thenBlock = [];
+		List<(ExpressionNode, IReadOnlyList<StatementNode>)> elseIfBranches = [];
 		List<StatementNode>? elseBlock = null;
 		bool hasElse = false;
 
@@ -685,7 +685,7 @@ public sealed class Parser {
 					Advance();
 					ExpectEndOfStatement();
 
-					elseBlock = new List<StatementNode>();
+					elseBlock = [];
 					while (!IsAtEnd()) {
 						SkipNewlines();
 						if (IsAtEnd()) break;
@@ -729,7 +729,7 @@ public sealed class Parser {
 		ExpectEndOfStatement();
 
 		// Parse the body until .endr
-		var body = new List<StatementNode>();
+		List<StatementNode> body = [];
 		while (!IsAtEnd()) {
 			SkipNewlines();
 			if (IsAtEnd()) break;
@@ -755,7 +755,7 @@ public sealed class Parser {
 		ExpectEndOfStatement();
 
 		// Parse enumeration members until .ende
-		var members = new List<EnumerationMember>();
+		List<EnumerationMember> members = [];
 		while (!IsAtEnd()) {
 			SkipNewlines();
 			if (IsAtEnd()) break;

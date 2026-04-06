@@ -66,7 +66,7 @@ public sealed class Preprocessor {
 		}
 
 		var lexer = new Lexer.Lexer(source, filePath);
-		var tokens = new List<Token>();
+		List<Token> tokens = [];
 		var baseDir = Path.GetDirectoryName(Path.GetFullPath(filePath)) ?? ".";
 
 		Token token;
@@ -100,7 +100,7 @@ public sealed class Preprocessor {
 	/// Handles an .include directive.
 	/// </summary>
 	private List<Token> HandleInclude(Lexer.Lexer lexer, SourceLocation location, string baseDir, int depth) {
-		var tokens = new List<Token>();
+		List<Token> tokens = [];
 
 		// Skip whitespace to get to the filename
 		Token filenameToken;

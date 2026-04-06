@@ -95,7 +95,7 @@ public sealed class MacroExpander {
 		var expansionId = ++_expansionCounter;
 
 		// Expand macro body
-		var expanded = new List<StatementNode>();
+		List<StatementNode> expanded = [];
 		foreach (var statement in macro.Body) {
 			var expandedStatement = ExpandStatement(statement, substitutions, macro.Name, expansionId);
 			if (expandedStatement != null) {

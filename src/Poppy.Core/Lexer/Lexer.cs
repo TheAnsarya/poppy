@@ -104,7 +104,7 @@ public sealed class Lexer {
 	/// Tokenizes the entire source and returns all tokens.
 	/// </summary>
 	public List<Token> Tokenize() {
-		var tokens = new List<Token>();
+		List<Token> tokens = [];
 		Token token;
 
 		do {

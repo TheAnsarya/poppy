@@ -65,7 +65,7 @@ public static class LynxBootCodeGenerator {
 			entryPoint = LoadAddress + StandardBootCodeSize;
 		}
 
-		var code = new List<byte>();
+		List<byte> code = [];
 
 		// ===== Standard Lynx Boot Sequence =====
 

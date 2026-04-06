@@ -403,7 +403,7 @@ public abstract partial class BaseConverter : IProjectConverter {
 	/// <param name="directory">The directory to search.</param>
 	/// <returns>List of source file paths.</returns>
 	protected virtual List<string> FindSourceFiles(string directory) {
-		var files = new List<string>();
+		List<string> files = [];
 
 		foreach (var extension in SupportedExtensions) {
 			files.AddRange(Directory.GetFiles(

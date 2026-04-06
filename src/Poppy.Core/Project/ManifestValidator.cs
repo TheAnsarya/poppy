@@ -41,7 +41,7 @@ public static class ManifestValidator {
 	/// <param name="manifest">The manifest to validate.</param>
 	/// <returns>List of validation error messages (empty if valid).</returns>
 	public static List<string> Validate(ProjectManifest manifest) {
-		var errors = new List<string>();
+		List<string> errors = [];
 
 		// Required fields
 		if (string.IsNullOrWhiteSpace(manifest.Name)) {

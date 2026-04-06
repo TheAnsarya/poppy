@@ -84,7 +84,7 @@ public static class ImageToChrConverter {
 		byte[,] pixels = ReadBmpPixels(bmpData, dataOffset, width, height, bitsPerPixel, topDown);
 
 		// Convert to tiles
-		var tiles = new List<byte[]>();
+		List<byte[]> tiles = [];
 		for (int ty = 0; ty < tilesY; ty++) {
 			for (int tx = 0; tx < tilesX; tx++) {
 				var tile = ExtractTile(pixels, tx, ty, options.TileWidth, options.TileHeight);
@@ -127,7 +127,7 @@ public static class ImageToChrConverter {
 			int tileEnd = Math.Min(i + bytesPerTile, chrData.Length);
 			for (int j = i; j < tileEnd; j += 8) {
 				sb.Append("\t.byte ");
-				var bytes = new List<string>();
+				List<string> bytes = [];
 				for (int k = j; k < Math.Min(j + 8, tileEnd); k++) {
 					bytes.Add(FormatHex(chrData[k], options.LowercaseHex));
 				}
