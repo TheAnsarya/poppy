@@ -298,11 +298,12 @@ public class ArchiveHandler {
 	/// Writes build information to a JSON file.
 	/// </summary>
 	private static void WriteBuildInfo(string filePath, ProjectManifest manifest) {
+		var version = typeof(ArchiveHandler).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 		var buildInfo = new {
-			poppyVersion = "1.0.0",  // TODO: Get from assembly version
+			poppyVersion = version,
 			buildDate = DateTime.UtcNow.ToString("o"),
 			platform = manifest.Platform,
-			builder = "Poppy Compiler 1.0.0"
+			builder = $"Poppy Compiler {version}"
 		};
 
 		var json = System.Text.Json.JsonSerializer.Serialize(buildInfo, new System.Text.Json.JsonSerializerOptions {
