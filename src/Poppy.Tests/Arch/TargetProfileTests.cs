@@ -339,6 +339,24 @@ public sealed class TargetProfileTests {
 		Assert.True(encoder.Mnemonics.Count >= 50, $"M68000 should have 50+ mnemonics, got {encoder.Mnemonics.Count}");
 	}
 
+	[Fact]
+	public void Mnemonics_SPC700_HasAtLeast20() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.True(encoder.Mnemonics.Count >= 20, $"SPC700 should have 20+ mnemonics, got {encoder.Mnemonics.Count}");
+	}
+
+	[Fact]
+	public void Mnemonics_HuC6280_HasAtLeast30() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.True(encoder.Mnemonics.Count >= 30, $"HuC6280 should have 30+ mnemonics, got {encoder.Mnemonics.Count}");
+	}
+
+	[Fact]
+	public void Mnemonics_V30MZ_HasAtLeast40() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.V30MZ).Encoder;
+		Assert.True(encoder.Mnemonics.Count >= 40, $"V30MZ should have 40+ mnemonics, got {encoder.Mnemonics.Count}");
+	}
+
 	// ========================================================================
 	// Mnemonics — Contains Known Instructions
 	// ========================================================================
@@ -360,5 +378,222 @@ public sealed class TargetProfileTests {
 	public void Mnemonics_ContainsKnownInstructions(TargetArchitecture arch, string mnemonic) {
 		var encoder = TargetResolver.GetProfile(arch).Encoder;
 		Assert.Contains(mnemonic, encoder.Mnemonics);
+	}
+
+	// ========================================================================
+	// Encoder Integration — SPC700 (recently fixed encoder)
+	// ========================================================================
+
+	[Fact]
+	public void Encoder_Spc700_EncodesNop() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.True(encoder.TryEncode("nop", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x00, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Spc700_EncodesClrc() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.True(encoder.TryEncode("clrc", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x60, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Spc700_EncodesSetc() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.True(encoder.TryEncode("setc", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x80, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Spc700_RejectsInvalidMnemonic() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.False(encoder.TryEncode("xyz", AddressingMode.Implied, out _));
+	}
+
+	// ========================================================================
+	// Encoder Integration — HuC6280 (65C02-compatible)
+	// ========================================================================
+
+	[Fact]
+	public void Encoder_Huc6280_EncodesNop() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.True(encoder.TryEncode("nop", AddressingMode.Implied, out var enc));
+		Assert.Equal(0xea, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Huc6280_EncodesLdaImmediate() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.True(encoder.TryEncode("lda", AddressingMode.Immediate, out var enc));
+		Assert.Equal(0xa9, enc.Opcode);
+		Assert.Equal(2, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Huc6280_EncodesInx() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.True(encoder.TryEncode("inx", AddressingMode.Implied, out var enc));
+		Assert.Equal(0xe8, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Huc6280_RejectsInvalidMnemonic() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.False(encoder.TryEncode("xyz", AddressingMode.Implied, out _));
+	}
+
+	// ========================================================================
+	// Encoder Integration — V30MZ (x86-compatible implied ops)
+	// ========================================================================
+
+	[Fact]
+	public void Encoder_V30mz_EncodesNop() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.V30MZ).Encoder;
+		Assert.True(encoder.TryEncode("nop", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x90, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_V30mz_EncodesHlt() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.V30MZ).Encoder;
+		Assert.True(encoder.TryEncode("hlt", AddressingMode.Implied, out var enc));
+		Assert.Equal(0xf4, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_V30mz_EncodesCli() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.V30MZ).Encoder;
+		Assert.True(encoder.TryEncode("cli", AddressingMode.Implied, out var enc));
+		Assert.Equal(0xfa, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_V30mz_RejectsInvalidMnemonic() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.V30MZ).Encoder;
+		Assert.False(encoder.TryEncode("xyz", AddressingMode.Implied, out _));
+	}
+
+	// ========================================================================
+	// Encoder Integration — Z80 (single-byte implied ops)
+	// ========================================================================
+
+	[Fact]
+	public void Encoder_Z80_EncodesNop() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.Z80).Encoder;
+		Assert.True(encoder.TryEncode("nop", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x00, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Z80_EncodesHalt() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.Z80).Encoder;
+		Assert.True(encoder.TryEncode("halt", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x76, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Z80_EncodesDaa() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.Z80).Encoder;
+		Assert.True(encoder.TryEncode("daa", AddressingMode.Implied, out var enc));
+		Assert.Equal(0x27, enc.Opcode);
+		Assert.Equal(1, enc.Size);
+	}
+
+	[Fact]
+	public void Encoder_Z80_RejectsInvalidMnemonic() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.Z80).Encoder;
+		Assert.False(encoder.TryEncode("xyz", AddressingMode.Implied, out _));
+	}
+
+	// ========================================================================
+	// Encoder Integration — M68000 (16-bit opcodes, limited implied ops)
+	// ========================================================================
+
+	[Fact]
+	public void Encoder_M68000_EncodesNop() {
+		// M68000 NOP exists as a special implied instruction
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.M68000).Encoder;
+		Assert.True(encoder.TryEncode("nop", AddressingMode.Implied, out var enc));
+	}
+
+	[Fact]
+	public void Encoder_M68000_RejectsInvalidMnemonic() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.M68000).Encoder;
+		Assert.False(encoder.TryEncode("xyz", AddressingMode.Implied, out _));
+	}
+
+	// ========================================================================
+	// Encoder Integration — ARM7TDMI (stub encoder, all return false)
+	// ========================================================================
+
+	[Fact]
+	public void Encoder_Arm7tdmi_StubReturnsFlase_ForImplied() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.ARM7TDMI).Encoder;
+		Assert.False(encoder.TryEncode("nop", AddressingMode.Implied, out _));
+	}
+
+	[Fact]
+	public void Encoder_Arm7tdmi_StubReturnsFlase_ForImmediate() {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.ARM7TDMI).Encoder;
+		Assert.False(encoder.TryEncode("mov", AddressingMode.Immediate, out _));
+	}
+
+	// ========================================================================
+	// IsBranchInstruction — Additional Architectures
+	// ========================================================================
+
+	[Theory]
+	[InlineData("bra")]
+	[InlineData("beq")]
+	[InlineData("bne")]
+	public void IsBranch_Spc700_BranchInstructions_ReturnTrue(string mnemonic) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.True(encoder.IsBranchInstruction(mnemonic));
+	}
+
+	[Theory]
+	[InlineData("nop")]
+	[InlineData("clrc")]
+	public void IsBranch_Spc700_NonBranches_ReturnFalse(string mnemonic) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.SPC700).Encoder;
+		Assert.False(encoder.IsBranchInstruction(mnemonic));
+	}
+
+	[Theory]
+	[InlineData("bcc")]
+	[InlineData("bcs")]
+	[InlineData("beq")]
+	[InlineData("bne")]
+	[InlineData("bra")]
+	public void IsBranch_Huc6280_BranchInstructions_ReturnTrue(string mnemonic) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.True(encoder.IsBranchInstruction(mnemonic));
+	}
+
+	[Theory]
+	[InlineData("nop")]
+	[InlineData("lda")]
+	public void IsBranch_Huc6280_NonBranches_ReturnFalse(string mnemonic) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.HuC6280).Encoder;
+		Assert.False(encoder.IsBranchInstruction(mnemonic));
+	}
+
+	[Theory]
+	[InlineData("jr")]
+	[InlineData("djnz")]
+	public void IsBranch_Z80_BranchInstructions_ReturnTrue(string mnemonic) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.Z80).Encoder;
+		Assert.True(encoder.IsBranchInstruction(mnemonic));
 	}
 }
