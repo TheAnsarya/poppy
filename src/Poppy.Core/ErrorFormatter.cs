@@ -12,7 +12,7 @@ namespace Poppy.Core;
 /// Formats error messages with source code context.
 /// </summary>
 public sealed class ErrorFormatter {
-	private readonly Dictionary<string, string[]> _sourceCache = new();
+	private readonly Dictionary<string, string[]> _sourceCache = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Registers source code for a file to enable context display.

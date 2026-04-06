@@ -14,7 +14,7 @@ namespace Poppy.Core.CodeGen;
 /// </summary>
 public sealed class ListingGenerator {
 	private readonly List<ListingEntry> _entries = [];
-	private readonly Dictionary<string, string[]> _sourceCache = new();
+	private readonly Dictionary<string, string[]> _sourceCache = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Gets all listing entries.
