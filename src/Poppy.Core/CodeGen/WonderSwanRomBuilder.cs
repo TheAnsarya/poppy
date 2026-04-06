@@ -78,7 +78,7 @@ public sealed class WonderSwanRomBuilder {
 	/// <summary>
 	/// WonderSwan ROM header structure (10 bytes at end of ROM).
 	/// </summary>
-	public class WonderSwanHeader {
+	public sealed class WonderSwanHeader {
 		/// <summary>Publisher ID (1 byte)</summary>
 		public byte PublisherId { get; set; } = 0x01;
 

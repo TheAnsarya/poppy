@@ -5,7 +5,7 @@ using System.Text;
 /// <summary>
 /// Encodes text strings to binary data using TBL table files
 /// </summary>
-public class TextEncoder {
+public sealed class TextEncoder {
 	private readonly Dictionary<string, byte> _charToByte = [];
 	private readonly Dictionary<string, ushort> _charToWord = [];
 	private readonly Dictionary<string, byte[]> _controlCodes = [];

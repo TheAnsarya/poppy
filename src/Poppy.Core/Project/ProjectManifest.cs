@@ -5,7 +5,7 @@ namespace Poppy.Core.Project;
 /// <summary>
 /// Represents the complete project manifest (poppy.json).
 /// </summary>
-public class ProjectManifest {
+public sealed class ProjectManifest {
 	/// <summary>
 	/// JSON schema URL for validation (optional).
 	/// </summary>
@@ -98,7 +98,7 @@ public class ProjectManifest {
 /// <summary>
 /// Compiler configuration section.
 /// </summary>
-public class ManifestCompilerConfig {
+public sealed class ManifestCompilerConfig {
 	/// <summary>
 	/// Minimum Poppy compiler version (semver range, optional).
 	/// </summary>
@@ -122,7 +122,7 @@ public class ManifestCompilerConfig {
 /// <summary>
 /// Compiler options and flags.
 /// </summary>
-public class ManifestCompilerOptions {
+public sealed class ManifestCompilerOptions {
 	/// <summary>
 	/// Enable optimizations (default: true).
 	/// </summary>
@@ -146,7 +146,7 @@ public class ManifestCompilerOptions {
 /// <summary>
 /// Build configuration section.
 /// </summary>
-public class ManifestBuildConfig {
+public sealed class ManifestBuildConfig {
 	/// <summary>
 	/// Additional include directories (optional).
 	/// </summary>
@@ -169,7 +169,7 @@ public class ManifestBuildConfig {
 /// <summary>
 /// Project metadata section.
 /// </summary>
-public class ManifestMetadata {
+public sealed class ManifestMetadata {
 	/// <summary>
 	/// Project tags/keywords (optional).
 	/// </summary>

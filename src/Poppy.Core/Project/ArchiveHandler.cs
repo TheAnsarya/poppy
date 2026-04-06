@@ -7,7 +7,7 @@ namespace Poppy.Core.Project;
 /// <summary>
 /// Handles packing and unpacking of .poppy project archives.
 /// </summary>
-public class ArchiveHandler {
+public sealed class ArchiveHandler {
 	private const string ManifestFileName = "poppy.json";
 	private const string MetadataDir = ".poppy";
 	private const string VersionFile = "version.txt";
@@ -18,7 +18,7 @@ public class ArchiveHandler {
 	/// <summary>
 	/// Options for packing an archive.
 	/// </summary>
-	public class PackOptions {
+	public sealed class PackOptions {
 		/// <summary>
 		/// Output file path for the archive.
 		/// </summary>
@@ -55,7 +55,7 @@ public class ArchiveHandler {
 	/// <summary>
 	/// Options for unpacking an archive.
 	/// </summary>
-	public class UnpackOptions {
+	public sealed class UnpackOptions {
 		/// <summary>
 		/// Target directory for extraction.
 		/// </summary>
