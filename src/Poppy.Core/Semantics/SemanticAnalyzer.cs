@@ -417,8 +417,8 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// Tracks REP/SEP instructions to update M/X flag state.
 	/// </summary>
 	private void TrackRepSep(InstructionNode node) {
-		var mnemonic = node.Mnemonic.ToLowerInvariant();
-		if (mnemonic is not ("rep" or "sep")) return;
+		if (!node.Mnemonic.Equals("rep", StringComparison.OrdinalIgnoreCase) &&
+			!node.Mnemonic.Equals("sep", StringComparison.OrdinalIgnoreCase)) return;
 
 		// Try to evaluate the operand to get the flag bits
 		if (node.Operand is null) return;
@@ -429,7 +429,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		bool affectsM = (bits & 0x20) != 0; // Bit 5 = M flag (accumulator size)
 		bool affectsX = (bits & 0x10) != 0; // Bit 4 = X flag (index size)
 
-		if (mnemonic == "rep") {
+		if (node.Mnemonic.Equals("rep", StringComparison.OrdinalIgnoreCase)) {
 			// REP clears bits -> 16-bit mode
 			if (affectsM) _accumulatorIs16Bit = true;
 			if (affectsX) _indexIs16Bit = true;
@@ -444,10 +444,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// Tries to auto-generate a label for JSR/JMP instructions targeting unlabeled addresses.
 	/// </summary>
 	private void TryAutoGenerateLabel(InstructionNode node) {
-		var mnemonic = node.Mnemonic.ToLowerInvariant();
-
 		// Only handle JSR and JMP instructions with absolute addressing
-		if (mnemonic is not ("jsr" or "jmp") ||
+		if ((!node.Mnemonic.Equals("jsr", StringComparison.OrdinalIgnoreCase) &&
+			!node.Mnemonic.Equals("jmp", StringComparison.OrdinalIgnoreCase)) ||
 			node.AddressingMode is not (AddressingMode.Absolute or AddressingMode.ZeroPage)) {
 			return;
 		}
@@ -470,7 +469,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		}
 
 		// Generate the label name
-		var prefix = mnemonic == "jsr" ? "sub" : "loc";
+		var prefix = node.Mnemonic.Equals("jsr", StringComparison.OrdinalIgnoreCase) ? "sub" : "loc";
 		var labelName = $"{prefix}_{targetAddress:x4}";
 
 		// Make sure the label name doesn't conflict with an existing symbol

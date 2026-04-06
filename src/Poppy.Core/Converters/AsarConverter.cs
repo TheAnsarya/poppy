@@ -216,12 +216,13 @@ public sealed partial class AsarConverter : BaseConverter {
 	/// Converts data directives.
 	/// </summary>
 	private static string ConvertDataDirective(string directive, string args) {
-		var pasmDirective = directive.ToLowerInvariant() switch {
+		var lower = directive.ToLowerInvariant();
+		var pasmDirective = lower switch {
 			"db" or "byte" => "db",
 			"dw" or "word" => "dw",
 			"dl" or "long" => "dl",
 			"dd" or "dword" => "dd",
-			_ => directive.ToLowerInvariant()
+			_ => lower
 		};
 
 		return $"{pasmDirective} {args}";
