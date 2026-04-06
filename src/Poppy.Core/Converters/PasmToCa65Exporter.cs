@@ -32,36 +32,7 @@ public sealed partial class PasmToCa65Exporter : BaseExporter {
 	}
 
 	/// <inheritdoc />
-	protected override string ExportLine(
-		string line,
-		int lineNumber,
-		string filePath,
-		ConversionResult result,
-		ConversionOptions options) {
-		if (string.IsNullOrWhiteSpace(line)) {
-			return line;
-		}
-
-		var whitespace = GetLeadingWhitespace(line);
-		var trimmed = line.TrimStart();
-
-		// Full-line comment — pass through (ca65 also uses ;)
-		if (trimmed.StartsWith(';')) {
-			return line;
-		}
-
-		var (code, comment) = SplitCodeAndComment(trimmed);
-
-		var converted = ConvertCode(code.Trim(), lineNumber, filePath, result, options);
-
-		if (comment is not null) {
-			return $"{whitespace}{converted} {comment}";
-		}
-
-		return $"{whitespace}{converted}";
-	}
-
-	private string ConvertCode(
+	protected override string ConvertCode(
 		string code,
 		int lineNumber,
 		string filePath,
@@ -152,10 +123,6 @@ public sealed partial class PasmToCa65Exporter : BaseExporter {
 		});
 	}
 
-	private static string ConvertIncludeExtension(string args) {
-		return PasmExtensionPattern().Replace(args, ".s");
-	}
-
 	/// <summary>
 	/// Converts PASM arch directives to ca65 CPU directives.
 	/// </summary>
@@ -172,6 +139,4 @@ public sealed partial class PasmToCa65Exporter : BaseExporter {
 	[GeneratedRegex(@"(?<!\w)\.([a-zA-Z_]\w*)\b(?!:)")]
 	private static partial Regex Ca65LocalLabelPattern();
 
-	[GeneratedRegex(@"\.pasm\b", RegexOptions.IgnoreCase)]
-	private static partial Regex PasmExtensionPattern();
 }

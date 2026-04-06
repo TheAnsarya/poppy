@@ -3,8 +3,6 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-using System.Text.RegularExpressions;
-
 namespace Poppy.Core.Converters;
 
 /// <summary>
@@ -23,40 +21,7 @@ public sealed partial class PasmToAsarExporter : BaseExporter {
 		DirectiveMapping.PasmToAsar;
 
 	/// <inheritdoc />
-	protected override string ExportLine(
-		string line,
-		int lineNumber,
-		string filePath,
-		ConversionResult result,
-		ConversionOptions options) {
-		// Empty lines pass through
-		if (string.IsNullOrWhiteSpace(line)) {
-			return line;
-		}
-
-		var whitespace = GetLeadingWhitespace(line);
-		var trimmed = line.TrimStart();
-
-		// Full-line comment — pass through (ASAR also uses ;)
-		if (trimmed.StartsWith(';')) {
-			return line;
-		}
-
-		// Split code and comment
-		var (code, comment) = SplitCodeAndComment(trimmed);
-
-		// Convert the code part
-		var converted = ConvertCode(code.Trim(), lineNumber, filePath, result, options);
-
-		// Reassemble with whitespace and comment
-		if (comment is not null) {
-			return $"{whitespace}{converted} {comment}";
-		}
-
-		return $"{whitespace}{converted}";
-	}
-
-	private string ConvertCode(
+	protected override string ConvertCode(
 		string code,
 		int lineNumber,
 		string filePath,
@@ -115,13 +80,6 @@ public sealed partial class PasmToAsarExporter : BaseExporter {
 	}
 
 	/// <summary>
-	/// Converts .pasm include references to .asm.
-	/// </summary>
-	private static string ConvertIncludeExtension(string args) {
-		return PasmExtensionPattern().Replace(args, ".asm");
-	}
-
-	/// <summary>
 	/// Converts PASM arch directives to ASAR format.
 	/// ASAR uses implied architecture or specific names.
 	/// </summary>
@@ -136,6 +94,4 @@ public sealed partial class PasmToAsarExporter : BaseExporter {
 		};
 	}
 
-	[GeneratedRegex(@"\.pasm\b", RegexOptions.IgnoreCase)]
-	private static partial Regex PasmExtensionPattern();
 }

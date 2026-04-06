@@ -3,8 +3,6 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-using System.Text.RegularExpressions;
-
 namespace Poppy.Core.Converters;
 
 /// <summary>
@@ -35,37 +33,16 @@ public sealed partial class PasmToXkasExporter : BaseExporter {
 	}
 
 	/// <inheritdoc />
-	protected override string ExportLine(
-		string line,
-		int lineNumber,
-		string filePath,
-		ConversionResult result,
+	protected override string HandleFullLineComment(
+		string originalLine,
+		string trimmedLine,
+		string leadingWhitespace,
 		ConversionOptions options) {
-		if (string.IsNullOrWhiteSpace(line)) {
-			return line;
-		}
-
-		var whitespace = GetLeadingWhitespace(line);
-		var trimmed = line.TrimStart();
-
-		// Full-line comment — convert ; to //
-		if (trimmed.StartsWith(';')) {
-			return $"{whitespace}//{trimmed[1..]}";
-		}
-
-		var (code, comment) = SplitCodeAndComment(trimmed);
-
-		var converted = ConvertCode(code.Trim(), lineNumber, filePath, result, options);
-
-		if (comment is not null) {
-			var convertedComment = ConvertComment(comment);
-			return $"{whitespace}{converted} {convertedComment}";
-		}
-
-		return $"{whitespace}{converted}";
+		return $"{leadingWhitespace}//{trimmedLine[1..]}";
 	}
 
-	private string ConvertCode(
+	/// <inheritdoc />
+	protected override string ConvertCode(
 		string code,
 		int lineNumber,
 		string filePath,
@@ -154,10 +131,6 @@ public sealed partial class PasmToXkasExporter : BaseExporter {
 		return code;
 	}
 
-	private static string ConvertIncludeExtension(string args) {
-		return PasmExtensionPattern().Replace(args, ".asm");
-	}
-
 	/// <summary>
 	/// Converts PASM arch directives to xkas format.
 	/// xkas uses "arch 65816.wdc" style notation.
@@ -198,6 +171,4 @@ public sealed partial class PasmToXkasExporter : BaseExporter {
 		};
 	}
 
-	[GeneratedRegex(@"\.pasm\b", RegexOptions.IgnoreCase)]
-	private static partial Regex PasmExtensionPattern();
 }

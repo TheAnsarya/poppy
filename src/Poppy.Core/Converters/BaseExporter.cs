@@ -164,13 +164,67 @@ public abstract partial class BaseExporter : IPasmExporter {
 
 	/// <summary>
 	/// Exports a single line of PASM source code to the target format.
+	/// The default implementation handles empty lines, full-line comments,
+	/// code/comment splitting, and delegates code conversion to <see cref="ConvertCode"/>.
 	/// </summary>
-	protected abstract string ExportLine(
+	protected virtual string ExportLine(
 		string line,
 		int lineNumber,
 		string filePath,
 		ConversionResult result,
+		ConversionOptions options) {
+		if (string.IsNullOrWhiteSpace(line)) {
+			return line;
+		}
+
+		var whitespace = GetLeadingWhitespace(line);
+		var trimmed = line.TrimStart();
+
+		// Full-line comment (virtual hook for subclass-specific comment styles)
+		if (trimmed.StartsWith(';')) {
+			return HandleFullLineComment(line, trimmed, whitespace, options);
+		}
+
+		var (code, comment) = SplitCodeAndComment(trimmed);
+
+		var converted = ConvertCode(code.Trim(), lineNumber, filePath, result, options);
+
+		if (comment is not null) {
+			var convertedComment = ConvertComment(comment);
+			return $"{whitespace}{converted} {convertedComment}";
+		}
+
+		return $"{whitespace}{converted}";
+	}
+
+	/// <summary>
+	/// Handles a full-line comment. Returns the converted line.
+	/// Default passes through as-is (both ASAR and ca65 use ; comments).
+	/// Override for assemblers that use different comment styles (e.g., xkas uses //).
+	/// </summary>
+	protected virtual string HandleFullLineComment(
+		string originalLine,
+		string trimmedLine,
+		string leadingWhitespace,
+		ConversionOptions options) {
+		return originalLine;
+	}
+
+	/// <summary>
+	/// Converts the code portion of a line (excluding comments and whitespace).
+	/// </summary>
+	protected abstract string ConvertCode(
+		string code,
+		int lineNumber,
+		string filePath,
+		ConversionResult result,
 		ConversionOptions options);
+
+	/// <summary>
+	/// Replaces .pasm file extensions in include arguments with the target extension.
+	/// </summary>
+	protected string ConvertIncludeExtension(string args) =>
+		PasmExtensionPattern().Replace(args, DefaultExtension);
 
 	// ========================================================================
 	// Protected Helper Methods
@@ -288,4 +342,7 @@ public abstract partial class BaseExporter : IPasmExporter {
 
 	[GeneratedRegex(@"^\.(\w+)", RegexOptions.IgnoreCase)]
 	protected static partial Regex LocalLabelRefPattern();
+
+	[GeneratedRegex(@"\.pasm\b", RegexOptions.IgnoreCase)]
+	protected static partial Regex PasmExtensionPattern();
 }
