@@ -659,9 +659,8 @@ internal static class InstructionSetM68000 {
 	/// <param name="mnemonic">The instruction mnemonic.</param>
 	/// <returns>True if it's a DBcc instruction.</returns>
 	public static bool IsDbccInstruction(string mnemonic) {
-		var lower = mnemonic.ToLowerInvariant();
-		return lower.StartsWith("db", StringComparison.Ordinal) &&
-			   _baseOpcodes.ContainsKey(lower);
+		return mnemonic.StartsWith("db", StringComparison.OrdinalIgnoreCase) &&
+			   _baseOpcodes.ContainsKey(mnemonic);
 	}
 
 	/// <summary>
@@ -670,9 +669,8 @@ internal static class InstructionSetM68000 {
 	/// <param name="mnemonic">The instruction mnemonic.</param>
 	/// <returns>True if it's an Scc instruction.</returns>
 	public static bool IsSccInstruction(string mnemonic) {
-		var lower = mnemonic.ToLowerInvariant();
-		return lower.Length == 2 && lower[0] == 's' &&
-			   _baseOpcodes.ContainsKey(lower);
+		return mnemonic.Length == 2 && (mnemonic[0] == 's' || mnemonic[0] == 'S') &&
+			   _baseOpcodes.ContainsKey(mnemonic);
 	}
 
 	/// <summary>

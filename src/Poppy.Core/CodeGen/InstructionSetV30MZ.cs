@@ -380,10 +380,9 @@ internal static class InstructionSetV30MZ {
 	/// <param name="size">The total instruction size in bytes if found.</param>
 	/// <returns>True if a valid encoding was found.</returns>
 	public static bool TryGetEncodingFromShared(string mnemonic, AddressingMode sharedMode, out byte opcode, out int size) {
-		var lower = mnemonic.ToLowerInvariant();
 
 		// Implied instructions (no operand)
-		if (sharedMode == AddressingMode.Implied && _impliedOpcodes.TryGetValue(lower, out var impliedBytes)) {
+		if (sharedMode == AddressingMode.Implied && _impliedOpcodes.TryGetValue(mnemonic, out var impliedBytes)) {
 			opcode = impliedBytes[0];
 			size = impliedBytes.Length;
 			return true;
@@ -391,7 +390,7 @@ internal static class InstructionSetV30MZ {
 
 		// Conditional jumps (short relative)
 		if ((sharedMode == AddressingMode.Relative || sharedMode == AddressingMode.Absolute) &&
-			_conditionalJumps.TryGetValue(lower, out var jccOpcode)) {
+			_conditionalJumps.TryGetValue(mnemonic, out var jccOpcode)) {
 			opcode = jccOpcode;
 			size = 2; // opcode + rel8
 			return true;
@@ -399,7 +398,7 @@ internal static class InstructionSetV30MZ {
 
 		// Loop instructions (short relative)
 		if ((sharedMode == AddressingMode.Relative || sharedMode == AddressingMode.Absolute) &&
-			_loopInstructions.TryGetValue(lower, out var loopOpcode)) {
+			_loopInstructions.TryGetValue(mnemonic, out var loopOpcode)) {
 			opcode = loopOpcode;
 			size = 2; // opcode + rel8
 			return true;

@@ -245,18 +245,16 @@ internal static class InstructionSetARM7TDMI {
 			return false;
 		}
 
-		var lower = mnemonic.ToLowerInvariant();
-
 		// Check direct match first
-		if (ArmMnemonics.Contains(lower)) {
+		if (ArmMnemonics.Contains(mnemonic)) {
 			return true;
 		}
 
 		// Check for conditional variants (e.g., "addeq", "bne", "ldrgt")
 		// Most ARM instructions can have condition suffixes
 		foreach (var cond in ConditionMap.Keys) {
-			if (lower.EndsWith(cond, StringComparison.OrdinalIgnoreCase) && lower.Length > cond.Length) {
-				var baseMnemonic = lower[..^cond.Length];
+			if (mnemonic.EndsWith(cond, StringComparison.OrdinalIgnoreCase) && mnemonic.Length > cond.Length) {
+				var baseMnemonic = mnemonic[..^cond.Length];
 				if (ArmMnemonics.Contains(baseMnemonic)) {
 					return true;
 				}
@@ -284,16 +282,14 @@ internal static class InstructionSetARM7TDMI {
 			return false;
 		}
 
-		var lower = mnemonic.ToLowerInvariant();
-
 		// Direct match - Thumb has limited conditional support
-		if (ThumbMnemonics.Contains(lower)) {
+		if (ThumbMnemonics.Contains(mnemonic)) {
 			return true;
 		}
 
 		// Thumb conditional branches (only B instruction supports conditions)
-		if (lower.Length > 1 && lower.StartsWith("b", StringComparison.OrdinalIgnoreCase)) {
-			var suffix = lower[1..];
+		if (mnemonic.Length > 1 && mnemonic.StartsWith("b", StringComparison.OrdinalIgnoreCase)) {
+			var suffix = mnemonic[1..];
 			if (ConditionMap.ContainsKey(suffix)) {
 				return true;
 			}
@@ -382,7 +378,7 @@ internal static class InstructionSetARM7TDMI {
 		}
 
 		// Strip S suffix if present
-		var baseMnemonic = mnemonic.ToLowerInvariant();
+		var baseMnemonic = mnemonic;
 		if (baseMnemonic.EndsWith("s", StringComparison.OrdinalIgnoreCase) && baseMnemonic.Length > 1) {
 			baseMnemonic = baseMnemonic[..^1];
 		}

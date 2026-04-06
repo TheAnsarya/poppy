@@ -376,17 +376,15 @@ internal static class InstructionSetHuC6280 {
 			return false;
 		}
 
-		var lower = mnemonic.ToLowerInvariant();
-
 		// Check standard opcodes
-		if (Opcodes.ContainsKey(lower)) {
+		if (Opcodes.ContainsKey(mnemonic)) {
 			return true;
 		}
 
 		// Check bit manipulation instructions (SMB0-7, RMB0-7, BBR0-7, BBS0-7)
-		if (lower.Length == 4 && char.IsDigit(lower[3])) {
-			var baseMnemonic = lower[..3];
-			var bitNum = lower[3] - '0';
+		if (mnemonic.Length == 4 && char.IsDigit(mnemonic[3])) {
+			var baseMnemonic = mnemonic[..3];
+			var bitNum = mnemonic[3] - '0';
 			if (bitNum >= 0 && bitNum <= 7 && BitInstructionBase.ContainsKey(baseMnemonic)) {
 				return true;
 			}
@@ -408,27 +406,26 @@ internal static class InstructionSetHuC6280 {
 			return false;
 		}
 
-		var lower = mnemonic.ToLowerInvariant();
 
 		// Check standard opcodes
-		if (Opcodes.TryGetValue(lower, out var modes)) {
+		if (Opcodes.TryGetValue(mnemonic, out var modes)) {
 			return modes.TryGetValue(mode, out opcode);
 		}
 
 		// Check bit manipulation instructions
-		if (lower.Length == 4 && char.IsDigit(lower[3])) {
-			var baseMnemonic = lower[..3];
-			var bitNum = lower[3] - '0';
+		if (mnemonic.Length == 4 && char.IsDigit(mnemonic[3])) {
+			var baseMnemonic = mnemonic[..3];
+			var bitNum = mnemonic[3] - '0';
 
 			if (bitNum >= 0 && bitNum <= 7 && BitInstructionBase.TryGetValue(baseMnemonic, out var baseOpcode)) {
 				// RMB/SMB use ZeroPageBit mode
-				if ((baseMnemonic == "rmb" || baseMnemonic == "smb") && mode == HuC6280AddressingMode.ZeroPageBit) {
+				if ((baseMnemonic.Equals("rmb", StringComparison.OrdinalIgnoreCase) || baseMnemonic.Equals("smb", StringComparison.OrdinalIgnoreCase)) && mode == HuC6280AddressingMode.ZeroPageBit) {
 					opcode = (byte)(baseOpcode + (bitNum << 4));
 					return true;
 				}
 
 				// BBR/BBS use ZeroPageRelative mode
-				if ((baseMnemonic == "bbr" || baseMnemonic == "bbs") && mode == HuC6280AddressingMode.ZeroPageRelative) {
+				if ((baseMnemonic.Equals("bbr", StringComparison.OrdinalIgnoreCase) || baseMnemonic.Equals("bbs", StringComparison.OrdinalIgnoreCase)) && mode == HuC6280AddressingMode.ZeroPageRelative) {
 					opcode = (byte)(baseOpcode + (bitNum << 4));
 					return true;
 				}

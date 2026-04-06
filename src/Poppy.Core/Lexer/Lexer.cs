@@ -453,14 +453,13 @@ public sealed class Lexer {
 		}
 
 		// Check if it's a known mnemonic (with or without size suffix)
-		var lower = text.ToLowerInvariant();
 
 		// Strip size suffix for mnemonic check (e.g., lda.b -> lda)
-		var baseText = lower;
-		if (lower.Length > 2 && lower[^2] == '.') {
-			var suffix = lower[^1];
-			if (suffix == 'b' || suffix == 'w' || suffix == 'l') {
-				baseText = lower[..^2];
+		var baseText = text;
+		if (text.Length > 2 && text[^2] == '.') {
+			var suffix = text[^1];
+			if (suffix is 'b' or 'B' or 'w' or 'W' or 'l' or 'L') {
+				baseText = text[..^2];
 			}
 		}
 
@@ -477,8 +476,8 @@ public sealed class Lexer {
 			return _targetMnemonics.Contains(text);
 		}
 
-		// Fallback: accept all known mnemonics from all architectures
-		return text switch {
+		// Fallback: accept all known mnemonics from all architectures (case-insensitive switch)
+		return text.ToLowerInvariant() switch {
 			// 6502 mnemonics
 			"adc" or "and" or "asl" or "bcc" or "bcs" or "beq" or "bit" or "bmi" or
 			"bne" or "bpl" or "brk" or "bvc" or "bvs" or "clc" or "cld" or "cli" or
