@@ -176,31 +176,7 @@ public sealed class ProjectFile {
 	/// Checks if a target string is valid.
 	/// </summary>
 	private static bool IsValidTarget(string? target) {
-		return target?.ToLowerInvariant() is
-			// NES / 6502
-			"nes" or "6502" or
-			// Atari 2600 / 6507
-			"atari2600" or "2600" or "6507" or
-			// Atari Lynx / 65SC02
-			"lynx" or "65sc02" or
-			// Fairchild Channel F / F8
-			"channelf" or "channel-f" or "channel_f" or "f8" or
-			// SNES / 65816
-			"snes" or "65816" or
-			// Game Boy / SM83
-			"gb" or "gbc" or "gameboy" or "sm83" or
-			// Sega Genesis / M68000
-			"genesis" or "megadrive" or "68000" or "m68000" or
-			// Sega Master System / Z80
-			"sms" or "gg" or "z80" or
-			// WonderSwan / V30MZ
-			"wonderswan" or "ws" or "wsc" or "v30mz" or
-			// GBA / ARM7TDMI
-			"gba" or "arm7" or "arm7tdmi" or
-			// SNES APU / SPC700
-			"spc" or "spc700" or
-			// TurboGrafx-16 / HuC6280
-			"tg16" or "pce" or "huc6280";
+		return target is not null && TargetResolver.Resolve(target) is not null;
 	}
 
 	/// <summary>
