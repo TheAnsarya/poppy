@@ -5,7 +5,7 @@
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v2.0.0)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-[![Tests](https://img.shields.io/badge/tests-3157%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+[![Tests](https://img.shields.io/badge/tests-3181%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
 
 ---
 
@@ -455,7 +455,7 @@ rts
 - ✅ VS Code extension (published to marketplace)
 - ✅ Comprehensive documentation (21 guides, 5,800+ lines)
 - ✅ Example projects for all platforms
-- ✅ 3,157 tests passing
+- ✅ 3,181 tests passing
 
 **Next Version:** v1.1.0 (Q1 2026)
 
