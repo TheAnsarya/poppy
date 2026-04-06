@@ -20,14 +20,7 @@ public sealed partial class Ca65Converter : BaseConverter {
 	public override IReadOnlyList<string> SupportedExtensions { get; } = [".s", ".asm", ".inc"];
 
 	// Track state for multi-line constructs
-#pragma warning disable CS0414 // Field assigned but never used - tracking state for future expansion
-	private bool _inMacro;
-	private bool _inScope;
-	private bool _inProc;
-	private bool _inStruct;
 	private int _ifDepth;
-	private string? _currentSegment;
-#pragma warning restore CS0414
 
 	/// <inheritdoc />
 	protected override string ConvertLine(
@@ -222,7 +215,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	private string ConvertSegment(string args) {
 		// Remove quotes if present
 		var segment = args.Trim('"', '\'');
-		_currentSegment = segment;
 		return $"segment \"{segment}\"";
 	}
 
@@ -230,7 +222,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Sets the current segment using a shorthand directive.
 	/// </summary>
 	private string SetSegment(string segment) {
-		_currentSegment = segment;
 		return $"segment \"{segment}\"";
 	}
 
@@ -265,7 +256,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .scope directive.
 	/// </summary>
 	private string ConvertScopeStart(string args) {
-		_inScope = true;
 		return string.IsNullOrEmpty(args) ? "scope" : $"scope {args}";
 	}
 
@@ -273,7 +263,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .endscope directive.
 	/// </summary>
 	private string ConvertScopeEnd() {
-		_inScope = false;
 		return "endscope";
 	}
 
@@ -281,7 +270,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .proc directive.
 	/// </summary>
 	private string ConvertProcStart(string args) {
-		_inProc = true;
 		return $"proc {args}";
 	}
 
@@ -289,7 +277,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .endproc directive.
 	/// </summary>
 	private string ConvertProcEnd() {
-		_inProc = false;
 		return "endproc";
 	}
 
@@ -297,8 +284,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .macro directive.
 	/// </summary>
 	private string ConvertMacroStart(string args) {
-		_inMacro = true;
-
 		// ca65: .macro name arg1, arg2
 		// PASM: macro name(arg1, arg2)
 		var parts = args.Split([' ', '\t'], 2, StringSplitOptions.RemoveEmptyEntries);
@@ -315,7 +300,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .endmacro directive.
 	/// </summary>
 	private string ConvertMacroEnd() {
-		_inMacro = false;
 		return "endmacro";
 	}
 
@@ -323,7 +307,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .struct directive.
 	/// </summary>
 	private string ConvertStructStart(string args) {
-		_inStruct = true;
 		return string.IsNullOrEmpty(args) ? "struct" : $"struct {args}";
 	}
 
@@ -331,7 +314,6 @@ public sealed partial class Ca65Converter : BaseConverter {
 	/// Converts .endstruct directive.
 	/// </summary>
 	private string ConvertStructEnd() {
-		_inStruct = false;
 		return "endstruct";
 	}
 

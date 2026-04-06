@@ -20,10 +20,7 @@ public sealed partial class XkasConverter : BaseConverter {
 	public override IReadOnlyList<string> SupportedExtensions { get; } = [".asm"];
 
 	// Track state for multi-line constructs
-#pragma warning disable CS0414 // Field assigned but never used - tracking state for future expansion
-	private bool _inMacro;
 	private int _ifDepth;
-#pragma warning restore CS0414
 
 	/// <inheritdoc />
 	protected override string ConvertLine(
@@ -310,7 +307,6 @@ public sealed partial class XkasConverter : BaseConverter {
 	/// Converts macro definition.
 	/// </summary>
 	private string ConvertMacroDefinition(Match match) {
-		_inMacro = true;
 		var name = match.Groups[1].Value;
 		var args = match.Groups[2].Value;
 
@@ -326,7 +322,6 @@ public sealed partial class XkasConverter : BaseConverter {
 	/// Converts endmacro directive.
 	/// </summary>
 	private string ConvertEndMacro() {
-		_inMacro = false;
 		return "endmacro";
 	}
 

@@ -20,11 +20,7 @@ public sealed partial class AsarConverter : BaseConverter {
 	public override IReadOnlyList<string> SupportedExtensions { get; } = [".asm"];
 
 	// Track state for multi-line constructs
-#pragma warning disable CS0414 // Field assigned but never used - tracking state for future expansion
-	private bool _inMacro;
-	private bool _inNamespace;
 	private int _ifDepth;
-#pragma warning restore CS0414
 
 	/// <inheritdoc />
 	protected override string ConvertLine(
@@ -146,12 +142,10 @@ public sealed partial class AsarConverter : BaseConverter {
 
 		// Handle namespace
 		if (directive.Equals("namespace", StringComparison.OrdinalIgnoreCase)) {
-			_inNamespace = !string.IsNullOrEmpty(args);
 			return $"namespace {args}";
 		}
 
 		if (directive.Equals("endnamespace", StringComparison.OrdinalIgnoreCase)) {
-			_inNamespace = false;
 			return "endnamespace";
 		}
 
@@ -305,7 +299,6 @@ public sealed partial class AsarConverter : BaseConverter {
 	/// Converts macro definitions.
 	/// </summary>
 	private string ConvertMacroDefinition(Match match, ConversionResult result, ConversionOptions options) {
-		_inMacro = true;
 		var name = match.Groups[1].Value;
 		var args = match.Groups[2].Value;
 
