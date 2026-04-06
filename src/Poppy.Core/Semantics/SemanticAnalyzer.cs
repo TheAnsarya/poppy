@@ -1082,7 +1082,7 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 
 		if (node.Arguments.Count < 1) {
 			_errors.Add(new SemanticError(
-				".target directive requires an architecture (nes, snes, gb, atari2600, lynx, genesis, sms, ws, gba, spc700, tg16)",
+				".target directive requires an architecture (nes, snes, gb, atari2600, lynx, genesis, sms, ws, gba, spc700, tg16, channelf)",
 				node.Location));
 			return;
 		}

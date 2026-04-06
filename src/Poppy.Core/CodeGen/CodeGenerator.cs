@@ -1018,7 +1018,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	private void HandlePlatformDirective(DirectiveNode node) {
 		if (node.Arguments.Count < 1) {
 			_errors.Add(new CodeError(
-				".platform directive requires an architecture (nes, snes, gb, lynx, genesis, sms, ws, gba, spc700, tg16)",
+				".platform directive requires an architecture (nes, snes, gb, lynx, genesis, sms, ws, gba, spc700, tg16, channelf)",
 				node.Location));
 			return;
 		}
