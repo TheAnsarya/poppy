@@ -814,4 +814,58 @@ public static class InstructionSetSPC700 {
 	public static IEnumerable<string> GetAllMnemonics() {
 		return Opcodes.Keys;
 	}
+
+	/// <summary>
+	/// Tries to get the encoding for a mnemonic and SPC700-local addressing mode.
+	/// </summary>
+	/// <param name="mnemonic">The instruction mnemonic (may include operand pattern, e.g., "mov a").</param>
+	/// <param name="mode">The SPC700-local addressing mode.</param>
+	/// <param name="opcode">The opcode byte if found.</param>
+	/// <param name="size">The instruction size in bytes if found.</param>
+	/// <returns>True if the encoding was found.</returns>
+	public static bool TryGetEncoding(string mnemonic, AddressingMode mode, out byte opcode, out int size) {
+		if (Opcodes.TryGetValue(mnemonic, out var modes) && modes.TryGetValue(mode, out opcode)) {
+			size = GetInstructionSize(mode);
+			return true;
+		}
+
+		opcode = 0;
+		size = 0;
+		return false;
+	}
+
+	/// <summary>
+	/// Tries to get the encoding for a mnemonic using the shared parser addressing mode.
+	/// Maps the shared mode to the SPC700-local mode before lookup.
+	/// </summary>
+	public static bool TryGetEncoding(string mnemonic, Parser.AddressingMode sharedMode, out byte opcode, out int size) {
+		var localMode = MapAddressingMode(sharedMode);
+		if (localMode.HasValue && TryGetEncoding(mnemonic, localMode.Value, out opcode, out size)) {
+			return true;
+		}
+		opcode = 0;
+		size = 0;
+		return false;
+	}
+
+	/// <summary>
+	/// Maps the shared parser addressing mode to the SPC700-local addressing mode.
+	/// </summary>
+	private static AddressingMode? MapAddressingMode(Parser.AddressingMode mode) {
+		return mode switch {
+			Parser.AddressingMode.Implied => AddressingMode.Implied,
+			Parser.AddressingMode.Accumulator => AddressingMode.Accumulator,
+			Parser.AddressingMode.Immediate => AddressingMode.Immediate,
+			Parser.AddressingMode.ZeroPage => AddressingMode.DirectPage,
+			Parser.AddressingMode.ZeroPageX => AddressingMode.DirectPageX,
+			Parser.AddressingMode.ZeroPageY => AddressingMode.DirectPageY,
+			Parser.AddressingMode.Absolute => AddressingMode.Absolute,
+			Parser.AddressingMode.AbsoluteX => AddressingMode.AbsoluteX,
+			Parser.AddressingMode.AbsoluteY => AddressingMode.AbsoluteY,
+			Parser.AddressingMode.IndexedIndirect => AddressingMode.IndirectPageX,
+			Parser.AddressingMode.IndirectIndexed => AddressingMode.IndirectPageY,
+			Parser.AddressingMode.Relative => AddressingMode.Relative,
+			_ => null
+		};
+	}
 }

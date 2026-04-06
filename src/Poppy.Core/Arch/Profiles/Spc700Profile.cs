@@ -21,9 +21,10 @@ internal sealed class Spc700Profile : ITargetProfile {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetSPC700.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
-			// SPC700 is dispatched through InstructionSetSPC700 but isn't in the
-			// main TryGetInstructionEncoding chain currently.
-			// This is a placeholder for future integration.
+			if (InstructionSetSPC700.TryGetEncoding(mnemonic, mode, out var opcode, out var size)) {
+				encoding = new EncodedInstruction(opcode, size);
+				return true;
+			}
 			encoding = default;
 			return false;
 		}

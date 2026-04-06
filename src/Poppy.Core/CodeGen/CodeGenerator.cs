@@ -229,6 +229,30 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			return romBuilder.Build();
 		}
 
+		// Build Sega Master System/Game Gear ROM if configured (for Z80 target only)
+		if (_target == TargetArchitecture.Z80) {
+			var romBuilder = new MasterSystemRomBuilder();
+
+			// Add all segments to the ROM builder
+			foreach (var segment in _segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+
+			return romBuilder.Build();
+		}
+
+		// Build Sega Genesis/Mega Drive ROM if configured (for M68000 target only)
+		if (_target == TargetArchitecture.M68000) {
+			var romBuilder = new GenesisRomBuilder();
+
+			// Add all segments to the ROM builder
+			foreach (var segment in _segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+
+			return romBuilder.Build();
+		}
+
 		return binary;
 	}
 
