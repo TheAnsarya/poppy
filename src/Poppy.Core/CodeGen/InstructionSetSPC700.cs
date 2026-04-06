@@ -2,10 +2,7 @@
 // SPC700 instruction set implementation for SNES audio coprocessor
 // The SPC700 is similar to the 6502 but with unique opcodes and addressing modes
 
-using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Globalization;
 
 namespace Poppy.Core.CodeGen;
 

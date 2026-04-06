@@ -2,7 +2,6 @@
 // Game Boy Advance (GBA) ROM header builder
 // Generates valid GBA ROM headers at $000000-$0000BF (192 bytes)
 
-using System;
 using System.Text;
 
 namespace Poppy.Core.CodeGen;

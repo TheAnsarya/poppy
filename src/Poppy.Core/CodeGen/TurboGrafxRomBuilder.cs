@@ -2,7 +2,6 @@
 // TurboGrafx-16 / PC Engine ROM header builder
 // Generates valid TG16/PCE ROM headers
 
-using System;
 using System.Text;
 
 namespace Poppy.Core.CodeGen;

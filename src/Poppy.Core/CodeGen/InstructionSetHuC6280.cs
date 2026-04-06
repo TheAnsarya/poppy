@@ -2,10 +2,7 @@
 // HuC6280 instruction set implementation for TurboGrafx-16 / PC Engine
 // Based on 65C02 with extensions for TG16 hardware
 
-using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Globalization;
 using Parser = Poppy.Core.Parser;
 
 namespace Poppy.Core.CodeGen;

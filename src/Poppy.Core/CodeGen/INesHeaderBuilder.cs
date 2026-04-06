@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 namespace Poppy.Core.CodeGen;
 
 /// <summary>

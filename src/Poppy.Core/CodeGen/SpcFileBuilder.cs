@@ -2,7 +2,6 @@
 // SPC file format builder for SNES audio
 // Generates valid .spc files containing SPC700 code and DSP state
 
-using System;
 using System.Text;
 
 namespace Poppy.Core.CodeGen;

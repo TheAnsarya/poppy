@@ -2,10 +2,7 @@
 // ARM7TDMI instruction set implementation for Game Boy Advance (GBA)
 // Supports both ARM (32-bit) and Thumb (16-bit) instruction modes
 
-using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Globalization;
 
 namespace Poppy.Core.CodeGen;
 
