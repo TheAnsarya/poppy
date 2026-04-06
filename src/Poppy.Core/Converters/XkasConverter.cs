@@ -23,55 +23,27 @@ public sealed partial class XkasConverter : BaseConverter {
 	private int _ifDepth;
 
 	/// <inheritdoc />
-	protected override string ConvertLine(
-		string line,
-		int lineNumber,
-		string filePath,
-		ConversionResult result,
+	protected override bool IsFullLineComment(string trimmedLine) =>
+		trimmedLine.StartsWith(';') || trimmedLine.StartsWith("//");
+
+	/// <inheritdoc />
+	protected override string HandleFullLineComment(
+		string originalLine,
+		string trimmedLine,
+		string leadingWhitespace,
 		ConversionOptions options) {
-		// Handle empty lines
-		if (string.IsNullOrWhiteSpace(line)) {
-			return line;
+		if (!options.PreserveComments) {
+			return string.Empty;
 		}
-
-		// Preserve leading whitespace
-		var leadingWhitespace = GetLeadingWhitespace(line);
-		var trimmedLine = line.TrimStart();
-
-		// Handle full-line comments
-		if (trimmedLine.StartsWith(';') || trimmedLine.StartsWith("//")) {
-			if (!options.PreserveComments) {
-				return string.Empty;
-			}
-			// Convert // comments to ; comments
-			if (trimmedLine.StartsWith("//")) {
-				return leadingWhitespace + ";" + trimmedLine[2..];
-			}
-			return line;
+		// Convert // comments to ; comments
+		if (trimmedLine.StartsWith("//")) {
+			return leadingWhitespace + ";" + trimmedLine[2..];
 		}
-
-		// Split into code and comment
-		var (code, comment) = SplitCodeAndComment(trimmedLine);
-
-		if (string.IsNullOrWhiteSpace(code)) {
-			return options.PreserveComments ? line : string.Empty;
-		}
-
-		// Convert the code portion
-		var convertedCode = ConvertCode(code, lineNumber, filePath, result, options);
-
-		// Reconstruct with comment if present
-		var converted = options.PreserveComments && !string.IsNullOrEmpty(comment)
-			? $"{convertedCode} {comment}"
-			: convertedCode;
-
-		return leadingWhitespace + converted;
+		return originalLine;
 	}
 
-	/// <summary>
-	/// Converts the code portion of a line.
-	/// </summary>
-	private string ConvertCode(
+	/// <inheritdoc />
+	protected override string ConvertCode(
 		string code,
 		int lineNumber,
 		string filePath,
@@ -373,15 +345,8 @@ public sealed partial class XkasConverter : BaseConverter {
 	// Helper Methods
 	// ========================================================================
 
-	private static string GetLeadingWhitespace(string line) {
-		int i = 0;
-		while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) {
-			i++;
-		}
-		return line[..i];
-	}
-
-	private static (string code, string comment) SplitCodeAndComment(string line) {
+	/// <inheritdoc />
+	protected override (string code, string comment) SplitCodeAndComment(string line) {
 		bool inString = false;
 		char stringChar = '\0';
 

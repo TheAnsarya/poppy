@@ -23,48 +23,7 @@ public sealed partial class AsarConverter : BaseConverter {
 	private int _ifDepth;
 
 	/// <inheritdoc />
-	protected override string ConvertLine(
-		string line,
-		int lineNumber,
-		string filePath,
-		ConversionResult result,
-		ConversionOptions options) {
-		// Handle empty lines
-		if (string.IsNullOrWhiteSpace(line)) {
-			return line;
-		}
-
-		// Preserve leading whitespace
-		var leadingWhitespace = GetLeadingWhitespace(line);
-		var trimmedLine = line.TrimStart();
-
-		// Handle full-line comments
-		if (trimmedLine.StartsWith(';')) {
-			return options.PreserveComments ? line : string.Empty;
-		}
-
-		// Split into code and comment
-		var (code, comment) = SplitCodeAndComment(trimmedLine);
-
-		if (string.IsNullOrWhiteSpace(code)) {
-			return options.PreserveComments ? line : string.Empty;
-		}
-
-		// Convert the code portion
-		var convertedCode = ConvertCode(code, lineNumber, filePath, result, options);
-
-		// Reconstruct with comment if present
-		var converted = options.PreserveComments && !string.IsNullOrEmpty(comment)
-			? $"{convertedCode} {comment}"
-			: convertedCode;
-
-		return leadingWhitespace + converted;
-	}
-
-	/// <summary>
-	/// Converts the code portion of a line.
-	/// </summary>
-	private string ConvertCode(
+	protected override string ConvertCode(
 		string code,
 		int lineNumber,
 		string filePath,
@@ -394,39 +353,6 @@ public sealed partial class AsarConverter : BaseConverter {
 	// ========================================================================
 	// Helper Methods
 	// ========================================================================
-
-	private static string GetLeadingWhitespace(string line) {
-		int i = 0;
-		while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) {
-			i++;
-		}
-		return line[..i];
-	}
-
-	private static (string code, string comment) SplitCodeAndComment(string line) {
-		// Find comment start (semicolon not in string)
-		bool inString = false;
-		char stringChar = '\0';
-
-		for (int i = 0; i < line.Length; i++) {
-			var c = line[i];
-
-			if (inString) {
-				if (c == stringChar) {
-					inString = false;
-				}
-			}
-			else if (c == '"' || c == '\'') {
-				inString = true;
-				stringChar = c;
-			}
-			else if (c == ';') {
-				return (line[..i].TrimEnd(), line[i..]);
-			}
-		}
-
-		return (line, string.Empty);
-	}
 
 	private static bool IsConditionalDirective(string directive) =>
 		directive.Equals("if", StringComparison.OrdinalIgnoreCase) ||

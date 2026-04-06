@@ -190,6 +190,8 @@ public abstract partial class BaseConverter : IProjectConverter {
 
 	/// <summary>
 	/// Converts a single line of source code.
+	/// The default implementation handles empty lines, full-line comments,
+	/// code/comment splitting, and delegates code conversion to <see cref="ConvertCode"/>.
 	/// </summary>
 	/// <param name="line">The source line.</param>
 	/// <param name="lineNumber">The 1-based line number.</param>
@@ -197,12 +199,109 @@ public abstract partial class BaseConverter : IProjectConverter {
 	/// <param name="result">The conversion result to add warnings/errors to.</param>
 	/// <param name="options">Conversion options.</param>
 	/// <returns>The converted line.</returns>
-	protected abstract string ConvertLine(
+	protected virtual string ConvertLine(
 		string line,
 		int lineNumber,
 		string filePath,
 		ConversionResult result,
+		ConversionOptions options) {
+		// Handle empty lines
+		if (string.IsNullOrWhiteSpace(line)) {
+			return line;
+		}
+
+		// Preserve leading whitespace
+		var leadingWhitespace = GetLeadingWhitespace(line);
+		var trimmedLine = line.TrimStart();
+
+		// Handle full-line comments (virtual hook for subclass-specific comment styles)
+		if (IsFullLineComment(trimmedLine)) {
+			return HandleFullLineComment(line, trimmedLine, leadingWhitespace, options);
+		}
+
+		// Split into code and comment
+		var (code, comment) = SplitCodeAndComment(trimmedLine);
+
+		if (string.IsNullOrWhiteSpace(code)) {
+			return options.PreserveComments ? line : string.Empty;
+		}
+
+		// Convert the code portion
+		var convertedCode = ConvertCode(code, lineNumber, filePath, result, options);
+
+		// Reconstruct with comment if present
+		var converted = options.PreserveComments && !string.IsNullOrEmpty(comment)
+			? $"{convertedCode} {comment}"
+			: convertedCode;
+
+		return leadingWhitespace + converted;
+	}
+
+	/// <summary>
+	/// Returns true if the trimmed line is a full-line comment.
+	/// Override to handle additional comment styles (e.g., // in xkas).
+	/// </summary>
+	protected virtual bool IsFullLineComment(string trimmedLine) =>
+		trimmedLine.StartsWith(';');
+
+	/// <summary>
+	/// Handles a full-line comment. Returns the converted line.
+	/// Override to handle additional comment styles (e.g., converting // to ;).
+	/// </summary>
+	protected virtual string HandleFullLineComment(
+		string originalLine,
+		string trimmedLine,
+		string leadingWhitespace,
+		ConversionOptions options) {
+		return options.PreserveComments ? originalLine : string.Empty;
+	}
+
+	/// <summary>
+	/// Converts the code portion of a line (excluding comments and whitespace).
+	/// </summary>
+	protected abstract string ConvertCode(
+		string code,
+		int lineNumber,
+		string filePath,
+		ConversionResult result,
 		ConversionOptions options);
+
+	/// <summary>
+	/// Extracts leading whitespace (spaces and tabs) from a line.
+	/// </summary>
+	protected static string GetLeadingWhitespace(string line) {
+		int i = 0;
+		while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) {
+			i++;
+		}
+		return line[..i];
+	}
+
+	/// <summary>
+	/// Splits a line into code and comment portions, respecting string literals.
+	/// Override to handle additional comment styles (e.g., // in xkas).
+	/// </summary>
+	protected virtual (string code, string comment) SplitCodeAndComment(string line) {
+		bool inString = false;
+		char stringChar = '\0';
+
+		for (int i = 0; i < line.Length; i++) {
+			var c = line[i];
+
+			if (inString) {
+				if (c == stringChar) {
+					inString = false;
+				}
+			} else if (c == '"' || c == '\'') {
+				inString = true;
+				stringChar = c;
+			} else if (c == ';') {
+				return (line[..i].TrimEnd(), line[i..]);
+			}
+		}
+
+		return (line, string.Empty);
+	}
 
 	// ========================================================================
 	// Protected Helper Methods
