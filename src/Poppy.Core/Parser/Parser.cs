@@ -1227,7 +1227,7 @@ public sealed class ParseError {
 /// <summary>
 /// Exception thrown during parsing for error recovery.
 /// </summary>
-public class ParseException : Exception {
+public sealed class ParseException : Exception {
 	/// <summary>
 	/// The source location where the error occurred.
 	/// </summary>
