@@ -346,15 +346,31 @@ Check out the example projects in the `examples/` directory:
 | [Channel F Development Guide](docs/channelf-guide.md) | Channel F/F8 project layout, syntax, and coding patterns |
 | [SNES Development Guide](docs/snes-guide.md) | Comprehensive SNES/65816 guide |
 | [Game Boy Development Guide](docs/gameboy-guide.md) | Complete GB/GBC guide with SM83 |
+| [Atari Lynx Guide](docs/atari-lynx-guide.md) | Atari Lynx/65C02 assembly guide |
 | [Build from Project](docs/build-from-project.md) | Nexen → Peony → Poppy pipeline |
 | [Project File Format](docs/project-file-format.md) | `.poppy` project configuration |
 | [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
+
+### Migration Guides
+
+| Document | Description |
+|----------|-------------|
+| [Migrating from ASAR](docs/migration-from-asar.md) | ASAR → Poppy for SNES |
+| [Migrating from ca65](docs/migration-from-ca65.md) | ca65/cc65 → Poppy for NES/SNES |
+| [Migrating from xkas](docs/migration-from-xkas.md) | xkas → Poppy for SNES |
+| [Migrating from RGBDS](docs/migration-from-rgbds.md) | RGBDS → Poppy for Game Boy |
+| [Migrating from WLA-DX](docs/migration-from-wla-dx.md) | WLA-DX → Poppy for Z80/6502/65816 |
+| [Migrating from DASM](docs/migration-from-dasm.md) | DASM → Poppy for Atari 2600 |
+| [Migrating from ASM68K](docs/migration-from-asm68k.md) | ASM68K → Poppy for Genesis |
+| [Migrating from devkitARM](docs/migration-from-devkitarm.md) | devkitARM/GAS → Poppy for GBA |
 
 ### Technical Reference
 
 | Document | Description |
 |----------|-------------|
 | [Architecture](docs/architecture.md) | Compiler design and structure |
+| [PASM File Format](docs/pasm-file-format.md) | Poppy Assembly `.pasm` file format specification |
+| [CDL/DIZ Workflow](docs/cdl-diz-workflow.md) | Poppy ↔ Peony roundtrip workflow with CDL/DIZ files |
 | [File Formats](docs/file-formats.md) | ROM and patch format reference |
 | [Resources](docs/resources.md) | External links and research |
 | [Release Notes v1.0.0](RELEASE-NOTES-1.0.0.md) | Complete v1.0.0 release summary |
@@ -437,7 +453,7 @@ rts
 - ✅ Debug symbol export (.sym, .nl, .mlb)
 - ✅ Reverse converters (PASM → ASAR/CA65/XKAS)
 - ✅ VS Code extension (published to marketplace)
-- ✅ Comprehensive documentation (10 guides, 5,800+ lines)
+- ✅ Comprehensive documentation (21 guides, 5,800+ lines)
 - ✅ Example projects for all platforms
 - ✅ 1,837 tests passing
 
