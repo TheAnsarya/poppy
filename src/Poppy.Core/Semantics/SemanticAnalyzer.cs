@@ -2029,12 +2029,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	/// for the specified instruction mnemonic.
 	/// </summary>
 	private bool SupportsAddressingMode(string mnemonic, AddressingMode mode) {
-		try {
-			var profile = Arch.TargetResolver.GetProfile(Target);
-			return profile.Encoder.TryEncode(mnemonic, mode, out _);
-		} catch (NotSupportedException) {
-			return false;
-		}
+		var profile = Arch.TargetResolver.TryGetProfile(Target);
+		if (profile is null) return false;
+		return profile.Encoder.TryEncode(mnemonic, mode, out _);
 	}
 
 	/// <summary>

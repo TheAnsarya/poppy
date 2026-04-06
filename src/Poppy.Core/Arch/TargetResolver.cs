@@ -55,6 +55,13 @@ public static class TargetResolver {
 	/// Gets the ITargetProfile for a given architecture.
 	/// </summary>
 	public static ITargetProfile GetProfile(TargetArchitecture arch) {
+		return TryGetProfile(arch) ?? throw new NotSupportedException($"No profile for architecture: {arch}");
+	}
+
+	/// <summary>
+	/// Gets the ITargetProfile for a given architecture, or null if unsupported.
+	/// </summary>
+	public static ITargetProfile? TryGetProfile(TargetArchitecture arch) {
 		return arch switch {
 			TargetArchitecture.MOS6502 => Profiles.Mos6502Profile.Instance,
 			TargetArchitecture.MOS6507 => Profiles.Mos6507Profile.Instance,
@@ -67,7 +74,7 @@ public static class TargetResolver {
 			TargetArchitecture.ARM7TDMI => Profiles.Arm7tdmiProfile.Instance,
 			TargetArchitecture.SPC700 => Profiles.Spc700Profile.Instance,
 			TargetArchitecture.HuC6280 => Profiles.Huc6280Profile.Instance,
-			_ => throw new NotSupportedException($"No profile for architecture: {arch}")
+			_ => null
 		};
 	}
 }
