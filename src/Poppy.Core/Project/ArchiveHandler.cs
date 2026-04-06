@@ -167,7 +167,7 @@ public sealed class ArchiveHandler {
 
 		// Determine target directory
 		var targetDir = options.TargetDirectory ?? Path.Combine(
-			Directory.GetParent(archivePath)?.FullName ?? Path.GetDirectoryName(archivePath)!,
+			Directory.GetParent(archivePath)?.FullName ?? Path.GetDirectoryName(archivePath) ?? ".",
 			Path.GetFileNameWithoutExtension(archivePath)
 		);
 
