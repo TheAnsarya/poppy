@@ -5,7 +5,7 @@
 
 using Poppy.Core.CodeGen;
 
-namespace Poppy.Tests;
+namespace Poppy.Tests.CodeGen;
 
 /// <summary>
 /// Tests for Genesis ROM builder.

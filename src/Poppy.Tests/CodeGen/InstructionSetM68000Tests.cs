@@ -5,7 +5,7 @@
 
 using Poppy.Core.CodeGen;
 
-namespace Poppy.Tests;
+namespace Poppy.Tests.CodeGen;
 
 /// <summary>
 /// Tests for M68000 instruction set encoding.
