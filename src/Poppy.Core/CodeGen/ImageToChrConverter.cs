@@ -98,16 +98,6 @@ public static class ImageToChrConverter {
 	}
 
 	/// <summary>
-	/// Convert image file to CHR and save
-	/// </summary>
-	public static void ConvertFile(string inputPath, string outputPath, ConversionOptions? options = null) {
-		var bmpData = File.ReadAllBytes(inputPath);
-		var chrData = ConvertBmpToChr(bmpData, options);
-		Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
-		File.WriteAllBytes(outputPath, chrData);
-	}
-
-	/// <summary>
 	/// Convert image file to assembly source
 	/// </summary>
 	public static string ConvertToAsm(byte[] bmpData, string tableName, ConversionOptions? options = null) {
