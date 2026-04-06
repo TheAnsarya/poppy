@@ -929,6 +929,10 @@ public class SemanticAnalyzerTests {
 	[InlineData("sfc", TargetArchitecture.WDC65816)]
 	[InlineData("gbc", TargetArchitecture.SM83)]
 	[InlineData("gameboycolor", TargetArchitecture.SM83)]
+	[InlineData("gg", TargetArchitecture.Z80)]
+	[InlineData("gamegear", TargetArchitecture.Z80)]
+	[InlineData("arm7", TargetArchitecture.ARM7TDMI)]
+	[InlineData("spc", TargetArchitecture.SPC700)]
 	public void Analyze_TargetDirective_NewAliases_ResolveCorrectly(string alias, TargetArchitecture expected) {
 		var source = $"""
 			.target {alias}

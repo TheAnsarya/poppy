@@ -793,15 +793,15 @@ function getOpcodes(target: TargetArch): OpcodeEntry[] {
 
 // Target alias map
 const TARGET_ALIASES: Record<string, TargetArch> = {
-	'nes': 'nes', '6502': 'nes',
-	'snes': 'snes', '65816': 'snes',
-	'gb': 'gb', 'gameboy': 'gb', 'sm83': 'gb', 'gbc': 'gb',
+	'nes': 'nes', '6502': 'nes', 'mos6502': 'nes', 'famicom': 'nes', 'fc': 'nes',
+	'snes': 'snes', '65816': 'snes', 'wdc65816': 'snes', 'superfamicom': 'snes', 'sfc': 'snes',
+	'gb': 'gb', 'gameboy': 'gb', 'sm83': 'gb', 'gbc': 'gb', 'gameboycolor': 'gb',
 	'gba': 'gba', 'gameboyadvance': 'gba', 'arm': 'gba', 'arm7tdmi': 'gba', 'arm7': 'gba',
 	'genesis': 'genesis', 'megadrive': 'genesis', 'md': 'genesis', '68000': 'genesis', 'm68k': 'genesis', 'm68000': 'genesis',
-	'sms': 'sms', 'mastersystem': 'sms', 'z80': 'sms', 'gg': 'sms',
+	'sms': 'sms', 'mastersystem': 'sms', 'z80': 'sms', 'gg': 'sms', 'gamegear': 'sms',
 	'tg16': 'tg16', 'turbografx16': 'tg16', 'pcengine': 'tg16', 'pce': 'tg16', 'huc6280': 'tg16',
-	'atari2600': 'a2600', '2600': 'a2600', '6507': 'a2600',
-	'atarilynx': 'lynx', 'lynx': 'lynx', '65sc02': 'lynx',
+	'atari2600': 'a2600', '2600': 'a2600', '6507': 'a2600', 'mos6507': 'a2600', 'a26': 'a2600', 'vcs': 'a2600',
+	'atarilynx': 'lynx', 'lynx': 'lynx', '65sc02': 'lynx', 'mos65sc02': 'lynx',
 	'wonderswan': 'ws', 'ws': 'ws', 'wsc': 'ws', 'v30mz': 'ws',
 	'spc700': 'spc700', 'spc': 'spc700',
 	'channelf': 'channelf', 'channel-f': 'channelf', 'channel_f': 'channelf', 'f8': 'channelf',

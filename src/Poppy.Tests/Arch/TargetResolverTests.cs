@@ -34,7 +34,9 @@ public sealed class TargetResolverTests {
 	[InlineData("v30mz", TargetArchitecture.V30MZ)]
 	[InlineData("arm7tdmi", TargetArchitecture.ARM7TDMI)]
 	[InlineData("arm", TargetArchitecture.ARM7TDMI)]
+	[InlineData("arm7", TargetArchitecture.ARM7TDMI)]
 	[InlineData("spc700", TargetArchitecture.SPC700)]
+	[InlineData("spc", TargetArchitecture.SPC700)]
 	[InlineData("huc6280", TargetArchitecture.HuC6280)]
 	[InlineData("f8", TargetArchitecture.F8)]
 	public void Resolve_CpuNames_ReturnsCorrectArchitecture(string name, TargetArchitecture expected) {
@@ -67,6 +69,8 @@ public sealed class TargetResolverTests {
 	[InlineData("md", TargetArchitecture.M68000)]
 	[InlineData("sms", TargetArchitecture.Z80)]
 	[InlineData("mastersystem", TargetArchitecture.Z80)]
+	[InlineData("gg", TargetArchitecture.Z80)]
+	[InlineData("gamegear", TargetArchitecture.Z80)]
 	[InlineData("ws", TargetArchitecture.V30MZ)]
 	[InlineData("wonderswan", TargetArchitecture.V30MZ)]
 	[InlineData("wsc", TargetArchitecture.V30MZ)]
@@ -78,6 +82,7 @@ public sealed class TargetResolverTests {
 	[InlineData("pce", TargetArchitecture.HuC6280)]
 	[InlineData("channelf", TargetArchitecture.F8)]
 	[InlineData("channel_f", TargetArchitecture.F8)]
+	[InlineData("channel-f", TargetArchitecture.F8)]
 	public void Resolve_PlatformNames_ReturnsCorrectArchitecture(string name, TargetArchitecture expected) {
 		Assert.Equal(expected, TargetResolver.Resolve(name));
 	}

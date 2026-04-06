@@ -5,6 +5,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Poppy.Core.Arch;
 using Poppy.Core.Semantics;
 
 namespace Poppy.Core.Project;
@@ -101,21 +102,8 @@ public sealed class ProjectFile {
 	/// Gets the target architecture enum from the string.
 	/// </summary>
 	[JsonIgnore]
-	public TargetArchitecture TargetArchitecture => Target?.ToLowerInvariant() switch {
-		"nes" or "6502" => Semantics.TargetArchitecture.MOS6502,
-		"atari2600" or "2600" or "6507" => Semantics.TargetArchitecture.MOS6507,
-		"lynx" or "65sc02" => Semantics.TargetArchitecture.MOS65SC02,
-		"channelf" or "channel-f" or "channel_f" or "f8" => Semantics.TargetArchitecture.F8,
-		"snes" or "65816" => Semantics.TargetArchitecture.WDC65816,
-		"gb" or "gbc" or "gameboy" or "sm83" => Semantics.TargetArchitecture.SM83,
-		"genesis" or "megadrive" or "68000" or "m68000" => Semantics.TargetArchitecture.M68000,
-		"sms" or "gg" or "z80" => Semantics.TargetArchitecture.Z80,
-		"wonderswan" or "ws" or "wsc" or "v30mz" => Semantics.TargetArchitecture.V30MZ,
-		"gba" or "arm7" or "arm7tdmi" => Semantics.TargetArchitecture.ARM7TDMI,
-		"spc" or "spc700" => Semantics.TargetArchitecture.SPC700,
-		"tg16" or "pce" or "huc6280" => Semantics.TargetArchitecture.HuC6280,
-		_ => Semantics.TargetArchitecture.MOS6502
-	};
+	public TargetArchitecture TargetArchitecture =>
+		TargetResolver.Resolve(Target ?? "") ?? TargetArchitecture.MOS6502;
 
 	/// <summary>
 	/// JSON serializer options for project files.

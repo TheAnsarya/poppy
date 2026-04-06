@@ -20,12 +20,12 @@ public static class TargetResolver {
 			"65816" or "wdc65816" or "snes" or "superfamicom" or "sfc" => TargetArchitecture.WDC65816,
 			"sm83" or "gb" or "gbc" or "gameboy" or "gameboycolor" => TargetArchitecture.SM83,
 			"m68000" or "68000" or "m68k" or "genesis" or "megadrive" or "md" => TargetArchitecture.M68000,
-			"z80" or "sms" or "mastersystem" => TargetArchitecture.Z80,
+			"z80" or "sms" or "mastersystem" or "gg" or "gamegear" => TargetArchitecture.Z80,
 			"v30mz" or "ws" or "wonderswan" or "wsc" => TargetArchitecture.V30MZ,
-			"arm7tdmi" or "arm" or "gba" or "gameboyadvance" => TargetArchitecture.ARM7TDMI,
-			"spc700" => TargetArchitecture.SPC700,
+			"arm7tdmi" or "arm" or "arm7" or "gba" or "gameboyadvance" => TargetArchitecture.ARM7TDMI,
+			"spc700" or "spc" => TargetArchitecture.SPC700,
 			"huc6280" or "tg16" or "turbografx16" or "pcengine" or "pce" => TargetArchitecture.HuC6280,
-			"f8" or "channelf" or "channel_f" => TargetArchitecture.F8,
+			"f8" or "channelf" or "channel_f" or "channel-f" => TargetArchitecture.F8,
 			_ => null
 		};
 	}
