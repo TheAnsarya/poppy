@@ -10,7 +10,7 @@ using System.Collections.Frozen;
 
 using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.V30MZ;
 
 /// <summary>
 /// Provides instruction encoding for the NEC V30MZ processor (WonderSwan).

@@ -222,10 +222,10 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		program.Accept(this);
 
 		// Validate all symbols are defined (skip register names for register-based architectures)
-		Func<string, bool>? builtinCheck = Target switch {
-			TargetArchitecture.V30MZ => InstructionSetV30MZ.IsRegister,
-			_ => null,
-		};
+		var profile = Arch.TargetResolver.TryGetProfile(Target);
+		Func<string, bool>? builtinCheck = profile is not null
+			? name => profile.Encoder.IsRegister(name)
+			: null;
 		SymbolTable.ValidateAllDefined(builtinCheck);
 		_errors.AddRange(SymbolTable.Errors);
 		_errors.AddRange(MacroTable.Errors);
@@ -419,10 +419,10 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			return true;
 		}
 
-		// V30MZ conditional jumps and loop instructions (short relative)
-		if (Target == TargetArchitecture.V30MZ) {
-			return InstructionSetV30MZ.TryGetConditionalJump(lower, out _) ||
-				   InstructionSetV30MZ.TryGetLoopInstruction(lower, out _);
+		// Architecture-specific branch detection (e.g., V30MZ conditional jumps/loops)
+		var branchProfile = Arch.TargetResolver.TryGetProfile(Target);
+		if (branchProfile is not null && branchProfile.Encoder.IsBranchInstruction(lower)) {
+			return true;
 		}
 
 		return false;
@@ -2108,11 +2108,13 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			mnemonic = mnemonic[..^2];
 		}
 
-		// V30MZ-specific instruction sizing
-		if (Target == TargetArchitecture.V30MZ) {
-			var v30Size = GetV30MZInstructionSize(node, mnemonic);
-			if (v30Size > 0) {
-				return v30Size;
+		// Architecture-specific instruction sizing
+		var sizeProfile = Arch.TargetResolver.TryGetProfile(Target);
+		if (sizeProfile is not null) {
+			var operandId = node.Operand is IdentifierNode idn ? idn.Name : null;
+			var specialSize = sizeProfile.Encoder.GetSpecialInstructionSize(mnemonic, operandId, node.Operand is not null, node.SizeSuffix);
+			if (specialSize > 0) {
+				return specialSize;
 			}
 		}
 
@@ -2189,67 +2191,6 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		var profile = Arch.TargetResolver.TryGetProfile(Target);
 		if (profile is null) return false;
 		return profile.Encoder.TryEncode(mnemonic, mode, out _);
-	}
-
-	/// <summary>
-	/// Gets the instruction size for V30MZ-specific instructions.
-	/// Returns 0 if the instruction is not V30MZ-specific (fall through to generic sizing).
-	/// </summary>
-	private int GetV30MZInstructionSize(InstructionNode node, string mnemonic) {
-		var lower = mnemonic.ToLowerInvariant();
-
-		// Conditional jumps: opcode + rel8 = 2 bytes
-		if (InstructionSetV30MZ.TryGetConditionalJump(lower, out _)) {
-			return 2;
-		}
-
-		// Loop instructions: opcode + rel8 = 2 bytes
-		if (InstructionSetV30MZ.TryGetLoopInstruction(lower, out _)) {
-			return 2;
-		}
-
-		// Check if operand is a register identifier
-		bool operandIsRegister = node.Operand is IdentifierNode id && InstructionSetV30MZ.IsRegister(id.Name);
-		bool operandIsSegment = node.Operand is IdentifierNode sid && InstructionSetV30MZ.IsSegmentRegister(sid.Name);
-
-		// Multi-byte implied: AAM ($d4 $0a), AAD ($d5 $0a) = 2 bytes
-		if (lower is "aam" or "aad") {
-			return 2;
-		}
-
-		// Register-operand instructions: single opcode byte
-		if (operandIsRegister || operandIsSegment) {
-			// push/pop/inc/dec/xchg reg16, push/pop segment = 1 byte
-			if (lower is "push" or "pop" or "inc" or "dec" or "xchg") {
-				return 1;
-			}
-		}
-
-		// INT n = 2 bytes (opcode + imm8)
-		if (lower == "int") {
-			return 2;
-		}
-
-		// Near JMP = 3 bytes (opcode + rel16), near CALL = 3 bytes (opcode + rel16)
-		if (lower is "jmp" or "call") {
-			return 3;
-		}
-
-		// RET/RETF with operand = 3 bytes (opcode + imm16)
-		if (lower is "ret" or "retf" && node.Operand != null) {
-			return 3;
-		}
-
-		// PUSH immediate: 2 bytes (push imm8 $6a) or 3 bytes (push imm16 $68)
-		if (lower == "push" && node.Operand != null && !operandIsRegister && !operandIsSegment) {
-			if (node.SizeSuffix == 'b') {
-				return 2;
-			}
-			return 3;
-		}
-
-		// Fall through to generic sizing
-		return 0;
 	}
 
 	/// <summary>

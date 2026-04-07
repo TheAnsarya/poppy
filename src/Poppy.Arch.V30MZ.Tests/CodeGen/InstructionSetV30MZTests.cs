@@ -5,6 +5,7 @@
 // Tests for V30MZ (8086-compatible) instruction encoding used in WonderSwan.
 // ============================================================================
 
+using Poppy.Arch.V30MZ;
 using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Parser;

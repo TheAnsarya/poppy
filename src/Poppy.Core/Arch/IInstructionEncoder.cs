@@ -1,5 +1,6 @@
 ﻿namespace Poppy.Core.Arch;
 
+using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 
 /// <summary>
@@ -7,6 +8,17 @@ using Poppy.Core.Parser;
 /// Replaces the per-architecture InstructionEncoding types as universal currency.
 /// </summary>
 public readonly record struct EncodedInstruction(byte Opcode, int Size);
+
+/// <summary>
+/// Context for architecture-specific special instruction emission.
+/// Flattened from AST node to avoid coupling encoders to the parser AST.
+/// </summary>
+public readonly record struct SpecialInstructionContext(
+	string Mnemonic,
+	string? OperandIdentifier,
+	AddressingMode AddressingMode,
+	long? OperandValue,
+	SourceLocation Location);
 
 /// <summary>
 /// Encodes mnemonics into machine code for a specific architecture.
@@ -28,4 +40,35 @@ public interface IInstructionEncoder {
 	/// Used by the lexer for target-aware mnemonic tokenization.
 	/// </summary>
 	IReadOnlySet<string> Mnemonics { get; }
+
+	/// <summary>
+	/// Returns true if the name is a register for this architecture.
+	/// Used to exclude register names from undefined-symbol validation.
+	/// Default: false (no register names).
+	/// </summary>
+	bool IsRegister(string name) => false;
+
+	/// <summary>
+	/// Returns true if the name is a segment register for this architecture.
+	/// Default: false (no segment registers).
+	/// </summary>
+	bool IsSegmentRegister(string name) => false;
+
+	/// <summary>
+	/// Gets the instruction size in bytes for architecture-specific instructions
+	/// that cannot be sized through the generic encoding pipeline.
+	/// Returns 0 to fall through to generic sizing.
+	/// </summary>
+	/// <param name="mnemonic">The instruction mnemonic.</param>
+	/// <param name="operandIdentifier">The operand identifier name (if operand is a named identifier), or null.</param>
+	/// <param name="hasOperand">Whether the instruction has any operand.</param>
+	/// <param name="sizeSuffix">The size suffix character (.b, .w), or null.</param>
+	int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix) => 0;
+
+	/// <summary>
+	/// Tries to emit architecture-specific instructions that cannot be expressed
+	/// through the generic opcode + operand pipeline.
+	/// Returns true if the instruction was handled; false to fall through.
+	/// </summary>
+	bool TryEmitSpecialInstruction(SpecialInstructionContext context, ICodeEmitter emitter) => false;
 }

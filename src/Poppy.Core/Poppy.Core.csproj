@@ -18,7 +18,6 @@
 
 	<ItemGroup>
 
-		<InternalsVisibleTo Include="Poppy.Arch.V30MZ" />
 		<InternalsVisibleTo Include="Poppy.Arch.MOS6502.Tests" />
 		<InternalsVisibleTo Include="Poppy.Arch.WDC65816.Tests" />
 		<InternalsVisibleTo Include="Poppy.Arch.SM83.Tests" />
