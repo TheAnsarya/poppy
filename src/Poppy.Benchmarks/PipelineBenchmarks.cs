@@ -1,5 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
@@ -7,7 +9,7 @@ using Poppy.Core.Semantics;
 namespace Poppy.Benchmarks;
 
 /// <summary>
-/// Benchmarks for the Poppy compiler pipeline: Lexer, Parser, SemanticAnalyzer.
+/// Benchmarks for the Poppy compiler pipeline: Lexer, Parser, SemanticAnalyzer, CodeGenerator.
 /// Uses real-world .pasm example files as input.
 /// </summary>
 [MemoryDiagnoser]
@@ -28,6 +30,17 @@ public class PipelineBenchmarks {
 
 	[GlobalSetup]
 	public void Setup() {
+		// Register architecture profiles
+		Poppy.Arch.MOS6502.Registration.RegisterAll();
+		Poppy.Arch.WDC65816.Registration.RegisterAll();
+		Poppy.Arch.SM83.Registration.RegisterAll();
+		Poppy.Arch.M68000.Registration.RegisterAll();
+		Poppy.Arch.Z80.Registration.RegisterAll();
+		Poppy.Arch.V30MZ.Registration.RegisterAll();
+		Poppy.Arch.ARM7TDMI.Registration.RegisterAll();
+		Poppy.Arch.SPC700.Registration.RegisterAll();
+		Poppy.Arch.HuC6280.Registration.RegisterAll();
+
 		var examplesDir = FindExamplesDirectory();
 
 		_nesSource = File.ReadAllText(Path.Combine(examplesDir, "nes-hello-world", "main.pasm"));
@@ -90,7 +103,7 @@ public class PipelineBenchmarks {
 	public SemanticAnalyzer FullPipeline_NES() {
 		var tokens = new Lexer(_nesSource, "nes.pasm").Tokenize();
 		var ast = new Parser(tokens).Parse();
-		var analyzer = new SemanticAnalyzer();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
 		analyzer.Analyze(ast);
 		return analyzer;
 	}
@@ -99,9 +112,49 @@ public class PipelineBenchmarks {
 	public SemanticAnalyzer FullPipeline_SNES() {
 		var tokens = new Lexer(_snesSource, "snes.pasm").Tokenize();
 		var ast = new Parser(tokens).Parse();
-		var analyzer = new SemanticAnalyzer();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.WDC65816);
 		analyzer.Analyze(ast);
 		return analyzer;
+	}
+
+	// ========================================================================
+	// Full Pipeline (Lex + Parse + Analyze + CodeGen)
+	// ========================================================================
+
+	[Benchmark(Description = "Pipeline: NES (Full Compile)")]
+	public byte[] FullCompile_NES() {
+		var tokens = new Lexer(_nesSource, "nes.pasm").Tokenize();
+		var ast = new Parser(tokens).Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		analyzer.Analyze(ast);
+		return new CodeGenerator(analyzer, TargetArchitecture.MOS6502).Generate(ast);
+	}
+
+	[Benchmark(Description = "Pipeline: SNES (Full Compile)")]
+	public byte[] FullCompile_SNES() {
+		var tokens = new Lexer(_snesSource, "snes.pasm").Tokenize();
+		var ast = new Parser(tokens).Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.WDC65816);
+		analyzer.Analyze(ast);
+		return new CodeGenerator(analyzer, TargetArchitecture.WDC65816).Generate(ast);
+	}
+
+	[Benchmark(Description = "Pipeline: GB (Full Compile)")]
+	public byte[] FullCompile_GB() {
+		var tokens = new Lexer(_gbSource, "gb.pasm").Tokenize();
+		var ast = new Parser(tokens).Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.SM83);
+		analyzer.Analyze(ast);
+		return new CodeGenerator(analyzer, TargetArchitecture.SM83).Generate(ast);
+	}
+
+	[Benchmark(Description = "Pipeline: Genesis (Full Compile)")]
+	public byte[] FullCompile_Genesis() {
+		var tokens = new Lexer(_genesisSource, "genesis.pasm").Tokenize();
+		var ast = new Parser(tokens).Parse();
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.M68000);
+		analyzer.Analyze(ast);
+		return new CodeGenerator(analyzer, TargetArchitecture.M68000).Generate(ast);
 	}
 
 	// ========================================================================

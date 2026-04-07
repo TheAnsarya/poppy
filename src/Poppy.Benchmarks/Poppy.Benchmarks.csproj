@@ -14,6 +14,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Poppy.Arch.ARM7TDMI\Poppy.Arch.ARM7TDMI.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.HuC6280\Poppy.Arch.HuC6280.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.M68000\Poppy.Arch.M68000.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.MOS6502\Poppy.Arch.MOS6502.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.SM83\Poppy.Arch.SM83.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.SPC700\Poppy.Arch.SPC700.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.V30MZ\Poppy.Arch.V30MZ.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.WDC65816\Poppy.Arch.WDC65816.csproj" />
+		<ProjectReference Include="..\Poppy.Arch.Z80\Poppy.Arch.Z80.csproj" />
 		<ProjectReference Include="..\Poppy.Core\Poppy.Core.csproj" />
 	</ItemGroup>
 
