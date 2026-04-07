@@ -94,6 +94,13 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 		return (accumulatorIs16Bit, indexIs16Bit);
 	}
 
+	/// <inheritdoc />
+	public IReadOnlyList<(string Name, long StartAddress, long MaxSize, SegmentType Type)> GetDefaultSegments() => [
+		("ZEROPAGE", 0x0000, 0x0100, SegmentType.ZeroPage),
+		("RAM", 0x7e0000, 0x020000, SegmentType.Ram),
+		("CODE", 0x008000, 0x008000, SegmentType.Code),
+	];
+
 	private sealed class Wdc65816RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetSnesHeaderBuilder();

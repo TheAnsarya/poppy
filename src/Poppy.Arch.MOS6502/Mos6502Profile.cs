@@ -38,6 +38,13 @@ internal sealed class Mos6502Profile : ITargetProfile {
 	public int GetAddressBank(long address) =>
 		address >= 0x8000 ? (int)((address - 0x8000) / 0x4000) : 0;
 
+	/// <inheritdoc />
+	public IReadOnlyList<(string Name, long StartAddress, long MaxSize, SegmentType Type)> GetDefaultSegments() => [
+		("ZEROPAGE", 0x0000, 0x0100, SegmentType.ZeroPage),
+		("RAM", 0x0200, 0x0600, SegmentType.Ram),
+		("CODE", 0x8000, 0x8000, SegmentType.Code),
+	];
+
 	private sealed class Mos6502RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetINesHeaderBuilder();

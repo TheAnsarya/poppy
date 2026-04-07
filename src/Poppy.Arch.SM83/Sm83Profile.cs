@@ -33,6 +33,15 @@ internal sealed class Sm83Profile : ITargetProfile {
 		_ => "WRAM"
 	};
 
+	/// <inheritdoc />
+	public IReadOnlyList<(string Name, long StartAddress, long MaxSize, SegmentType Type)> GetDefaultSegments() => [
+		("ROM0", 0x0000, 0x4000, SegmentType.Rom),
+		("ROMX", 0x4000, 0x4000, SegmentType.Rom),
+		("VRAM", 0x8000, 0x2000, SegmentType.Ram),
+		("WRAM0", 0xc000, 0x1000, SegmentType.Ram),
+		("HRAM", 0xff80, 0x007f, SegmentType.Ram),
+	];
+
 	private sealed class Sm83RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetGbHeaderBuilder();

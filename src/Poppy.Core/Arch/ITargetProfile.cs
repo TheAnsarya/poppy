@@ -1,5 +1,6 @@
 ﻿namespace Poppy.Core.Arch;
 
+using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
@@ -108,4 +109,11 @@ public interface ITargetProfile {
 	/// Default: 0.
 	/// </summary>
 	int GetAddressBank(long address) => 0;
+
+	/// <summary>
+	/// Gets the default memory segments for this platform.
+	/// Returns an empty list if no defaults are defined.
+	/// </summary>
+	IReadOnlyList<(string Name, long StartAddress, long MaxSize, SegmentType Type)> GetDefaultSegments()
+		=> [];
 }
