@@ -1,6 +1,7 @@
 // InstructionSetSPC700Tests.cs
 // Unit tests for SPC700 instruction set implementation (SNES audio coprocessor)
 
+using Poppy.Arch.SPC700;
 using Poppy.Core.CodeGen;
 using Xunit;
 

@@ -4,7 +4,7 @@
 
 using System.Collections.Frozen;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.ARM7TDMI;
 
 /// <summary>
 /// ARM7TDMI instruction set implementation for GBA assembly.

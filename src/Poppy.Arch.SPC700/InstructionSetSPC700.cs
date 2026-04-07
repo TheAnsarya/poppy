@@ -3,8 +3,9 @@
 // The SPC700 is similar to the 6502 but with unique opcodes and addressing modes
 
 using System.Collections.Frozen;
+using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.SPC700;
 
 /// <summary>
 /// Addressing mode types for SPC700
@@ -836,7 +837,7 @@ internal static class InstructionSetSPC700 {
 	/// Tries to get the encoding for a mnemonic using the shared parser addressing mode.
 	/// Maps the shared mode to the SPC700-local mode before lookup.
 	/// </summary>
-	public static bool TryGetEncoding(string mnemonic, Parser.AddressingMode sharedMode, out byte opcode, out int size) {
+	public static bool TryGetEncoding(string mnemonic, AddressingMode sharedMode, out byte opcode, out int size) {
 		var localMode = MapAddressingMode(sharedMode);
 		if (localMode.HasValue && TryGetEncoding(mnemonic, localMode.Value, out opcode, out size)) {
 			return true;
@@ -849,20 +850,20 @@ internal static class InstructionSetSPC700 {
 	/// <summary>
 	/// Maps the shared parser addressing mode to the SPC700-local addressing mode.
 	/// </summary>
-	private static Spc700AddressingMode? MapAddressingMode(Parser.AddressingMode mode) {
+	private static Spc700AddressingMode? MapAddressingMode(AddressingMode mode) {
 		return mode switch {
-			Parser.AddressingMode.Implied => Spc700AddressingMode.Implied,
-			Parser.AddressingMode.Accumulator => Spc700AddressingMode.Accumulator,
-			Parser.AddressingMode.Immediate => Spc700AddressingMode.Immediate,
-			Parser.AddressingMode.ZeroPage => Spc700AddressingMode.DirectPage,
-			Parser.AddressingMode.ZeroPageX => Spc700AddressingMode.DirectPageX,
-			Parser.AddressingMode.ZeroPageY => Spc700AddressingMode.DirectPageY,
-			Parser.AddressingMode.Absolute => Spc700AddressingMode.Absolute,
-			Parser.AddressingMode.AbsoluteX => Spc700AddressingMode.AbsoluteX,
-			Parser.AddressingMode.AbsoluteY => Spc700AddressingMode.AbsoluteY,
-			Parser.AddressingMode.IndexedIndirect => Spc700AddressingMode.IndirectPageX,
-			Parser.AddressingMode.IndirectIndexed => Spc700AddressingMode.IndirectPageY,
-			Parser.AddressingMode.Relative => Spc700AddressingMode.Relative,
+			AddressingMode.Implied => Spc700AddressingMode.Implied,
+			AddressingMode.Accumulator => Spc700AddressingMode.Accumulator,
+			AddressingMode.Immediate => Spc700AddressingMode.Immediate,
+			AddressingMode.ZeroPage => Spc700AddressingMode.DirectPage,
+			AddressingMode.ZeroPageX => Spc700AddressingMode.DirectPageX,
+			AddressingMode.ZeroPageY => Spc700AddressingMode.DirectPageY,
+			AddressingMode.Absolute => Spc700AddressingMode.Absolute,
+			AddressingMode.AbsoluteX => Spc700AddressingMode.AbsoluteX,
+			AddressingMode.AbsoluteY => Spc700AddressingMode.AbsoluteY,
+			AddressingMode.IndexedIndirect => Spc700AddressingMode.IndirectPageX,
+			AddressingMode.IndirectIndexed => Spc700AddressingMode.IndirectPageY,
+			AddressingMode.Relative => Spc700AddressingMode.Relative,
 			_ => null
 		};
 	}

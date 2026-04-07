@@ -87,8 +87,14 @@ public sealed class GbaRomBuilder {
 		// So offset = target - $08000008
 		int offset = (int)(targetAddress - 0x08000008);
 
-		// Encode as ARM B instruction
-		_entryPoint = InstructionSetARM7TDMI.EncodeBranch(offset);
+		// Encode as ARM B instruction: condition=AL(0xe), opcode=101, link=0, offset bits 0-23
+		uint instruction = 0xeu << 28 | 0x5u << 25 | (uint)((offset >> 2) & 0xffffff);
+		_entryPoint = [
+			(byte)(instruction & 0xff),
+			(byte)((instruction >> 8) & 0xff),
+			(byte)((instruction >> 16) & 0xff),
+			(byte)((instruction >> 24) & 0xff)
+		];
 		return this;
 	}
 

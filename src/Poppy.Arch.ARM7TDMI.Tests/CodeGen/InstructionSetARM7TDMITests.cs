@@ -1,6 +1,7 @@
 // InstructionSetARM7TDMITests.cs
 // Unit tests for ARM7TDMI instruction set (GBA)
 
+using Poppy.Arch.ARM7TDMI;
 using Poppy.Core.CodeGen;
 using Xunit;
 

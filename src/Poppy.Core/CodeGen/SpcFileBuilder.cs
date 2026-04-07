@@ -538,10 +538,10 @@ public sealed class SpcFileBuilder {
 		builder.SetSP(0xef);  // Stack at $01ef (stack grows down)
 		builder.SetPSW(0x00);
 
-		// Initialize DSP to silence
-		builder.SetDspRegister(InstructionSetSPC700.DspRegisters.FLG, 0xe0);  // Soft reset, mute
-		builder.SetDspRegister(InstructionSetSPC700.DspRegisters.MVOLL, 0x00);
-		builder.SetDspRegister(InstructionSetSPC700.DspRegisters.MVOLR, 0x00);
+		// Initialize DSP to silence (register constants from SPC700 DSP spec)
+		builder.SetDspRegister(0x6c, 0xe0);  // FLG: Soft reset, mute
+		builder.SetDspRegister(0x0c, 0x00);  // MVOLL: Master volume left
+		builder.SetDspRegister(0x1c, 0x00);  // MVOLR: Master volume right
 
 		// Load program into RAM
 		if (program != null && program.Length > 0) {
