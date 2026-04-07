@@ -27,7 +27,20 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 		return null;
 	}
 
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Mos65sc02RomBuilderAdapter();
+
+	private sealed class Mos65sc02RomBuilderAdapter : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var romBuilder = new AtariLynxRomBuilder(
+				bank0Size: 131072,
+				bank1Size: 0,
+				gameName: "Poppy Game");
+			foreach (var segment in segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return romBuilder.Build();
+		}
+	}
 
 	private sealed class Mos65sc02Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSet65SC02.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

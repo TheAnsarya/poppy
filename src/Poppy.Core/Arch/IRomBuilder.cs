@@ -10,5 +10,8 @@ public interface IRomBuilder {
 	/// <summary>
 	/// Builds the final ROM binary from assembled output segments.
 	/// </summary>
-	byte[] Build(IReadOnlyList<OutputSegment> segments);
+	/// <param name="segments">The assembled output segments.</param>
+	/// <param name="flatBinary">The segments already flattened into a contiguous byte array.</param>
+	/// <returns>The final ROM binary.</returns>
+	byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary);
 }

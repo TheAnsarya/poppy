@@ -15,7 +15,24 @@ internal sealed class Mos6502Profile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new Mos6502Encoder();
 	public int DefaultBankSize => 0x4000; // 16KB NES PRG bank
 	public long GetBankCpuBase(int bank) => 0x8000;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Mos6502RomBuilderAdapter(analyzer);
+
+	private sealed class Mos6502RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var headerBuilder = analyzer.GetINesHeaderBuilder();
+			if (headerBuilder is null) {
+				return flatBinary;
+			}
+
+			var header = headerBuilder.Build();
+			var output = new byte[header.Length + flatBinary.Length];
+			Array.Copy(header, 0, output, 0, header.Length);
+			Array.Copy(flatBinary, 0, output, header.Length, flatBinary.Length);
+			return output;
+		}
+	}
 
 	private sealed class Mos6502Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSet6502.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

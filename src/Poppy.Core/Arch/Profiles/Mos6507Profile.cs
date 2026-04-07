@@ -15,7 +15,19 @@ internal sealed class Mos6507Profile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new Mos6507Encoder();
 	public int DefaultBankSize => 0x1000; // 4KB Atari 2600 bank
 	public long GetBankCpuBase(int bank) => 0xf000;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Mos6507RomBuilderAdapter();
+
+	private sealed class Mos6507RomBuilderAdapter : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var romBuilder = new Atari2600RomBuilder(4096, Atari2600RomBuilder.BankSwitchingMethod.None);
+			foreach (var segment in segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return romBuilder.Build();
+		}
+	}
 
 	private sealed class Mos6507Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSet6507.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

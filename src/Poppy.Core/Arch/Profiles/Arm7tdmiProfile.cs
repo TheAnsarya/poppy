@@ -15,7 +15,40 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new Arm7tdmiEncoder();
 	public int DefaultBankSize => 0x4000; // Default
 	public long GetBankCpuBase(int bank) => -1;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Arm7tdmiRomBuilderAdapter(analyzer);
+
+	private sealed class Arm7tdmiRomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var headerBuilder = analyzer.GetGbaHeaderBuilder();
+			var header = headerBuilder?.Build() ?? new byte[192];
+
+			const uint gbaRomBase = 0x08000000;
+
+			// Determine ROM size from segments
+			long maxOffset = header.Length;
+			foreach (var segment in segments) {
+				var fileOffset = segment.StartAddress >= gbaRomBase
+					? segment.StartAddress - gbaRomBase
+					: segment.StartAddress;
+				var end = fileOffset + (uint)segment.Data.Count;
+				if (end > maxOffset) maxOffset = end;
+			}
+
+			var rom = new byte[maxOffset];
+			Array.Copy(header, 0, rom, 0, header.Length);
+
+			foreach (var segment in segments) {
+				var fileOffset = segment.StartAddress >= gbaRomBase
+					? (int)(segment.StartAddress - gbaRomBase)
+					: (int)segment.StartAddress;
+				segment.Data.CopyTo(rom, fileOffset);
+			}
+
+			return rom;
+		}
+	}
 
 	private sealed class Arm7tdmiEncoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetARM7TDMI.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

@@ -15,7 +15,19 @@ internal sealed class Huc6280Profile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new Huc6280Encoder();
 	public int DefaultBankSize => 0x4000; // 16KB default
 	public long GetBankCpuBase(int bank) => -1;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Huc6280RomBuilderAdapter();
+
+	private sealed class Huc6280RomBuilderAdapter : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var builder = new TurboGrafxRomBuilder();
+			foreach (var segment in segments) {
+				builder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return builder.Build();
+		}
+	}
 
 	private sealed class Huc6280Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetHuC6280.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

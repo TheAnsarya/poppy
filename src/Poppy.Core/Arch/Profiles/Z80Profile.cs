@@ -15,7 +15,19 @@ internal sealed class Z80Profile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new Z80Encoder();
 	public int DefaultBankSize => 0x4000; // Default
 	public long GetBankCpuBase(int bank) => -1;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Z80RomBuilderAdapter();
+
+	private sealed class Z80RomBuilderAdapter : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var builder = new MasterSystemRomBuilder();
+			foreach (var segment in segments) {
+				builder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return builder.Build();
+		}
+	}
 
 	private sealed class Z80Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetZ80.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

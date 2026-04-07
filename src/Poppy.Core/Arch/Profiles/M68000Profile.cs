@@ -15,7 +15,19 @@ internal sealed class M68000Profile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new M68000Encoder();
 	public int DefaultBankSize => 0x4000; // Default
 	public long GetBankCpuBase(int bank) => -1;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new M68000RomBuilderAdapter();
+
+	private sealed class M68000RomBuilderAdapter : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var builder = new GenesisRomBuilder();
+			foreach (var segment in segments) {
+				builder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return builder.Build();
+		}
+	}
 
 	private sealed class M68000Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetM68000.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

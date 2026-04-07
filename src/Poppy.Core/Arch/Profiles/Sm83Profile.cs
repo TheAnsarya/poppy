@@ -18,7 +18,23 @@ internal sealed class Sm83Profile : ITargetProfile {
 	public long GetBankCpuBase(int bank) =>
 		bank == 0 ? 0x0000 : 0x4000;
 
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Sm83RomBuilderAdapter(analyzer);
+
+	private sealed class Sm83RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var headerBuilder = analyzer.GetGbHeaderBuilder();
+			if (headerBuilder is null) {
+				return flatBinary;
+			}
+
+			var header = headerBuilder.Build();
+			var romBuilder = new GbRomBuilder(header);
+			foreach (var segment in segments) {
+				romBuilder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return romBuilder.Build();
+		}
+	}
 
 	private sealed class Sm83Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetSM83.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

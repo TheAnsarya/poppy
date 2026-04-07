@@ -15,7 +15,28 @@ internal sealed class Spc700Profile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new Spc700Encoder();
 	public int DefaultBankSize => 0x4000; // Default
 	public long GetBankCpuBase(int bank) => -1;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Spc700RomBuilderAdapter(analyzer);
+
+	private sealed class Spc700RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var spcBuilder = analyzer.GetSpcFileBuilder() ?? new SpcFileBuilder();
+
+			foreach (var segment in segments) {
+				if (segment.StartAddress <= 0xffff) {
+					spcBuilder.SetRamAt((ushort)segment.StartAddress, segment.Data.ToArray());
+				}
+			}
+
+			// If no explicit entry point was set, use the first segment's address
+			if (segments.Count > 0 && analyzer.GetSpcFileBuilder() is null) {
+				spcBuilder.SetPC((ushort)segments[0].StartAddress);
+			}
+
+			return spcBuilder.Build();
+		}
+	}
 
 	private sealed class Spc700Encoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetSPC700.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);

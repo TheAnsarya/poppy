@@ -228,9 +228,9 @@ public sealed class TargetProfileTests {
 	[InlineData(TargetArchitecture.ARM7TDMI)]
 	[InlineData(TargetArchitecture.SPC700)]
 	[InlineData(TargetArchitecture.HuC6280)]
-	public void CreateRomBuilder_AllProfiles_ReturnsNull(TargetArchitecture arch) {
+	public void CreateRomBuilder_AllProfiles_ReturnsAdapter(TargetArchitecture arch) {
 		var profile = TargetResolver.GetProfile(arch);
-		Assert.Null(profile.CreateRomBuilder(null!));
+		Assert.NotNull(profile.CreateRomBuilder(null!));
 	}
 
 	// ========================================================================

@@ -15,7 +15,19 @@ internal sealed class V30mzProfile : ITargetProfile {
 	public IInstructionEncoder Encoder { get; } = new V30mzEncoder();
 	public int DefaultBankSize => 0x4000; // Default
 	public long GetBankCpuBase(int bank) => -1;
-	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => null; // TODO: Phase 2
+
+	/// <inheritdoc />
+	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new V30mzRomBuilderAdapter();
+
+	private sealed class V30mzRomBuilderAdapter : IRomBuilder {
+		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			var builder = new WonderSwanRomBuilder();
+			foreach (var segment in segments) {
+				builder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
+			}
+			return builder.Build();
+		}
+	}
 
 	private sealed class V30mzEncoder : IInstructionEncoder {
 		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetV30MZ.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
