@@ -82,6 +82,13 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 		}
 	}
 
+	private static LynxHeaderConfig GetOrCreateConfig(SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is LynxHeaderConfig config) return config;
+		var newConfig = new LynxHeaderConfig();
+		analyzer.HeaderConfig = newConfig;
+		return newConfig;
+	}
+
 	private static bool HandleLynxDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
 		if (analyzer.Pass != 1) return true;
 
@@ -96,6 +103,8 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 			}
 		}
 
+		var config = GetOrCreateConfig(analyzer);
+
 		switch (directiveName) {
 			case "lynx_name":
 				if (stringValue is null) {
@@ -106,7 +115,7 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 					analyzer.AddError($".lynx_name is too long ({stringValue.Length} characters, maximum is 32)", node.Location);
 					return true;
 				}
-				analyzer.LynxGameName = stringValue;
+				config.GameName = stringValue;
 				break;
 
 			case "lynx_manufacturer":
@@ -118,7 +127,7 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 					analyzer.AddError($".lynx_manufacturer is too long ({stringValue.Length} characters, maximum is 16)", node.Location);
 					return true;
 				}
-				analyzer.LynxManufacturer = stringValue;
+				config.Manufacturer = stringValue;
 				break;
 
 			case "lynx_rotation":
@@ -130,7 +139,7 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 					analyzer.AddError($".lynx_rotation must be 0, 1, or 2 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.LynxRotation = (int)value;
+				config.Rotation = (int)value;
 				break;
 
 			case "lynx_bank0_size":
@@ -142,7 +151,7 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 					analyzer.AddError($".lynx_bank0_size must be a positive multiple of 256 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.LynxBank0Size = (int)value;
+				config.Bank0Size = (int)value;
 				break;
 
 			case "lynx_bank1_size":
@@ -154,7 +163,7 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 					analyzer.AddError($".lynx_bank1_size must be a non-negative multiple of 256 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.LynxBank1Size = (int)value;
+				config.Bank1Size = (int)value;
 				break;
 
 			case "lynxentry":
@@ -166,11 +175,11 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 					analyzer.AddError($".lynxentry address must be in RAM range $0200-$fbff (got ${value:x4})", node.Location);
 					return true;
 				}
-				analyzer.LynxEntryPoint = (int)value;
+				config.EntryPoint = (int)value;
 				break;
 
 			case "lynxboot":
-				analyzer.LynxUseBootCode = value is null || value != 0;
+				config.UseBootCode = value is null || value != 0;
 				break;
 		}
 

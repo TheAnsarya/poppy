@@ -72,6 +72,13 @@ internal sealed class Mos6502Profile : ITargetProfile {
 		}
 	}
 
+	private static NesHeaderConfig GetOrCreateConfig(SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is NesHeaderConfig config) return config;
+		var newConfig = new NesHeaderConfig();
+		analyzer.HeaderConfig = newConfig;
+		return newConfig;
+	}
+
 	private static bool HandleMapperDirective(DirectiveNode node, SemanticAnalyzer analyzer) {
 		if (analyzer.Pass != 1) return true;
 
@@ -86,12 +93,13 @@ internal sealed class Mos6502Profile : ITargetProfile {
 			return true;
 		}
 
-		if (analyzer.NesMapper is not null) {
+		var config = GetOrCreateConfig(analyzer);
+		if (config.NesMapper is not null) {
 			analyzer.AddError("Mapper already set - cannot change", node.Location);
 			return true;
 		}
 
-		analyzer.NesMapper = (int)mapperValue;
+		config.NesMapper = (int)mapperValue;
 		return true;
 	}
 
@@ -108,13 +116,15 @@ internal sealed class Mos6502Profile : ITargetProfile {
 			}
 		}
 
+		var config = GetOrCreateConfig(analyzer);
+
 		switch (directiveName) {
 			case "ines_prg":
 				if (value is null) {
 					analyzer.AddError(".ines_prg directive requires a PRG ROM size (in 16KB units)", node.Location);
 					return true;
 				}
-				analyzer.InesPrgSize = (int)value;
+				config.PrgSize = (int)value;
 				break;
 
 			case "ines_chr":
@@ -122,7 +132,7 @@ internal sealed class Mos6502Profile : ITargetProfile {
 					analyzer.AddError(".ines_chr directive requires a CHR ROM size (in 8KB units)", node.Location);
 					return true;
 				}
-				analyzer.InesChrSize = (int)value;
+				config.ChrSize = (int)value;
 				break;
 
 			case "ines_mapper":
@@ -130,7 +140,7 @@ internal sealed class Mos6502Profile : ITargetProfile {
 					analyzer.AddError(".ines_mapper directive requires a mapper number", node.Location);
 					return true;
 				}
-				analyzer.InesMapper = (int)value;
+				config.Mapper = (int)value;
 				break;
 
 			case "ines_submapper":
@@ -138,7 +148,7 @@ internal sealed class Mos6502Profile : ITargetProfile {
 					analyzer.AddError(".ines_submapper directive requires a submapper number", node.Location);
 					return true;
 				}
-				analyzer.InesSubmapper = (int)value;
+				config.Submapper = (int)value;
 				break;
 
 			case "ines_mirroring":
@@ -146,19 +156,19 @@ internal sealed class Mos6502Profile : ITargetProfile {
 					analyzer.AddError(".ines_mirroring directive requires a mirroring mode (0=horizontal, 1=vertical)", node.Location);
 					return true;
 				}
-				analyzer.InesMirroring = value != 0;    // 0 = horizontal, 1 = vertical
+				config.Mirroring = value != 0;    // 0 = horizontal, 1 = vertical
 				break;
 
 			case "ines_battery":
-				analyzer.InesBattery = value is null || value != 0;
+				config.Battery = value is null || value != 0;
 				break;
 
 			case "ines_trainer":
-				analyzer.InesTrainer = value is null || value != 0;
+				config.Trainer = value is null || value != 0;
 				break;
 
 			case "ines_fourscreen":
-				analyzer.InesFourScreen = value is null || value != 0;
+				config.FourScreen = value is null || value != 0;
 				break;
 
 			case "ines_prgram":
@@ -166,7 +176,7 @@ internal sealed class Mos6502Profile : ITargetProfile {
 					analyzer.AddError(".ines_prgram directive requires a PRG RAM size (in 8KB units)", node.Location);
 					return true;
 				}
-				analyzer.InesPrgRamSize = (int)value;
+				config.PrgRamSize = (int)value;
 				break;
 
 			case "ines_chrram":
@@ -174,15 +184,15 @@ internal sealed class Mos6502Profile : ITargetProfile {
 					analyzer.AddError(".ines_chrram directive requires a CHR RAM size (in 8KB units)", node.Location);
 					return true;
 				}
-				analyzer.InesChrRamSize = (int)value;
+				config.ChrRamSize = (int)value;
 				break;
 
 			case "ines_pal":
-				analyzer.InesPal = value is null || value != 0;
+				config.Pal = value is null || value != 0;
 				break;
 
 			case "ines2":
-				analyzer.UseINes2 = value is null || value != 0;
+				config.UseINes2 = value is null || value != 0;
 				break;
 		}
 

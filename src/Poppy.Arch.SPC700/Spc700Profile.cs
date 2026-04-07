@@ -36,6 +36,13 @@ internal sealed class Spc700Profile : ITargetProfile {
 		}
 	}
 
+	private static SpcHeaderConfig GetOrCreateConfig(SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is SpcHeaderConfig config) return config;
+		var newConfig = new SpcHeaderConfig();
+		analyzer.HeaderConfig = newConfig;
+		return newConfig;
+	}
+
 	private static bool HandleSpcDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
 		if (analyzer.Pass != 1) return true;
 
@@ -50,6 +57,8 @@ internal sealed class Spc700Profile : ITargetProfile {
 			}
 		}
 
+		var config = GetOrCreateConfig(analyzer);
+
 		switch (directiveName) {
 			case "spc_song_title":
 				if (stringValue is null) {
@@ -60,7 +69,7 @@ internal sealed class Spc700Profile : ITargetProfile {
 					analyzer.AddError($".spc_song_title is too long ({stringValue.Length} characters, maximum is 32)", node.Location);
 					return true;
 				}
-				analyzer.SpcSongTitle = stringValue;
+				config.SongTitle = stringValue;
 				break;
 
 			case "spc_game_title":
@@ -72,7 +81,7 @@ internal sealed class Spc700Profile : ITargetProfile {
 					analyzer.AddError($".spc_game_title is too long ({stringValue.Length} characters, maximum is 32)", node.Location);
 					return true;
 				}
-				analyzer.SpcGameTitle = stringValue;
+				config.GameTitle = stringValue;
 				break;
 
 			case "spc_artist":
@@ -84,7 +93,7 @@ internal sealed class Spc700Profile : ITargetProfile {
 					analyzer.AddError($".spc_artist is too long ({stringValue.Length} characters, maximum is 32)", node.Location);
 					return true;
 				}
-				analyzer.SpcArtist = stringValue;
+				config.Artist = stringValue;
 				break;
 
 			case "spc_entry":
@@ -96,7 +105,7 @@ internal sealed class Spc700Profile : ITargetProfile {
 					analyzer.AddError($".spc_entry address must be $0000-$ffff (got ${value:x4})", node.Location);
 					return true;
 				}
-				analyzer.SpcEntryPoint = (int)value;
+				config.EntryPoint = (int)value;
 				break;
 		}
 

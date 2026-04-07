@@ -44,7 +44,8 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 
 	/// <inheritdoc />
 	public int GetBankSize(SemanticAnalyzer analyzer) {
-		var mapping = analyzer.MemoryMapping;
+		var config = analyzer.HeaderConfig as SnesHeaderConfig;
+		var mapping = config?.MemoryMapping;
 		if (mapping is not null && mapping.Equals("hirom", StringComparison.OrdinalIgnoreCase))
 			return 0x10000;
 		return DefaultBankSize; // 0x8000 for LoROM
@@ -106,6 +107,11 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 		var directiveName = node.Name.ToLowerInvariant();
 
 		switch (directiveName) {
+			case "lorom":
+			case "hirom":
+			case "exhirom":
+				return HandleMemoryMappingDirective(node, analyzer, directiveName);
+
 			case "snes_title":
 			case "snes_region":
 			case "snes_version":
@@ -117,6 +123,26 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 			default:
 				return false;
 		}
+	}
+
+	private static SnesHeaderConfig GetOrCreateConfig(SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is SnesHeaderConfig config) return config;
+		var newConfig = new SnesHeaderConfig();
+		analyzer.HeaderConfig = newConfig;
+		return newConfig;
+	}
+
+	private static bool HandleMemoryMappingDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
+		if (analyzer.Pass != 1) return true;
+
+		var config = GetOrCreateConfig(analyzer);
+		if (config.MemoryMapping is not null) {
+			analyzer.AddError("Memory mapping already set - cannot change", node.Location);
+			return true;
+		}
+
+		config.MemoryMapping = directiveName;
+		return true;
 	}
 
 	private static bool HandleSnesDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
@@ -138,6 +164,8 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 			}
 		}
 
+		var config = GetOrCreateConfig(analyzer);
+
 		switch (directiveName) {
 			case "snes_title":
 				if (stringValue is null) {
@@ -148,7 +176,7 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 					analyzer.AddError($".snes_title is too long ({stringValue.Length} characters, maximum is 21)", node.Location);
 					return true;
 				}
-				analyzer.SnesTitle = stringValue;
+				config.Title = stringValue;
 				break;
 
 			case "snes_region":
@@ -162,7 +190,7 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 					analyzer.AddError($".snes_region \"{stringValue}\" is not valid. Valid regions: {string.Join(", ", validRegions)}", node.Location);
 					return true;
 				}
-				analyzer.SnesRegion = stringValue;
+				config.Region = stringValue;
 				break;
 
 			case "snes_version":
@@ -174,7 +202,7 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 					analyzer.AddError($".snes_version must be 0-255 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.SnesVersion = (int)value;
+				config.Version = (int)value;
 				break;
 
 			case "snes_rom_size":
@@ -186,7 +214,7 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 					analyzer.AddError($".snes_rom_size must be a power of 2 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.SnesRomSizeKb = (int)value;
+				config.RomSizeKb = (int)value;
 				break;
 
 			case "snes_ram_size":
@@ -199,11 +227,11 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 					analyzer.AddError($".snes_ram_size must be 0, 2, 8, or 32 KB (got {value})", node.Location);
 					return true;
 				}
-				analyzer.SnesRamSizeKb = (int)value;
+				config.RamSizeKb = (int)value;
 				break;
 
 			case "snes_fastrom":
-				analyzer.SnesFastRom = value is null || value != 0;
+				config.FastRom = value is null || value != 0;
 				break;
 		}
 
@@ -218,7 +246,8 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 			}
 
 			var header = headerBuilder.Build();
-			var mapMode = GetMapMode(analyzer.MemoryMapping);
+			var snesConfig = analyzer.HeaderConfig as SnesHeaderConfig;
+			var mapMode = GetMapMode(snesConfig?.MemoryMapping);
 
 			var romBuilder = new SnesRomBuilder(mapMode, header);
 			foreach (var segment in segments) {

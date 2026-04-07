@@ -37,6 +37,13 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 		}
 	}
 
+	private static GbaHeaderConfig GetOrCreateConfig(SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is GbaHeaderConfig config) return config;
+		var newConfig = new GbaHeaderConfig();
+		analyzer.HeaderConfig = newConfig;
+		return newConfig;
+	}
+
 	private static bool HandleGbaDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
 		if (analyzer.Pass != 1) return true;
 
@@ -51,6 +58,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			}
 		}
 
+		var config = GetOrCreateConfig(analyzer);
+
 		switch (directiveName) {
 			case "gba_title":
 				if (stringValue is null) {
@@ -61,7 +70,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					analyzer.AddError($".gba_title is too long ({stringValue.Length} characters, maximum is 12)", node.Location);
 					return true;
 				}
-				analyzer.GbaTitle = stringValue;
+				config.Title = stringValue;
 				break;
 
 			case "gba_game_code":
@@ -73,7 +82,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					analyzer.AddError($".gba_game_code must be exactly 4 characters (got {stringValue.Length})", node.Location);
 					return true;
 				}
-				analyzer.GbaGameCode = stringValue;
+				config.GameCode = stringValue;
 				break;
 
 			case "gba_maker_code":
@@ -85,7 +94,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					analyzer.AddError($".gba_maker_code must be exactly 2 characters (got {stringValue.Length})", node.Location);
 					return true;
 				}
-				analyzer.GbaMakerCode = stringValue;
+				config.MakerCode = stringValue;
 				break;
 
 			case "gba_version":
@@ -97,7 +106,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					analyzer.AddError($".gba_version must be 0-255 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.GbaVersion = (int)value;
+				config.Version = (int)value;
 				break;
 
 			case "gba_entry":
@@ -105,7 +114,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					analyzer.AddError(".gba_entry directive requires an entry point address", node.Location);
 					return true;
 				}
-				analyzer.GbaEntryPoint = (int)value;
+				config.EntryPoint = (int)value;
 				break;
 		}
 

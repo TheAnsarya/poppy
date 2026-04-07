@@ -11,18 +11,20 @@ public static class SemanticAnalyzerExtensions {
 	/// Gets the SNES header builder with all configured settings, or null if not configured.
 	/// </summary>
 	public static SnesHeaderBuilder? GetSnesHeaderBuilder(this SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is not SnesHeaderConfig config) return null;
+
 		// Only create if at least one SNES directive was used or memory mapping is set
-		if (analyzer.MemoryMapping == null && analyzer.SnesTitle == null && analyzer.SnesRegion == null &&
-			analyzer.SnesVersion == null && analyzer.SnesRomSizeKb == null && analyzer.SnesRamSizeKb == null &&
-			!analyzer.SnesFastRom) {
+		if (config.MemoryMapping == null && config.Title == null && config.Region == null &&
+			config.Version == null && config.RomSizeKb == null && config.RamSizeKb == null &&
+			!config.FastRom) {
 			return null;
 		}
 
 		var builder = new SnesHeaderBuilder();
 
 		// Set mapping mode from MemoryMapping directive
-		if (analyzer.MemoryMapping != null) {
-			var mode = analyzer.MemoryMapping switch {
+		if (config.MemoryMapping != null) {
+			var mode = config.MemoryMapping switch {
 				"lorom" => SnesMapMode.LoRom,
 				"hirom" => SnesMapMode.HiRom,
 				"exhirom" => SnesMapMode.ExHiRom,
@@ -31,14 +33,14 @@ public static class SemanticAnalyzerExtensions {
 			builder.SetMapMode(mode);
 		}
 
-		if (analyzer.SnesTitle != null) builder.SetTitle(analyzer.SnesTitle);
-		if (analyzer.SnesRomSizeKb != null) builder.SetRomSize(analyzer.SnesRomSizeKb.Value);
-		if (analyzer.SnesRamSizeKb != null) builder.SetRamSize(analyzer.SnesRamSizeKb.Value);
-		if (analyzer.SnesFastRom) builder.SetFastRom(true);
+		if (config.Title != null) builder.SetTitle(config.Title);
+		if (config.RomSizeKb != null) builder.SetRomSize(config.RomSizeKb.Value);
+		if (config.RamSizeKb != null) builder.SetRamSize(config.RamSizeKb.Value);
+		if (config.FastRom) builder.SetFastRom(true);
 
 		// Set region
-		if (analyzer.SnesRegion != null) {
-			var region = analyzer.SnesRegion.ToLowerInvariant() switch {
+		if (config.Region != null) {
+			var region = config.Region.ToLowerInvariant() switch {
 				"japan" => SnesRegion.Japan,
 				"usa" => SnesRegion.NorthAmerica,
 				"europe" => SnesRegion.Europe,
@@ -47,8 +49,8 @@ public static class SemanticAnalyzerExtensions {
 			builder.SetRegion(region);
 		}
 
-		if (analyzer.SnesVersion != null) {
-			builder.SetVersion((byte)analyzer.SnesVersion.Value);
+		if (config.Version != null) {
+			builder.SetVersion((byte)config.Version.Value);
 		}
 
 		return builder;

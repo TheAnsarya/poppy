@@ -62,6 +62,13 @@ internal sealed class Sm83Profile : ITargetProfile {
 		}
 	}
 
+	private static GbHeaderConfig GetOrCreateConfig(SemanticAnalyzer analyzer) {
+		if (analyzer.HeaderConfig is GbHeaderConfig config) return config;
+		var newConfig = new GbHeaderConfig();
+		analyzer.HeaderConfig = newConfig;
+		return newConfig;
+	}
+
 	private static bool HandleGbDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
 		if (analyzer.Pass != 1) return true;
 
@@ -80,6 +87,8 @@ internal sealed class Sm83Profile : ITargetProfile {
 			}
 		}
 
+		var config = GetOrCreateConfig(analyzer);
+
 		switch (directiveName) {
 			case "gb_title":
 				if (stringValue is null) {
@@ -90,7 +99,7 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_title is too long ({stringValue.Length} characters, maximum is 16)", node.Location);
 					return true;
 				}
-				analyzer.GbTitle = stringValue;
+				config.Title = stringValue;
 				break;
 
 			case "gb_cgb":
@@ -102,11 +111,11 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_cgb mode must be 0, 1, or 2 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.GbCgbMode = (int)value;
+				config.CgbMode = (int)value;
 				break;
 
 			case "gb_sgb":
-				analyzer.GbSgbEnabled = value is null || value != 0;
+				config.SgbEnabled = value is null || value != 0;
 				break;
 
 			case "gb_cartridge_type":
@@ -118,7 +127,7 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_cartridge_type must be 0-$1e (got ${value:x})", node.Location);
 					return true;
 				}
-				analyzer.GbCartridgeType = (int)value;
+				config.CartridgeType = (int)value;
 				break;
 
 			case "gb_rom_size":
@@ -130,7 +139,7 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_rom_size must be a power of 2 >= 32 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.GbRomSizeKb = (int)value;
+				config.RomSizeKb = (int)value;
 				break;
 
 			case "gb_ram_size":
@@ -143,7 +152,7 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_ram_size must be 0, 2, 8, 32, 64, or 128 KB (got {value})", node.Location);
 					return true;
 				}
-				analyzer.GbRamSizeKb = (int)value;
+				config.RamSizeKb = (int)value;
 				break;
 
 			case "gb_region":
@@ -155,7 +164,7 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_region must be 0 or 1 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.GbRegion = (int)value;
+				config.Region = (int)value;
 				break;
 
 			case "gb_version":
@@ -167,7 +176,7 @@ internal sealed class Sm83Profile : ITargetProfile {
 					analyzer.AddError($".gb_version must be 0-255 (got {value})", node.Location);
 					return true;
 				}
-				analyzer.GbVersion = (int)value;
+				config.Version = (int)value;
 				break;
 		}
 

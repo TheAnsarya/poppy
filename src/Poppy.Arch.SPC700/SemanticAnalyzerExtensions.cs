@@ -10,18 +10,14 @@ public static class SemanticAnalyzerExtensions {
 	/// Gets an SPC file builder if SPC700 directives were used, or null if not configured.
 	/// </summary>
 	public static SpcFileBuilder? GetSpcFileBuilder(this SemanticAnalyzer analyzer) {
-		// Only create if at least one SPC directive was used
-		if (analyzer.SpcSongTitle == null && analyzer.SpcGameTitle == null && analyzer.SpcArtist == null &&
-			analyzer.SpcEntryPoint == null) {
-			return null;
-		}
+		if (analyzer.HeaderConfig is not SpcHeaderConfig config) return null;
 
 		var builder = new SpcFileBuilder();
 
-		if (analyzer.SpcSongTitle != null) builder.SetSongTitle(analyzer.SpcSongTitle);
-		if (analyzer.SpcGameTitle != null) builder.SetGameTitle(analyzer.SpcGameTitle);
-		if (analyzer.SpcArtist != null) builder.SetArtistName(analyzer.SpcArtist);
-		if (analyzer.SpcEntryPoint != null) builder.SetPC((ushort)analyzer.SpcEntryPoint.Value);
+		if (config.SongTitle != null) builder.SetSongTitle(config.SongTitle);
+		if (config.GameTitle != null) builder.SetGameTitle(config.GameTitle);
+		if (config.Artist != null) builder.SetArtistName(config.Artist);
+		if (config.EntryPoint != null) builder.SetPC((ushort)config.EntryPoint.Value);
 
 		return builder;
 	}

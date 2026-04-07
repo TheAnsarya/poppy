@@ -10,19 +10,15 @@ public static class SemanticAnalyzerExtensions {
 	/// Gets a GBA header builder if GBA header directives were used, or null if not configured.
 	/// </summary>
 	public static GbaRomBuilder? GetGbaHeaderBuilder(this SemanticAnalyzer analyzer) {
-		// Only create if at least one GBA directive was used
-		if (analyzer.GbaTitle == null && analyzer.GbaGameCode == null && analyzer.GbaMakerCode == null &&
-			analyzer.GbaVersion == null && analyzer.GbaEntryPoint == null) {
-			return null;
-		}
+		if (analyzer.HeaderConfig is not GbaHeaderConfig config) return null;
 
 		var builder = new GbaRomBuilder();
 
-		if (analyzer.GbaTitle != null) builder.SetTitle(analyzer.GbaTitle);
-		if (analyzer.GbaGameCode != null) builder.SetGameCode(analyzer.GbaGameCode);
-		if (analyzer.GbaMakerCode != null) builder.SetMakerCode(analyzer.GbaMakerCode);
-		if (analyzer.GbaVersion != null) builder.SetVersion((byte)analyzer.GbaVersion.Value);
-		if (analyzer.GbaEntryPoint != null) builder.SetEntryPointAddress((uint)analyzer.GbaEntryPoint.Value);
+		if (config.Title != null) builder.SetTitle(config.Title);
+		if (config.GameCode != null) builder.SetGameCode(config.GameCode);
+		if (config.MakerCode != null) builder.SetMakerCode(config.MakerCode);
+		if (config.Version != null) builder.SetVersion((byte)config.Version.Value);
+		if (config.EntryPoint != null) builder.SetEntryPointAddress((uint)config.EntryPoint.Value);
 
 		return builder;
 	}

@@ -3,6 +3,8 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using Poppy.Arch.MOS6502;
+using Poppy.Arch.WDC65816;
 using Poppy.Core.Arch;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
@@ -788,7 +790,8 @@ public class SemanticAnalyzerTests {
 		var analyzer = Analyze(source);
 
 		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
-		Assert.Equal("lorom", analyzer.MemoryMapping);
+		var snesConfig = Assert.IsType<SnesHeaderConfig>(analyzer.HeaderConfig);
+		Assert.Equal("lorom", snesConfig.MemoryMapping);
 	}
 
 	[Fact]
@@ -802,7 +805,8 @@ public class SemanticAnalyzerTests {
 		var analyzer = Analyze(source);
 
 		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
-		Assert.Equal(1, analyzer.NesMapper);
+		var nesConfig = Assert.IsType<NesHeaderConfig>(analyzer.HeaderConfig);
+		Assert.Equal(1, nesConfig.NesMapper);
 	}
 
 	[Fact]
