@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // SemanticAnalyzer.cs - Semantic Analysis Phase
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -56,77 +56,77 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 	// SNES header configuration
 
 	/// <summary>Gets or sets the SNES game title.</summary>
-	public string? SnesTitle { get; private set; }
+	public string? SnesTitle { get; internal set; }
 	/// <summary>Gets or sets the SNES region string.</summary>
-	public string? SnesRegion { get; private set; }
+	public string? SnesRegion { get; internal set; }
 	/// <summary>Gets or sets the SNES ROM version.</summary>
-	public int? SnesVersion { get; private set; }
+	public int? SnesVersion { get; internal set; }
 	/// <summary>Gets or sets the SNES ROM size in kilobytes.</summary>
-	public int? SnesRomSizeKb { get; private set; }
+	public int? SnesRomSizeKb { get; internal set; }
 	/// <summary>Gets or sets the SNES RAM size in kilobytes.</summary>
-	public int? SnesRamSizeKb { get; private set; }
+	public int? SnesRamSizeKb { get; internal set; }
 	/// <summary>Gets or sets whether to use SNES fast ROM mode.</summary>
-	public bool SnesFastRom { get; private set; }
+	public bool SnesFastRom { get; internal set; }
 
 	// Game Boy header configuration
 
 	/// <summary>Gets or sets the Game Boy ROM title.</summary>
-	public string? GbTitle { get; private set; }
+	public string? GbTitle { get; internal set; }
 	/// <summary>Gets or sets the Game Boy CGB mode value.</summary>
-	public int? GbCgbMode { get; private set; }
+	public int? GbCgbMode { get; internal set; }
 	/// <summary>Gets or sets whether Super Game Boy features are enabled.</summary>
-	public bool GbSgbEnabled { get; private set; }
+	public bool GbSgbEnabled { get; internal set; }
 	/// <summary>Gets or sets the Game Boy cartridge type value.</summary>
-	public int? GbCartridgeType { get; private set; }
+	public int? GbCartridgeType { get; internal set; }
 	/// <summary>Gets or sets the Game Boy ROM size in kilobytes.</summary>
-	public int? GbRomSizeKb { get; private set; }
+	public int? GbRomSizeKb { get; internal set; }
 	/// <summary>Gets or sets the Game Boy RAM size in kilobytes.</summary>
-	public int? GbRamSizeKb { get; private set; }
+	public int? GbRamSizeKb { get; internal set; }
 	/// <summary>Gets or sets the Game Boy region code.</summary>
-	public int? GbRegion { get; private set; }
+	public int? GbRegion { get; internal set; }
 	/// <summary>Gets or sets the Game Boy ROM version.</summary>
-	public int? GbVersion { get; private set; }
+	public int? GbVersion { get; internal set; }
 
 	// Atari Lynx header/boot configuration
 
 	/// <summary>Gets or sets the Atari Lynx game name.</summary>
-	public string? LynxGameName { get; private set; }
+	public string? LynxGameName { get; internal set; }
 	/// <summary>Gets or sets the Atari Lynx manufacturer name.</summary>
-	public string? LynxManufacturer { get; private set; }
+	public string? LynxManufacturer { get; internal set; }
 	/// <summary>Gets or sets the Atari Lynx screen rotation value.</summary>
-	public int? LynxRotation { get; private set; }
+	public int? LynxRotation { get; internal set; }
 	/// <summary>Gets or sets the Atari Lynx bank 0 size in bytes.</summary>
-	public int? LynxBank0Size { get; private set; }
+	public int? LynxBank0Size { get; internal set; }
 	/// <summary>Gets or sets the Atari Lynx bank 1 size in bytes.</summary>
-	public int? LynxBank1Size { get; private set; }
+	public int? LynxBank1Size { get; internal set; }
 	/// <summary>Gets or sets the Atari Lynx entry point address.</summary>
-	public int? LynxEntryPoint { get; private set; }
+	public int? LynxEntryPoint { get; internal set; }
 	/// <summary>Gets or sets whether to generate Lynx standard boot code.</summary>
-	public bool LynxUseBootCode { get; private set; }
+	public bool LynxUseBootCode { get; internal set; }
 
 	// GBA header configuration
 
 	/// <summary>Gets or sets the GBA game title.</summary>
-	public string? GbaTitle { get; private set; }
+	public string? GbaTitle { get; internal set; }
 	/// <summary>Gets or sets the GBA 4-character game code.</summary>
-	public string? GbaGameCode { get; private set; }
+	public string? GbaGameCode { get; internal set; }
 	/// <summary>Gets or sets the GBA 2-character maker code.</summary>
-	public string? GbaMakerCode { get; private set; }
+	public string? GbaMakerCode { get; internal set; }
 	/// <summary>Gets or sets the GBA software version.</summary>
-	public int? GbaVersion { get; private set; }
+	public int? GbaVersion { get; internal set; }
 	/// <summary>Gets or sets the GBA entry point address.</summary>
-	public int? GbaEntryPoint { get; private set; }
+	public int? GbaEntryPoint { get; internal set; }
 
 	// SPC700 file configuration
 
 	/// <summary>Gets or sets the SPC700 song title.</summary>
-	public string? SpcSongTitle { get; private set; }
+	public string? SpcSongTitle { get; internal set; }
 	/// <summary>Gets or sets the SPC700 game title.</summary>
-	public string? SpcGameTitle { get; private set; }
+	public string? SpcGameTitle { get; internal set; }
 	/// <summary>Gets or sets the SPC700 artist name.</summary>
-	public string? SpcArtist { get; private set; }
+	public string? SpcArtist { get; internal set; }
 	/// <summary>Gets or sets the SPC700 entry point address.</summary>
-	public int? SpcEntryPoint { get; private set; }
+	public int? SpcEntryPoint { get; internal set; }
 
 	// 65816 M/X flag tracking
 	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
@@ -567,7 +567,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "snes_rom_size":
 			case "snes_ram_size":
 			case "snes_fastrom":
-				HandleSnesDirective(node);
+				if (_profile?.TryHandleDirective(node, this) != true) {
+					AddError($".{node.Name.ToLowerInvariant()} directive is only valid for SNES/65816 target", node.Location);
+				}
 				break;
 
 			// Game Boy header directives
@@ -579,7 +581,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "gb_ram_size":
 			case "gb_region":
 			case "gb_version":
-				HandleGbDirective(node);
+				if (_profile?.TryHandleDirective(node, this) != true) {
+					AddError($".{node.Name.ToLowerInvariant()} directive is only valid for Game Boy/SM83 target", node.Location);
+				}
 				break;
 
 			// Atari Lynx header/boot directives
@@ -590,7 +594,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "lynx_bank1_size":
 			case "lynxentry":
 			case "lynxboot":
-				HandleLynxDirective(node);
+				if (_profile?.TryHandleDirective(node, this) != true) {
+					AddError($".{node.Name.ToLowerInvariant()} directive is only valid for Atari Lynx/65SC02 target", node.Location);
+				}
 				break;
 
 			// GBA header directives
@@ -599,7 +605,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "gba_maker_code":
 			case "gba_version":
 			case "gba_entry":
-				HandleGbaDirective(node);
+				if (_profile?.TryHandleDirective(node, this) != true) {
+					AddError($".{node.Name.ToLowerInvariant()} directive is only valid for GBA/ARM7TDMI target", node.Location);
+				}
 				break;
 
 			// SPC700 file directives
@@ -607,7 +615,9 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			case "spc_game_title":
 			case "spc_artist":
 			case "spc_entry":
-				HandleSpcDirective(node);
+				if (_profile?.TryHandleDirective(node, this) != true) {
+					AddError($".{node.Name.ToLowerInvariant()} directive is only valid for SPC700 target", node.Location);
+				}
 				break;
 
 			// Assertions and diagnostics
@@ -1110,674 +1120,6 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		}
 	}
 
-	/// <summary>
-	/// Handles SNES header directives (.snes_title, .snes_region, etc.).
-	/// </summary>
-	private void HandleSnesDirective(DirectiveNode node) {
-		if (_pass != 1) return;
-
-		var directiveName = node.Name.ToLowerInvariant();
-
-		// Get the value from the first argument (if any)
-		long? value = null;
-		string? stringValue = null;
-
-		if (node.Arguments.Count > 0) {
-			// Try to get as a string first (for title and region)
-			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
-				stringValue = stringLit.Value;
-			} else {
-				// Otherwise evaluate as numeric expression
-				value = EvaluateExpression(node.Arguments[0]);
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						$".{directiveName} directive requires a constant value",
-						node.Location));
-					return;
-				}
-			}
-		}
-
-		switch (directiveName) {
-			case "snes_title":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".snes_title directive requires a string value (up to 21 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 21) {
-					_errors.Add(new SemanticError(
-						$".snes_title is too long ({stringValue.Length} characters, maximum is 21)",
-						node.Location));
-					return;
-				}
-
-				SnesTitle = stringValue;
-				break;
-
-			case "snes_region":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".snes_region directive requires a region string (e.g., \"Japan\", \"USA\", \"Europe\")",
-						node.Location));
-					return;
-				}
-
-				// Validate region string
-				var validRegions = new[] { "Japan", "USA", "Europe", "Scandinavia", "France",
-					"Netherlands", "Spain", "Germany", "Italy", "China", "Korea", "Canada", "Brazil", "Australia" };
-				if (!validRegions.Contains(stringValue, StringComparer.OrdinalIgnoreCase)) {
-					_errors.Add(new SemanticError(
-						$".snes_region \"{stringValue}\" is not valid. Valid regions: {string.Join(", ", validRegions)}",
-						node.Location));
-					return;
-				}
-
-				SnesRegion = stringValue;
-				break;
-
-			case "snes_version":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".snes_version directive requires a version number (0-255)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 255) {
-					_errors.Add(new SemanticError(
-						$".snes_version must be 0-255 (got {value})",
-						node.Location));
-					return;
-				}
-
-				SnesVersion = (int)value;
-				break;
-
-			case "snes_rom_size":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".snes_rom_size directive requires a ROM size in KB (power of 2, e.g., 256, 512, 1024)",
-						node.Location));
-					return;
-				}
-
-				// Validate it's a power of 2
-				if (value <= 0 || (value & (value - 1)) != 0) {
-					_errors.Add(new SemanticError(
-						$".snes_rom_size must be a power of 2 (got {value})",
-						node.Location));
-					return;
-				}
-
-				SnesRomSizeKb = (int)value;
-				break;
-
-			case "snes_ram_size":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".snes_ram_size directive requires a RAM size in KB (0, 2, 8, or 32)",
-						node.Location));
-					return;
-				}
-
-				// Validate it's a valid SNES RAM size
-				var validRamSizes = new[] { 0, 2, 8, 32 };
-				if (!validRamSizes.Contains((int)value)) {
-					_errors.Add(new SemanticError(
-						$".snes_ram_size must be 0, 2, 8, or 32 KB (got {value})",
-						node.Location));
-					return;
-				}
-
-				SnesRamSizeKb = (int)value;
-				break;
-
-			case "snes_fastrom":
-				SnesFastRom = value is null || value != 0;
-				break;
-		}
-
-		// Ensure target is SNES/65816
-		if (Target != TargetArchitecture.WDC65816) {
-			_errors.Add(new SemanticError(
-				$".{directiveName} directive is only valid for SNES/65816 target",
-				node.Location));
-		}
-	}
-
-	/// <summary>
-	/// Handles Game Boy header directives (.gb_title, .gb_cgb, etc.).
-	/// </summary>
-	private void HandleGbDirective(DirectiveNode node) {
-		if (_pass != 1) return;
-
-		var directiveName = node.Name.ToLowerInvariant();
-
-		// Get the value from the first argument (if any)
-		long? value = null;
-		string? stringValue = null;
-
-		if (node.Arguments.Count > 0) {
-			// Try to get as a string first (for title)
-			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
-				stringValue = stringLit.Value;
-			} else {
-				// Otherwise evaluate as numeric expression
-				value = EvaluateExpression(node.Arguments[0]);
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						$".{directiveName} directive requires a constant value",
-						node.Location));
-					return;
-				}
-			}
-		}
-
-		switch (directiveName) {
-			case "gb_title":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".gb_title directive requires a string value (max 16 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 16) {
-					_errors.Add(new SemanticError(
-						$".gb_title is too long ({stringValue.Length} characters, maximum is 16)",
-						node.Location));
-					return;
-				}
-
-				GbTitle = stringValue;
-				break;
-
-			case "gb_cgb":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gb_cgb directive requires a mode (0=DMG only, 1=CGB compatible, 2=CGB only)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 2) {
-					_errors.Add(new SemanticError(
-						$".gb_cgb mode must be 0, 1, or 2 (got {value})",
-						node.Location));
-					return;
-				}
-
-				GbCgbMode = (int)value;
-				break;
-
-			case "gb_sgb":
-				GbSgbEnabled = value is null || value != 0;
-				break;
-
-			case "gb_cartridge_type":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gb_cartridge_type directive requires a cartridge type code",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 0x1e) {
-					_errors.Add(new SemanticError(
-						$".gb_cartridge_type must be 0-$1e (got ${value:x})",
-						node.Location));
-					return;
-				}
-
-				GbCartridgeType = (int)value;
-				break;
-
-			case "gb_rom_size":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gb_rom_size directive requires a ROM size in KB (32, 64, 128, 256, etc.)",
-						node.Location));
-					return;
-				}
-
-				// Validate it's a power of 2 >= 32
-				if (value < 32 || (value & (value - 1)) != 0) {
-					_errors.Add(new SemanticError(
-						$".gb_rom_size must be a power of 2 >= 32 (got {value})",
-						node.Location));
-					return;
-				}
-
-				GbRomSizeKb = (int)value;
-				break;
-
-			case "gb_ram_size":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gb_ram_size directive requires a RAM size in KB (0, 2, 8, 32, 64, or 128)",
-						node.Location));
-					return;
-				}
-
-				// Validate it's a valid GB RAM size
-				var validRamSizes = new[] { 0, 2, 8, 32, 64, 128 };
-				if (!validRamSizes.Contains((int)value)) {
-					_errors.Add(new SemanticError(
-						$".gb_ram_size must be 0, 2, 8, 32, 64, or 128 KB (got {value})",
-						node.Location));
-					return;
-				}
-
-				GbRamSizeKb = (int)value;
-				break;
-
-			case "gb_region":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gb_region directive requires a region code (0=Japan, 1=International)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 1) {
-					_errors.Add(new SemanticError(
-						$".gb_region must be 0 or 1 (got {value})",
-						node.Location));
-					return;
-				}
-
-				GbRegion = (int)value;
-				break;
-
-			case "gb_version":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gb_version directive requires a version number (0-255)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 255) {
-					_errors.Add(new SemanticError(
-						$".gb_version must be 0-255 (got {value})",
-						node.Location));
-					return;
-				}
-
-				GbVersion = (int)value;
-				break;
-		}
-
-		// Ensure target is Game Boy
-		if (Target != TargetArchitecture.SM83) {
-			_errors.Add(new SemanticError(
-				$".{directiveName} directive is only valid for Game Boy/SM83 target",
-				node.Location));
-		}
-	}
-
-	/// <summary>
-	/// Handles Atari Lynx header/boot directives (.lynx_*, .lynxboot, .lynxentry).
-	/// </summary>
-	private void HandleLynxDirective(DirectiveNode node) {
-		if (_pass != 1) return;
-
-		var directiveName = node.Name.ToLowerInvariant();
-
-		// Get the value from the first argument (if any)
-		long? value = null;
-		string? stringValue = null;
-
-		if (node.Arguments.Count > 0) {
-			// Try to get as a string first (for name and manufacturer)
-			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
-				stringValue = stringLit.Value;
-			} else {
-				// Otherwise evaluate as numeric expression
-				value = EvaluateExpression(node.Arguments[0]);
-			}
-		}
-
-		switch (directiveName) {
-			case "lynx_name":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".lynx_name directive requires a string value (up to 32 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 32) {
-					_errors.Add(new SemanticError(
-						$".lynx_name is too long ({stringValue.Length} characters, maximum is 32)",
-						node.Location));
-					return;
-				}
-
-				LynxGameName = stringValue;
-				break;
-
-			case "lynx_manufacturer":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".lynx_manufacturer directive requires a string value (up to 16 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 16) {
-					_errors.Add(new SemanticError(
-						$".lynx_manufacturer is too long ({stringValue.Length} characters, maximum is 16)",
-						node.Location));
-					return;
-				}
-
-				LynxManufacturer = stringValue;
-				break;
-
-			case "lynx_rotation":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".lynx_rotation directive requires a rotation mode (0=none, 1=left, 2=right)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 2) {
-					_errors.Add(new SemanticError(
-						$".lynx_rotation must be 0, 1, or 2 (got {value})",
-						node.Location));
-					return;
-				}
-
-				LynxRotation = (int)value;
-				break;
-
-			case "lynx_bank0_size":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".lynx_bank0_size directive requires a ROM size in bytes (multiple of 256)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value % 256 != 0) {
-					_errors.Add(new SemanticError(
-						$".lynx_bank0_size must be a positive multiple of 256 (got {value})",
-						node.Location));
-					return;
-				}
-
-				LynxBank0Size = (int)value;
-				break;
-
-			case "lynx_bank1_size":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".lynx_bank1_size directive requires a ROM size in bytes (multiple of 256, or 0)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value % 256 != 0) {
-					_errors.Add(new SemanticError(
-						$".lynx_bank1_size must be a non-negative multiple of 256 (got {value})",
-						node.Location));
-					return;
-				}
-
-				LynxBank1Size = (int)value;
-				break;
-
-			case "lynxentry":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".lynxentry directive requires an entry point address (e.g., $0200)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0x0200 || value > 0xfbff) {
-					_errors.Add(new SemanticError(
-						$".lynxentry address must be in RAM range $0200-$fbff (got ${value:x4})",
-						node.Location));
-					return;
-				}
-
-				LynxEntryPoint = (int)value;
-				break;
-
-			case "lynxboot":
-				// Enable standard boot code generation
-				LynxUseBootCode = value is null || value != 0;
-				break;
-		}
-
-		// Ensure target is Lynx
-		if (Target != TargetArchitecture.MOS65SC02) {
-			_errors.Add(new SemanticError(
-				$".{directiveName} directive is only valid for Atari Lynx/65SC02 target",
-				node.Location));
-		}
-	}
-
-	/// <summary>
-	/// Handles GBA header directives (.gba_title, .gba_game_code, .gba_maker_code, .gba_version, .gba_entry).
-	/// </summary>
-	private void HandleGbaDirective(DirectiveNode node) {
-		if (_pass != 1) return;
-
-		var directiveName = node.Name.ToLowerInvariant();
-
-		// Get the value from the first argument (if any)
-		long? value = null;
-		string? stringValue = null;
-
-		if (node.Arguments.Count > 0) {
-			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
-				stringValue = stringLit.Value;
-			} else {
-				value = EvaluateExpression(node.Arguments[0]);
-			}
-		}
-
-		switch (directiveName) {
-			case "gba_title":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".gba_title directive requires a string value (max 12 characters, uppercase ASCII)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 12) {
-					_errors.Add(new SemanticError(
-						$".gba_title is too long ({stringValue.Length} characters, maximum is 12)",
-						node.Location));
-					return;
-				}
-
-				GbaTitle = stringValue;
-				break;
-
-			case "gba_game_code":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".gba_game_code directive requires a 4-character string (e.g., \"AXVE\")",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length != 4) {
-					_errors.Add(new SemanticError(
-						$".gba_game_code must be exactly 4 characters (got {stringValue.Length})",
-						node.Location));
-					return;
-				}
-
-				GbaGameCode = stringValue;
-				break;
-
-			case "gba_maker_code":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".gba_maker_code directive requires a 2-character string (e.g., \"01\")",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length != 2) {
-					_errors.Add(new SemanticError(
-						$".gba_maker_code must be exactly 2 characters (got {stringValue.Length})",
-						node.Location));
-					return;
-				}
-
-				GbaMakerCode = stringValue;
-				break;
-
-			case "gba_version":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gba_version directive requires a version number (0-255)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 255) {
-					_errors.Add(new SemanticError(
-						$".gba_version must be 0-255 (got {value})",
-						node.Location));
-					return;
-				}
-
-				GbaVersion = (int)value;
-				break;
-
-			case "gba_entry":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".gba_entry directive requires an entry point address",
-						node.Location));
-					return;
-				}
-
-				GbaEntryPoint = (int)value;
-				break;
-		}
-
-		// Ensure target is GBA
-		if (Target != TargetArchitecture.ARM7TDMI) {
-			_errors.Add(new SemanticError(
-				$".{directiveName} directive is only valid for GBA/ARM7TDMI target",
-				node.Location));
-		}
-	}
-
-	/// <summary>
-	/// Handles SPC700 file directives (.spc_song_title, .spc_game_title, .spc_artist, .spc_entry).
-	/// </summary>
-	private void HandleSpcDirective(DirectiveNode node) {
-		if (_pass != 1) return;
-
-		var directiveName = node.Name.ToLowerInvariant();
-
-		// Get the value from the first argument (if any)
-		long? value = null;
-		string? stringValue = null;
-
-		if (node.Arguments.Count > 0) {
-			if (node.Arguments[0] is Parser.StringLiteralNode stringLit) {
-				stringValue = stringLit.Value;
-			} else {
-				value = EvaluateExpression(node.Arguments[0]);
-			}
-		}
-
-		switch (directiveName) {
-			case "spc_song_title":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".spc_song_title directive requires a string value (max 32 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 32) {
-					_errors.Add(new SemanticError(
-						$".spc_song_title is too long ({stringValue.Length} characters, maximum is 32)",
-						node.Location));
-					return;
-				}
-
-				SpcSongTitle = stringValue;
-				break;
-
-			case "spc_game_title":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".spc_game_title directive requires a string value (max 32 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 32) {
-					_errors.Add(new SemanticError(
-						$".spc_game_title is too long ({stringValue.Length} characters, maximum is 32)",
-						node.Location));
-					return;
-				}
-
-				SpcGameTitle = stringValue;
-				break;
-
-			case "spc_artist":
-				if (stringValue is null) {
-					_errors.Add(new SemanticError(
-						".spc_artist directive requires a string value (max 32 characters)",
-						node.Location));
-					return;
-				}
-
-				if (stringValue.Length > 32) {
-					_errors.Add(new SemanticError(
-						$".spc_artist is too long ({stringValue.Length} characters, maximum is 32)",
-						node.Location));
-					return;
-				}
-
-				SpcArtist = stringValue;
-				break;
-
-			case "spc_entry":
-				if (value is null) {
-					_errors.Add(new SemanticError(
-						".spc_entry directive requires an entry point address ($0000-$ffff)",
-						node.Location));
-					return;
-				}
-
-				if (value < 0 || value > 0xffff) {
-					_errors.Add(new SemanticError(
-						$".spc_entry address must be $0000-$ffff (got ${value:x4})",
-						node.Location));
-					return;
-				}
-
-				SpcEntryPoint = (int)value;
-				break;
-		}
-
-		// Ensure target is SPC700
-		if (Target != TargetArchitecture.SPC700) {
-			_errors.Add(new SemanticError(
-				$".{directiveName} directive is only valid for SPC700 target",
-				node.Location));
-		}
-	}
 
 	/// <summary>
 	/// Handles .assert directive for compile-time assertions.

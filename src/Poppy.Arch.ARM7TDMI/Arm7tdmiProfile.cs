@@ -20,6 +20,98 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 	/// <inheritdoc />
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Arm7tdmiRomBuilderAdapter(analyzer);
 
+	/// <inheritdoc />
+	public bool TryHandleDirective(DirectiveNode node, SemanticAnalyzer analyzer) {
+		var directiveName = node.Name.ToLowerInvariant();
+
+		switch (directiveName) {
+			case "gba_title":
+			case "gba_game_code":
+			case "gba_maker_code":
+			case "gba_version":
+			case "gba_entry":
+				return HandleGbaDirective(node, analyzer, directiveName);
+
+			default:
+				return false;
+		}
+	}
+
+	private static bool HandleGbaDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
+		if (analyzer.Pass != 1) return true;
+
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			if (node.Arguments[0] is StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				value = analyzer.EvaluateExpression(node.Arguments[0]);
+			}
+		}
+
+		switch (directiveName) {
+			case "gba_title":
+				if (stringValue is null) {
+					analyzer.AddError(".gba_title directive requires a string value (max 12 characters, uppercase ASCII)", node.Location);
+					return true;
+				}
+				if (stringValue.Length > 12) {
+					analyzer.AddError($".gba_title is too long ({stringValue.Length} characters, maximum is 12)", node.Location);
+					return true;
+				}
+				analyzer.GbaTitle = stringValue;
+				break;
+
+			case "gba_game_code":
+				if (stringValue is null) {
+					analyzer.AddError(".gba_game_code directive requires a 4-character string (e.g., \"AXVE\")", node.Location);
+					return true;
+				}
+				if (stringValue.Length != 4) {
+					analyzer.AddError($".gba_game_code must be exactly 4 characters (got {stringValue.Length})", node.Location);
+					return true;
+				}
+				analyzer.GbaGameCode = stringValue;
+				break;
+
+			case "gba_maker_code":
+				if (stringValue is null) {
+					analyzer.AddError(".gba_maker_code directive requires a 2-character string (e.g., \"01\")", node.Location);
+					return true;
+				}
+				if (stringValue.Length != 2) {
+					analyzer.AddError($".gba_maker_code must be exactly 2 characters (got {stringValue.Length})", node.Location);
+					return true;
+				}
+				analyzer.GbaMakerCode = stringValue;
+				break;
+
+			case "gba_version":
+				if (value is null) {
+					analyzer.AddError(".gba_version directive requires a version number (0-255)", node.Location);
+					return true;
+				}
+				if (value < 0 || value > 255) {
+					analyzer.AddError($".gba_version must be 0-255 (got {value})", node.Location);
+					return true;
+				}
+				analyzer.GbaVersion = (int)value;
+				break;
+
+			case "gba_entry":
+				if (value is null) {
+					analyzer.AddError(".gba_entry directive requires an entry point address", node.Location);
+					return true;
+				}
+				analyzer.GbaEntryPoint = (int)value;
+				break;
+		}
+
+		return true;
+	}
+
 	private sealed class Arm7tdmiRomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetGbaHeaderBuilder();

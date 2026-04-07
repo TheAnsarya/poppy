@@ -63,6 +63,120 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 		}
 	}
 
+	/// <inheritdoc />
+	public bool TryHandleDirective(DirectiveNode node, SemanticAnalyzer analyzer) {
+		var directiveName = node.Name.ToLowerInvariant();
+
+		switch (directiveName) {
+			case "lynx_name":
+			case "lynx_manufacturer":
+			case "lynx_rotation":
+			case "lynx_bank0_size":
+			case "lynx_bank1_size":
+			case "lynxentry":
+			case "lynxboot":
+				return HandleLynxDirective(node, analyzer, directiveName);
+
+			default:
+				return false;
+		}
+	}
+
+	private static bool HandleLynxDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
+		if (analyzer.Pass != 1) return true;
+
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			if (node.Arguments[0] is StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				value = analyzer.EvaluateExpression(node.Arguments[0]);
+			}
+		}
+
+		switch (directiveName) {
+			case "lynx_name":
+				if (stringValue is null) {
+					analyzer.AddError(".lynx_name directive requires a string value (up to 32 characters)", node.Location);
+					return true;
+				}
+				if (stringValue.Length > 32) {
+					analyzer.AddError($".lynx_name is too long ({stringValue.Length} characters, maximum is 32)", node.Location);
+					return true;
+				}
+				analyzer.LynxGameName = stringValue;
+				break;
+
+			case "lynx_manufacturer":
+				if (stringValue is null) {
+					analyzer.AddError(".lynx_manufacturer directive requires a string value (up to 16 characters)", node.Location);
+					return true;
+				}
+				if (stringValue.Length > 16) {
+					analyzer.AddError($".lynx_manufacturer is too long ({stringValue.Length} characters, maximum is 16)", node.Location);
+					return true;
+				}
+				analyzer.LynxManufacturer = stringValue;
+				break;
+
+			case "lynx_rotation":
+				if (value is null) {
+					analyzer.AddError(".lynx_rotation directive requires a rotation mode (0=none, 1=left, 2=right)", node.Location);
+					return true;
+				}
+				if (value < 0 || value > 2) {
+					analyzer.AddError($".lynx_rotation must be 0, 1, or 2 (got {value})", node.Location);
+					return true;
+				}
+				analyzer.LynxRotation = (int)value;
+				break;
+
+			case "lynx_bank0_size":
+				if (value is null) {
+					analyzer.AddError(".lynx_bank0_size directive requires a ROM size in bytes (multiple of 256)", node.Location);
+					return true;
+				}
+				if (value < 0 || value % 256 != 0) {
+					analyzer.AddError($".lynx_bank0_size must be a positive multiple of 256 (got {value})", node.Location);
+					return true;
+				}
+				analyzer.LynxBank0Size = (int)value;
+				break;
+
+			case "lynx_bank1_size":
+				if (value is null) {
+					analyzer.AddError(".lynx_bank1_size directive requires a ROM size in bytes (multiple of 256, or 0)", node.Location);
+					return true;
+				}
+				if (value < 0 || value % 256 != 0) {
+					analyzer.AddError($".lynx_bank1_size must be a non-negative multiple of 256 (got {value})", node.Location);
+					return true;
+				}
+				analyzer.LynxBank1Size = (int)value;
+				break;
+
+			case "lynxentry":
+				if (value is null) {
+					analyzer.AddError(".lynxentry directive requires an entry point address (e.g., $0200)", node.Location);
+					return true;
+				}
+				if (value < 0x0200 || value > 0xfbff) {
+					analyzer.AddError($".lynxentry address must be in RAM range $0200-$fbff (got ${value:x4})", node.Location);
+					return true;
+				}
+				analyzer.LynxEntryPoint = (int)value;
+				break;
+
+			case "lynxboot":
+				analyzer.LynxUseBootCode = value is null || value != 0;
+				break;
+		}
+
+		return true;
+	}
+
 	private sealed class Mos65sc02RomBuilderAdapter : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var romBuilder = new AtariLynxRomBuilder(

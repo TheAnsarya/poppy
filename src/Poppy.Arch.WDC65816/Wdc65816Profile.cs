@@ -101,6 +101,115 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 		("CODE", 0x008000, 0x008000, SegmentType.Code),
 	];
 
+	/// <inheritdoc />
+	public bool TryHandleDirective(DirectiveNode node, SemanticAnalyzer analyzer) {
+		var directiveName = node.Name.ToLowerInvariant();
+
+		switch (directiveName) {
+			case "snes_title":
+			case "snes_region":
+			case "snes_version":
+			case "snes_rom_size":
+			case "snes_ram_size":
+			case "snes_fastrom":
+				return HandleSnesDirective(node, analyzer, directiveName);
+
+			default:
+				return false;
+		}
+	}
+
+	private static bool HandleSnesDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
+		if (analyzer.Pass != 1) return true;
+
+		// Get the value from the first argument (if any)
+		long? value = null;
+		string? stringValue = null;
+
+		if (node.Arguments.Count > 0) {
+			if (node.Arguments[0] is StringLiteralNode stringLit) {
+				stringValue = stringLit.Value;
+			} else {
+				value = analyzer.EvaluateExpression(node.Arguments[0]);
+				if (value is null) {
+					analyzer.AddError($".{directiveName} directive requires a constant value", node.Location);
+					return true;
+				}
+			}
+		}
+
+		switch (directiveName) {
+			case "snes_title":
+				if (stringValue is null) {
+					analyzer.AddError(".snes_title directive requires a string value (up to 21 characters)", node.Location);
+					return true;
+				}
+				if (stringValue.Length > 21) {
+					analyzer.AddError($".snes_title is too long ({stringValue.Length} characters, maximum is 21)", node.Location);
+					return true;
+				}
+				analyzer.SnesTitle = stringValue;
+				break;
+
+			case "snes_region":
+				if (stringValue is null) {
+					analyzer.AddError(".snes_region directive requires a region string (e.g., \"Japan\", \"USA\", \"Europe\")", node.Location);
+					return true;
+				}
+				var validRegions = new[] { "Japan", "USA", "Europe", "Scandinavia", "France",
+					"Netherlands", "Spain", "Germany", "Italy", "China", "Korea", "Canada", "Brazil", "Australia" };
+				if (!validRegions.Contains(stringValue, StringComparer.OrdinalIgnoreCase)) {
+					analyzer.AddError($".snes_region \"{stringValue}\" is not valid. Valid regions: {string.Join(", ", validRegions)}", node.Location);
+					return true;
+				}
+				analyzer.SnesRegion = stringValue;
+				break;
+
+			case "snes_version":
+				if (value is null) {
+					analyzer.AddError(".snes_version directive requires a version number (0-255)", node.Location);
+					return true;
+				}
+				if (value < 0 || value > 255) {
+					analyzer.AddError($".snes_version must be 0-255 (got {value})", node.Location);
+					return true;
+				}
+				analyzer.SnesVersion = (int)value;
+				break;
+
+			case "snes_rom_size":
+				if (value is null) {
+					analyzer.AddError(".snes_rom_size directive requires a ROM size in KB (power of 2, e.g., 256, 512, 1024)", node.Location);
+					return true;
+				}
+				if (value <= 0 || (value & (value - 1)) != 0) {
+					analyzer.AddError($".snes_rom_size must be a power of 2 (got {value})", node.Location);
+					return true;
+				}
+				analyzer.SnesRomSizeKb = (int)value;
+				break;
+
+			case "snes_ram_size":
+				if (value is null) {
+					analyzer.AddError(".snes_ram_size directive requires a RAM size in KB (0, 2, 8, or 32)", node.Location);
+					return true;
+				}
+				var validRamSizes = new[] { 0, 2, 8, 32 };
+				if (!validRamSizes.Contains((int)value)) {
+					analyzer.AddError($".snes_ram_size must be 0, 2, 8, or 32 KB (got {value})", node.Location);
+					return true;
+				}
+				analyzer.SnesRamSizeKb = (int)value;
+				break;
+
+			case "snes_fastrom":
+				analyzer.SnesFastRom = value is null || value != 0;
+				break;
+		}
+
+		return true;
+	}
+
 	private sealed class Wdc65816RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetSnesHeaderBuilder();
