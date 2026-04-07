@@ -3,7 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.SM83;
 
 /// <summary>
 /// Builds Game Boy ROM headers.

@@ -1,6 +1,7 @@
 // SpcFileBuilderTests.cs
 // Unit tests for SPC file format builder (SNES audio)
 
+using Poppy.Arch.SPC700;
 using Poppy.Core.CodeGen;
 using Xunit;
 

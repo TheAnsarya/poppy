@@ -1,4 +1,5 @@
 using Xunit;
+using Poppy.Arch.SM83;
 using Poppy.Core.Arch;
 using Poppy.Core.Semantics;
 using Poppy.Core.CodeGen;

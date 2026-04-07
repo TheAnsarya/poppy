@@ -4,7 +4,7 @@
 
 using System.Text;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.ARM7TDMI;
 
 /// <summary>
 /// Builder for generating Game Boy Advance ROM headers.

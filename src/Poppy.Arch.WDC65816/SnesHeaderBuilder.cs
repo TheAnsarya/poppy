@@ -3,7 +3,9 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.WDC65816;
 
 /// <summary>
 /// Builds SNES ROM headers (internal header at $ffc0-$ffff for LoROM or $7fc0-$7fff for HiROM).
@@ -431,26 +433,6 @@ public sealed class SnesHeaderBuilder {
 		data[offset] = (byte)(value & 0xff);
 		data[offset + 1] = (byte)((value >> 8) & 0xff);
 	}
-}
-
-/// <summary>
-/// SNES ROM mapping modes.
-/// </summary>
-public enum SnesMapMode : byte {
-	/// <summary>LoROM (mode $20).</summary>
-	LoRom = 0x20,
-	/// <summary>HiROM (mode $21).</summary>
-	HiRom = 0x21,
-	/// <summary>LoROM + S-DD1 (mode $22).</summary>
-	LoRomSDD1 = 0x22,
-	/// <summary>LoROM + SA-1 (mode $23).</summary>
-	LoRomSA1 = 0x23,
-	/// <summary>ExHiROM (mode $25).</summary>
-	ExHiRom = 0x25,
-	/// <summary>HiROM + S-DD1 (mode $32).</summary>
-	HiRomSDD1 = 0x32,
-	/// <summary>HiROM + SA-1 (mode $35).</summary>
-	HiRomSA1 = 0x35
 }
 
 /// <summary>

@@ -1,3 +1,4 @@
+using Poppy.Arch.WDC65816;
 using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Semantics;

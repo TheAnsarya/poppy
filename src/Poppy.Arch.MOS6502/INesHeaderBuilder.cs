@@ -1,4 +1,4 @@
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.MOS6502;
 
 /// <summary>
 /// Builds iNES 1.0 and iNES 2.0 headers for NES ROMs

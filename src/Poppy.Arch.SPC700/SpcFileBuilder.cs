@@ -4,7 +4,7 @@
 
 using System.Text;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.SPC700;
 
 /// <summary>
 /// Builder for generating SPC files (SNES audio format).
