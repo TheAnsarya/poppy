@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -18,6 +18,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="Poppy.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.MOS6502.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

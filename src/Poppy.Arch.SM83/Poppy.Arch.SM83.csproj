@@ -18,6 +18,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="Poppy.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.SM83.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -20,6 +20,14 @@
 		<InternalsVisibleTo Include="Poppy.Arch.ARM7TDMI" />
 		<InternalsVisibleTo Include="Poppy.Arch.SPC700" />
 		<InternalsVisibleTo Include="Poppy.Arch.V30MZ" />
+		<InternalsVisibleTo Include="Poppy.Arch.MOS6502.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.WDC65816.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.SM83.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.M68000.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.Z80.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.V30MZ.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.ARM7TDMI.Tests" />
+		<InternalsVisibleTo Include="Poppy.Arch.HuC6280.Tests" />
 		<InternalsVisibleTo Include="Poppy.Tests" />
 	</ItemGroup>
 
