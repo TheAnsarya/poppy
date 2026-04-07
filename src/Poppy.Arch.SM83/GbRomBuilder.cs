@@ -3,7 +3,10 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.SM83;
 
 /// <summary>
 /// Builds Game Boy ROM images with proper header placement and checksums.

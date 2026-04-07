@@ -5,7 +5,9 @@
 using System.Collections.Frozen;
 using Parser = Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.HuC6280;
+
+using Poppy.Core.Arch;
 
 /// <summary>
 /// Addressing mode types for HuC6280

@@ -7,7 +7,10 @@
 // "TMR SEGA" signature, checksum, product code, version, and region.
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.Z80;
 
 /// <summary>
 /// Builds Sega Master System and Game Gear ROM images with proper header format.

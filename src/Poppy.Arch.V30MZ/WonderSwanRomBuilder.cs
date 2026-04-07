@@ -6,7 +6,10 @@
 // Supports both original WonderSwan and WonderSwan Color.
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.V30MZ;
 
 /// <summary>
 /// Builds WonderSwan ROM images with proper header structure.

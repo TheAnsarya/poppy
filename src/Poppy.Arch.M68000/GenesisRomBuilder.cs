@@ -7,7 +7,10 @@
 // All multi-byte values are big-endian.
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.M68000;
 
 /// <summary>
 /// Builds Sega Genesis/Mega Drive ROM images with proper header format.

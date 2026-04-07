@@ -3,6 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using Poppy.Arch.SM83;
 using Poppy.Core.CodeGen;
 using Xunit;
 

@@ -1,6 +1,7 @@
 // TurboGrafxRomBuilderTests.cs
 // Unit tests for TurboGrafx-16 / PC Engine ROM builder
 
+using Poppy.Arch.HuC6280;
 using Poppy.Core.CodeGen;
 using Xunit;
 

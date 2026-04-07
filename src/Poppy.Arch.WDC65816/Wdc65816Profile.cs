@@ -1,6 +1,7 @@
-﻿﻿namespace Poppy.Core.Arch.Profiles;
+namespace Poppy.Arch.WDC65816;
 
 using System.Collections.Frozen;
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;

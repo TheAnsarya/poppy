@@ -7,7 +7,10 @@ using System.Collections.Frozen;
 
 using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.SM83;
 
 /// <summary>
 /// Provides instruction encoding for the Sharp SM83 processor (Game Boy).

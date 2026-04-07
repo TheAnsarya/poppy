@@ -5,11 +5,11 @@
 		<LangVersion>14.0</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<RootNamespace>Poppy.Core</RootNamespace>
-		<AssemblyName>Poppy.Core</AssemblyName>
+		<RootNamespace>Poppy.Arch.V30MZ</RootNamespace>
+		<AssemblyName>Poppy.Arch.V30MZ</AssemblyName>
 		<Version>2.0.0</Version>
 		<Authors>Ansarya</Authors>
-		<Description>Core library for the Poppy multi-system assembly compiler</Description>
+		<Description>NEC V30MZ (WonderSwan) architecture backend for Poppy compiler</Description>
 		<Copyright>Copyright © 2026</Copyright>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -17,19 +17,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Poppy.Arch.ARM7TDMI" />
-		<InternalsVisibleTo Include="Poppy.Arch.SPC700" />
-		<InternalsVisibleTo Include="Poppy.Arch.V30MZ" />
 		<InternalsVisibleTo Include="Poppy.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="StreamHash" Version="1.10.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\pansy\src\Pansy.Core\Pansy.Core.csproj" />
+		<ProjectReference Include="..\Poppy.Core\Poppy.Core.csproj" />
 	</ItemGroup>
 
 </Project>
-

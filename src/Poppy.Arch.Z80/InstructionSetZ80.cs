@@ -11,7 +11,10 @@ using System.Collections.Frozen;
 
 using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.Z80;
 
 /// <summary>
 /// Provides instruction encoding for the Zilog Z80 processor (Sega Master System/Game Gear).

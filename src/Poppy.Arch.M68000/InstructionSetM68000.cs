@@ -11,7 +11,9 @@ using System.Collections.Frozen;
 
 using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.M68000;
+
+using Poppy.Core.Arch;
 
 /// <summary>
 /// Provides instruction encoding for the Motorola 68000 processor (Sega Genesis).

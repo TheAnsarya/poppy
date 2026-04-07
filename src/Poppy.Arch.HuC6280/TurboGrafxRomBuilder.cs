@@ -4,7 +4,10 @@
 
 using System.Text;
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.HuC6280;
 
 /// <summary>
 /// Builder for generating TurboGrafx-16 / PC Engine ROM headers.

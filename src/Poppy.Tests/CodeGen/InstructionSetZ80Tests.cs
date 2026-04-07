@@ -3,6 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using Poppy.Arch.Z80;
 using Poppy.Core.CodeGen;
 
 namespace Poppy.Tests.CodeGen;

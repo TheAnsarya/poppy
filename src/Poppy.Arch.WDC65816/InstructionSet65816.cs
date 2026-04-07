@@ -7,7 +7,10 @@ using System.Collections.Frozen;
 
 using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+
+namespace Poppy.Arch.WDC65816;
 
 /// <summary>
 /// Provides instruction encoding for the WDC 65816 processor (SNES).

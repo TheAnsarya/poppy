@@ -1,6 +1,7 @@
 // InstructionSetHuC6280Tests.cs
 // Unit tests for HuC6280 instruction set (TurboGrafx-16 / PC Engine)
 
+using Poppy.Arch.HuC6280;
 using Poppy.Core.CodeGen;
 using Xunit;
 

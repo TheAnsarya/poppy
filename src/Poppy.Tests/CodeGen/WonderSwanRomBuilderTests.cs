@@ -1,6 +1,7 @@
 // WonderSwanRomBuilderTests.cs
 // Unit tests for WonderSwan ROM builder
 
+using Poppy.Arch.V30MZ;
 using Poppy.Core.CodeGen;
 using Xunit;
 

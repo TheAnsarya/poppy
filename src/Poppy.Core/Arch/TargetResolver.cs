@@ -76,17 +76,7 @@ public static class TargetResolver {
 			return registered;
 		}
 
-		// Fall back to built-in profiles
-		return arch switch {
-			TargetArchitecture.WDC65816 => Profiles.Wdc65816Profile.Instance,
-			TargetArchitecture.SM83 => Profiles.Sm83Profile.Instance,
-			TargetArchitecture.M68000 => Profiles.M68000Profile.Instance,
-			TargetArchitecture.Z80 => Profiles.Z80Profile.Instance,
-			TargetArchitecture.V30MZ => Profiles.V30mzProfile.Instance,
-			TargetArchitecture.ARM7TDMI => Profiles.Arm7tdmiProfile.Instance,
-			TargetArchitecture.SPC700 => Profiles.Spc700Profile.Instance,
-			TargetArchitecture.HuC6280 => Profiles.Huc6280Profile.Instance,
-			_ => null
-		};
+		// All profiles are registered externally by Poppy.Arch.* projects
+		return null;
 	}
 }
