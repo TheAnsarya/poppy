@@ -3,6 +3,7 @@
 using System.Collections.Frozen;
 using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
+using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
 
@@ -29,6 +30,38 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 	}
 
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Mos65sc02RomBuilderAdapter();
+
+	/// <inheritdoc />
+	public void ValidateMemoryAddress(string mnemonic, long address, SourceLocation location,
+		Action<string, SourceLocation> reportError, Action<string, SourceLocation> reportWarning) {
+		// Check if this is a memory-writing instruction
+		var isStoreInstruction = mnemonic.ToLowerInvariant() is
+			"sta" or "stx" or "sty" or "stz" or
+			"inc" or "dec" or "asl" or "lsr" or "rol" or "ror" or
+			"tsb" or "trb" or
+			"rmb0" or "rmb1" or "rmb2" or "rmb3" or
+			"rmb4" or "rmb5" or "rmb6" or "rmb7" or
+			"smb0" or "smb1" or "smb2" or "smb3" or
+			"smb4" or "smb5" or "smb6" or "smb7";
+
+		if (!isStoreInstruction) return;
+
+		// Lynx memory map validation
+		// $0000-$fbff: RAM (64KB - 1KB reserved)
+		// $fc00-$fcff: Suzy hardware registers
+		// $fd00-$fdff: Mikey hardware registers
+		// $fe00-$ffff: Boot ROM (512 bytes)
+		if (address is >= 0xfe00 and <= 0xffff) {
+			// Boot ROM - cannot write to ROM
+			reportError($"Cannot write to Lynx Boot ROM at ${address:x4}", location);
+		} else if (address is >= 0xfd00 and <= 0xfdff) {
+			// Mikey hardware registers
+			reportWarning($"Writing to Lynx Mikey hardware register at ${address:x4}", location);
+		} else if (address is >= 0xfc00 and <= 0xfcff) {
+			// Suzy hardware registers
+			reportWarning($"Writing to Lynx Suzy hardware register at ${address:x4}", location);
+		}
+	}
 
 	private sealed class Mos65sc02RomBuilderAdapter : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {

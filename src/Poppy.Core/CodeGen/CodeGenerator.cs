@@ -177,7 +177,9 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				addressingMode = ResolveAddressingMode(mnemonic, addressingMode, operandValue.Value);
 
 				// Validate memory writes to reserved addresses (platform-specific)
-				ValidateMemoryAddress(mnemonic, operandValue.Value, node.Location);
+				_profile.ValidateMemoryAddress(mnemonic, operandValue.Value, node.Location,
+					(msg, loc) => _errors.Add(new CodeError(msg, loc)),
+					(msg, loc) => _warnings.Add(new CodeWarning(msg, loc)));
 			}
 		}
 
@@ -255,22 +257,13 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 			} else {
 				// Emit operand based on size
 				// For 65816 immediate mode, size depends on M/X flags
-				var operandSize = GetOperandSize(mnemonic, addressingMode, encoding);
+				var operandSize = _profile.GetOperandSize(mnemonic, addressingMode, encoding.Size, _accumulatorIs16Bit, _indexIs16Bit);
 				EmitValue(operandValue.Value, operandSize, node.SizeSuffix);
 			}
 
-			// Track REP/SEP instructions for M/X flag state (65816)
-			if (_target == TargetArchitecture.WDC65816) {
-				if (mnemonic.Equals("rep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
-					// REP clears flags (sets to 16-bit mode)
-					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = true;  // M flag
-					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = true;        // X flag
-				} else if (mnemonic.Equals("sep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
-					// SEP sets flags (sets to 8-bit mode)
-					if ((operandValue.Value & 0x20) != 0) _accumulatorIs16Bit = false; // M flag
-					if ((operandValue.Value & 0x10) != 0) _indexIs16Bit = false;       // X flag
-				}
-			}
+			// Track processor flag changes (e.g., 65816 REP/SEP)
+			(_accumulatorIs16Bit, _indexIs16Bit) = _profile.UpdateProcessorFlags(
+				mnemonic, operandValue, _accumulatorIs16Bit, _indexIs16Bit);
 		}
 
 		RecordListingEntry(instructionStartAddress, node.Location);
@@ -593,7 +586,7 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 
 		// Auto-detect bank size if not explicitly set
 		if (_bankSize == 0) {
-			_bankSize = GetDefaultBankSize();
+			_bankSize = _profile.GetBankSize(_analyzer);
 		}
 
 		_bankRomOffset = (long)bankNumber * _bankSize;
@@ -627,17 +620,6 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 				".banksize must be a positive integer",
 				node.Location));
 		}
-	}
-
-	/// <summary>
-	/// Gets the default bank size for the current architecture.
-	/// </summary>
-	private int GetDefaultBankSize() {
-		// SNES bank size depends on map mode (runtime state)
-		if (_target == TargetArchitecture.WDC65816) {
-			return (GetSnesMapMode() == SnesMapMode.HiRom) ? 0x10000 : 0x8000;
-		}
-		return _profile.DefaultBankSize;
 	}
 
 	/// <summary>
@@ -936,58 +918,6 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 	// ========================================================================
 
 	/// <summary>
-	/// Validates memory writes to reserved addresses for the current platform.
-	/// </summary>
-	/// <remarks>
-	/// For Atari Lynx (65SC02), validates writes to hardware registers and Boot ROM:
-	/// - $fc00-$fcff: Suzy hardware registers (warning)
-	/// - $fd00-$fdff: Mikey hardware registers (warning)
-	/// - $fe00-$ffff: Boot ROM (error - cannot write to ROM)
-	/// </remarks>
-	/// <param name="mnemonic">The instruction mnemonic.</param>
-	/// <param name="address">The target memory address.</param>
-	/// <param name="location">The source location for error/warning reporting.</param>
-	private void ValidateMemoryAddress(string mnemonic, long address, SourceLocation location) {
-		// Only validate for Lynx platform
-		if (_target != TargetArchitecture.MOS65SC02) return;
-
-		// Check if this is a memory-writing instruction
-		var isStoreInstruction = EqualsAnyIgnoreCase(mnemonic,
-			"sta", "stx", "sty", "stz",
-			"inc", "dec", "asl", "lsr", "rol", "ror",
-			"tsb", "trb",
-			"rmb0", "rmb1", "rmb2", "rmb3",
-			"rmb4", "rmb5", "rmb6", "rmb7",
-			"smb0", "smb1", "smb2", "smb3",
-			"smb4", "smb5", "smb6", "smb7");
-
-		if (!isStoreInstruction) return;
-
-		// Lynx memory map validation
-		// $0000-$fbff: RAM (64KB - 1KB reserved)
-		// $fc00-$fcff: Suzy hardware registers
-		// $fd00-$fdff: Mikey hardware registers
-		// $fe00-$ffff: Boot ROM (512 bytes)
-
-		if (address is >= 0xfe00 and <= 0xffff) {
-			// Boot ROM - cannot write to ROM
-			_errors.Add(new CodeError(
-				$"Cannot write to Lynx Boot ROM at ${address:x4}",
-				location));
-		} else if (address is >= 0xfd00 and <= 0xfdff) {
-			// Mikey hardware registers
-			_warnings.Add(new CodeWarning(
-				$"Writing to Lynx Mikey hardware register at ${address:x4}",
-				location));
-		} else if (address is >= 0xfc00 and <= 0xfcff) {
-			// Suzy hardware registers
-			_warnings.Add(new CodeWarning(
-				$"Writing to Lynx Suzy hardware register at ${address:x4}",
-				location));
-		}
-	}
-
-	/// <summary>
 	/// Ensures a current segment exists.
 	/// </summary>
 	private void EnsureSegment(SourceLocation location) {
@@ -1030,46 +960,6 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		for (int i = 0; i < bytes; i++) {
 			EmitByte((byte)((value >> (i * 8)) & 0xff));
 		}
-	}
-
-	/// <summary>
-	/// Gets the operand size for an instruction, accounting for 65816 M/X flags.
-	/// </summary>
-	/// <param name="mnemonic">The instruction mnemonic.</param>
-	/// <param name="mode">The addressing mode.</param>
-	/// <param name="encoding">The instruction encoding.</param>
-	/// <returns>The operand size in bytes.</returns>
-	private int GetOperandSize(string mnemonic, AddressingMode mode, EncodedInstruction encoding) {
-		// For 65816 immediate mode, size depends on M/X flags
-		if (_target == TargetArchitecture.WDC65816 && mode == AddressingMode.Immediate) {
-			var lower = mnemonic.ToLowerInvariant();
-
-			// Index register instructions use X flag
-			if (lower is "ldx" or "ldy" or "cpx" or "cpy") {
-				return _indexIs16Bit ? 2 : 1;
-			}
-
-			// Accumulator instructions use M flag
-			if (lower is "lda" or "adc" or "sbc" or "cmp" or "and" or "ora" or "eor" or "bit") {
-				return _accumulatorIs16Bit ? 2 : 1;
-			}
-
-			// REP/SEP are always 8-bit immediate
-			if (lower is "rep" or "sep") {
-				return 1;
-			}
-
-			// PEA is always 16-bit immediate
-			if (lower is "pea") {
-				return 2;
-			}
-
-			// Default to current accumulator size for other immediate instructions
-			return _accumulatorIs16Bit ? 2 : 1;
-		}
-
-		// For non-65816 or non-immediate modes, use the encoding's static size
-		return encoding.Size - 1;
 	}
 
 	/// <summary>
@@ -1254,22 +1144,6 @@ public sealed class CodeGenerator : IAstVisitor<object?> {
 		_cdlGenerator?.RegisterSubroutineEntry(targetAddress);
 		_crossRefs.Add((instructionAddress, (uint)targetAddress, 1)); // Jsr=1
 		return true;
-	}
-
-	/// <summary>
-	/// Gets the SNES memory mapping mode from the analyzer.
-	/// </summary>
-	private SnesMapMode GetSnesMapMode() {
-		var mapping = _analyzer.MemoryMapping;
-		if (mapping is null)
-			return SnesMapMode.LoRom;
-		if (mapping.Equals("lorom", StringComparison.OrdinalIgnoreCase))
-			return SnesMapMode.LoRom;
-		if (mapping.Equals("hirom", StringComparison.OrdinalIgnoreCase))
-			return SnesMapMode.HiRom;
-		if (mapping.Equals("exhirom", StringComparison.OrdinalIgnoreCase))
-			return SnesMapMode.ExHiRom;
-		return SnesMapMode.LoRom;
 	}
 
 	/// <summary>

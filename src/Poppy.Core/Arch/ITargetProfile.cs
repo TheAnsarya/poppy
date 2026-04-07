@@ -1,5 +1,6 @@
 ﻿namespace Poppy.Core.Arch;
 
+using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
 
@@ -46,4 +47,37 @@ public interface ITargetProfile {
 	/// just outputs raw binary (flattened segments).
 	/// </summary>
 	IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer);
+
+	/// <summary>
+	/// Gets the effective bank size, which may vary from <see cref="DefaultBankSize"/>
+	/// based on runtime configuration (e.g., SNES memory mapping mode).
+	/// Default returns <see cref="DefaultBankSize"/>.
+	/// </summary>
+	int GetBankSize(SemanticAnalyzer analyzer) => DefaultBankSize;
+
+	/// <summary>
+	/// Validates a memory address for architecture-specific constraints
+	/// (e.g., hardware register writes, ROM regions).
+	/// Default: no validation.
+	/// </summary>
+	void ValidateMemoryAddress(string mnemonic, long address, SourceLocation location,
+		Action<string, SourceLocation> reportError, Action<string, SourceLocation> reportWarning) { }
+
+	/// <summary>
+	/// Gets the operand size for an instruction, accounting for architecture-specific
+	/// processor flags (e.g., 65816 M/X flags for immediate mode).
+	/// Default returns <paramref name="encodingSize"/> - 1.
+	/// </summary>
+	int GetOperandSize(string mnemonic, AddressingMode mode, int encodingSize,
+		bool accumulatorIs16Bit, bool indexIs16Bit) => encodingSize - 1;
+
+	/// <summary>
+	/// Updates processor flag state after an instruction is emitted.
+	/// Returns the (possibly updated) flag values. Used for architectures with
+	/// flag-dependent operand sizes (e.g., 65816 REP/SEP).
+	/// Default: returns flags unchanged.
+	/// </summary>
+	(bool AccumulatorIs16Bit, bool IndexIs16Bit) UpdateProcessorFlags(
+		string mnemonic, long? operandValue, bool accumulatorIs16Bit, bool indexIs16Bit)
+		=> (accumulatorIs16Bit, indexIs16Bit);
 }

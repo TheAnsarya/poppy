@@ -25,6 +25,58 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 	/// <inheritdoc />
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Wdc65816RomBuilderAdapter(analyzer);
 
+	/// <inheritdoc />
+	public int GetBankSize(SemanticAnalyzer analyzer) {
+		var mapping = analyzer.MemoryMapping;
+		if (mapping is not null && mapping.Equals("hirom", StringComparison.OrdinalIgnoreCase))
+			return 0x10000;
+		return DefaultBankSize; // 0x8000 for LoROM
+	}
+
+	/// <inheritdoc />
+	public int GetOperandSize(string mnemonic, AddressingMode mode, int encodingSize,
+		bool accumulatorIs16Bit, bool indexIs16Bit) {
+		if (mode == AddressingMode.Immediate) {
+			var lower = mnemonic.ToLowerInvariant();
+
+			// Index register instructions use X flag
+			if (lower is "ldx" or "ldy" or "cpx" or "cpy")
+				return indexIs16Bit ? 2 : 1;
+
+			// Accumulator instructions use M flag
+			if (lower is "lda" or "adc" or "sbc" or "cmp" or "and" or "ora" or "eor" or "bit")
+				return accumulatorIs16Bit ? 2 : 1;
+
+			// REP/SEP are always 8-bit immediate
+			if (lower is "rep" or "sep")
+				return 1;
+
+			// PEA is always 16-bit immediate
+			if (lower is "pea")
+				return 2;
+
+			// Default to current accumulator size for other immediate instructions
+			return accumulatorIs16Bit ? 2 : 1;
+		}
+
+		return encodingSize - 1;
+	}
+
+	/// <inheritdoc />
+	public (bool AccumulatorIs16Bit, bool IndexIs16Bit) UpdateProcessorFlags(
+		string mnemonic, long? operandValue, bool accumulatorIs16Bit, bool indexIs16Bit) {
+		if (mnemonic.Equals("rep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
+			// REP clears flags (sets to 16-bit mode)
+			if ((operandValue.Value & 0x20) != 0) accumulatorIs16Bit = true;  // M flag
+			if ((operandValue.Value & 0x10) != 0) indexIs16Bit = true;        // X flag
+		} else if (mnemonic.Equals("sep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
+			// SEP sets flags (sets to 8-bit mode)
+			if ((operandValue.Value & 0x20) != 0) accumulatorIs16Bit = false; // M flag
+			if ((operandValue.Value & 0x10) != 0) indexIs16Bit = false;       // X flag
+		}
+		return (accumulatorIs16Bit, indexIs16Bit);
+	}
+
 	private sealed class Wdc65816RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetSnesHeaderBuilder();
