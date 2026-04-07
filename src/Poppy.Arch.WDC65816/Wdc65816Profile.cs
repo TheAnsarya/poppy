@@ -52,10 +52,38 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 	}
 
 	/// <inheritdoc />
+	public ProcessorState CreateProcessorState() => new();
+
+	/// <inheritdoc />
+	public bool TryHandleProcessorDirective(string directiveName, ProcessorState state) {
+		switch (directiveName) {
+			case "a8":
+				state.AccumulatorIs16Bit = false;
+				return true;
+			case "a16":
+				state.AccumulatorIs16Bit = true;
+				return true;
+			case "i8":
+				state.IndexIs16Bit = false;
+				return true;
+			case "i16":
+				state.IndexIs16Bit = true;
+				return true;
+			case "smart":
+				// Placeholder for automatic REP/SEP tracking
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/// <inheritdoc />
 	public int GetOperandSize(string mnemonic, AddressingMode mode, int encodingSize,
-		bool accumulatorIs16Bit, bool indexIs16Bit) {
+		ProcessorState? state) {
 		if (mode == AddressingMode.Immediate) {
 			var lower = mnemonic.ToLowerInvariant();
+			var accumulatorIs16Bit = state?.AccumulatorIs16Bit ?? false;
+			var indexIs16Bit = state?.IndexIs16Bit ?? false;
 
 			// Index register instructions use X flag
 			if (lower is "ldx" or "ldy" or "cpx" or "cpy")
@@ -81,18 +109,18 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 	}
 
 	/// <inheritdoc />
-	public (bool AccumulatorIs16Bit, bool IndexIs16Bit) UpdateProcessorFlags(
-		string mnemonic, long? operandValue, bool accumulatorIs16Bit, bool indexIs16Bit) {
+	public void UpdateProcessorFlags(string mnemonic, long? operandValue, ProcessorState? state) {
+		if (state is null) return;
+
 		if (mnemonic.Equals("rep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
 			// REP clears flags (sets to 16-bit mode)
-			if ((operandValue.Value & 0x20) != 0) accumulatorIs16Bit = true;  // M flag
-			if ((operandValue.Value & 0x10) != 0) indexIs16Bit = true;        // X flag
+			if ((operandValue.Value & 0x20) != 0) state.AccumulatorIs16Bit = true;  // M flag
+			if ((operandValue.Value & 0x10) != 0) state.IndexIs16Bit = true;        // X flag
 		} else if (mnemonic.Equals("sep", StringComparison.OrdinalIgnoreCase) && operandValue.HasValue) {
 			// SEP sets flags (sets to 8-bit mode)
-			if ((operandValue.Value & 0x20) != 0) accumulatorIs16Bit = false; // M flag
-			if ((operandValue.Value & 0x10) != 0) indexIs16Bit = false;       // X flag
+			if ((operandValue.Value & 0x20) != 0) state.AccumulatorIs16Bit = false; // M flag
+			if ((operandValue.Value & 0x10) != 0) state.IndexIs16Bit = false;       // X flag
 		}
-		return (accumulatorIs16Bit, indexIs16Bit);
 	}
 
 	/// <inheritdoc />

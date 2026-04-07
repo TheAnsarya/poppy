@@ -65,22 +65,34 @@ public interface ITargetProfile {
 		Action<string, SourceLocation> reportError, Action<string, SourceLocation> reportWarning) { }
 
 	/// <summary>
+	/// Creates a processor state object for architectures with flag-dependent
+	/// operand sizing (e.g., 65816 M/X flags). Returns null for architectures
+	/// that don't track processor state.
+	/// </summary>
+	ProcessorState? CreateProcessorState() => null;
+
+	/// <summary>
+	/// Tries to handle a processor state directive (e.g., .a8, .a16, .i8, .i16, .smart).
+	/// Returns true if the directive was handled by this profile.
+	/// </summary>
+	/// <param name="directiveName">The lowercase directive name.</param>
+	/// <param name="state">The processor state to update.</param>
+	bool TryHandleProcessorDirective(string directiveName, ProcessorState state) => false;
+
+	/// <summary>
 	/// Gets the operand size for an instruction, accounting for architecture-specific
 	/// processor flags (e.g., 65816 M/X flags for immediate mode).
 	/// Default returns <paramref name="encodingSize"/> - 1.
 	/// </summary>
 	int GetOperandSize(string mnemonic, AddressingMode mode, int encodingSize,
-		bool accumulatorIs16Bit, bool indexIs16Bit) => encodingSize - 1;
+		ProcessorState? state) => encodingSize - 1;
 
 	/// <summary>
 	/// Updates processor flag state after an instruction is emitted.
-	/// Returns the (possibly updated) flag values. Used for architectures with
-	/// flag-dependent operand sizes (e.g., 65816 REP/SEP).
-	/// Default: returns flags unchanged.
+	/// Used for architectures with flag-dependent operand sizes (e.g., 65816 REP/SEP).
+	/// Default: no-op.
 	/// </summary>
-	(bool AccumulatorIs16Bit, bool IndexIs16Bit) UpdateProcessorFlags(
-		string mnemonic, long? operandValue, bool accumulatorIs16Bit, bool indexIs16Bit)
-		=> (accumulatorIs16Bit, indexIs16Bit);
+	void UpdateProcessorFlags(string mnemonic, long? operandValue, ProcessorState? state) { }
 
 	/// <summary>
 	/// Size of the ROM file header in bytes (e.g., 16 for iNES header).

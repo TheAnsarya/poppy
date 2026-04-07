@@ -40,9 +40,8 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 	private long _bankRomOffset = -1;     // ROM file offset of current bank start
 	private long _bankCpuBase = -1;       // CPU base address of banked window
 
-	// 65816 M/X flag tracking for correct immediate operand sizes
-	private bool _accumulatorIs16Bit = false;  // M flag: false = 8-bit, true = 16-bit
-	private bool _indexIs16Bit = false;        // X flag: false = 8-bit, true = 16-bit
+	// 65816 M/X flag tracking for correct immediate operand sizes (profile-owned)
+	private ProcessorState? _processorState;
 
 	/// <summary>
 	/// Gets all code generation errors.
@@ -98,6 +97,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 		_target = target;
 		_initialTarget = target;
 		_profile = TargetResolver.GetProfile(target);
+		_processorState = _profile.CreateProcessorState();
 		_cdlGenerator = cdlGenerator;
 		_listingGenerator = listingGenerator;
 		_errors = [];
@@ -260,13 +260,12 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 			} else {
 				// Emit operand based on size
 				// For 65816 immediate mode, size depends on M/X flags
-				var operandSize = _profile.GetOperandSize(mnemonic, addressingMode, encoding.Size, _accumulatorIs16Bit, _indexIs16Bit);
+				var operandSize = _profile.GetOperandSize(mnemonic, addressingMode, encoding.Size, _processorState);
 				EmitValue(operandValue.Value, operandSize, node.SizeSuffix);
 			}
 
 			// Track processor flag changes (e.g., 65816 REP/SEP)
-			(_accumulatorIs16Bit, _indexIs16Bit) = _profile.UpdateProcessorFlags(
-				mnemonic, operandValue, _accumulatorIs16Bit, _indexIs16Bit);
+			_profile.UpdateProcessorFlags(mnemonic, operandValue, _processorState);
 		}
 
 		RecordListingEntry(instructionStartAddress, node.Location);
@@ -376,16 +375,12 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 
 			// 65816 register size directives
 			case "a8":
-				_accumulatorIs16Bit = false;
-				break;
 			case "a16":
-				_accumulatorIs16Bit = true;
-				break;
 			case "i8":
-				_indexIs16Bit = false;
-				break;
 			case "i16":
-				_indexIs16Bit = true;
+				if (_processorState is not null) {
+					_profile.TryHandleProcessorDirective(node.Name.ToLowerInvariant(), _processorState);
+				}
 				break;
 
 			// Platform switching directive
@@ -911,6 +906,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 
 		_target = target.Value;
 		_profile = TargetResolver.GetProfile(_target);
+		_processorState = _profile.CreateProcessorState();
 
 		// Emit a comment in verbose mode for debugging
 		// (platform changes don't generate code, they change instruction encoding)
