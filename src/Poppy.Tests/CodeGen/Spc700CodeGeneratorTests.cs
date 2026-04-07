@@ -4,6 +4,7 @@
 // ============================================================================
 
 using System.Text;
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Semantics;
 using Xunit;

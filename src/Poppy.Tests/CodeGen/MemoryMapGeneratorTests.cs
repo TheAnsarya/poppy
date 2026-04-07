@@ -1,6 +1,7 @@
 // Poppy Compiler - Memory Map Generator Unit Tests
 // Copyright © 2026
 
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Semantics;

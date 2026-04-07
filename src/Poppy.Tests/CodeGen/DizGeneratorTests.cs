@@ -4,6 +4,7 @@
 // ============================================================================
 
 using System.Text.Json;
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Semantics;

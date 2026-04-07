@@ -1,3 +1,4 @@
+using Poppy.Core.Arch;
 using Poppy.Core.Semantics;
 using Xunit;
 

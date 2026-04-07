@@ -4,6 +4,7 @@
 // ============================================================================
 
 using Pansy.Core;
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;

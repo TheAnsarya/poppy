@@ -1,6 +1,7 @@
 // Poppy Compiler - Symbol Exporter Unit Tests
 // Copyright © 2026
 
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Lexer;
 using Poppy.Core.Semantics;

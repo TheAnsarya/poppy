@@ -2,6 +2,7 @@
 // Copyright © 2026
 
 using System.Text;
+using Poppy.Core.Arch;
 using Poppy.Core.Semantics;
 
 namespace Poppy.Core.CodeGen;

@@ -3,6 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
+using Poppy.Core.Arch;
 using Poppy.Core.Lexer;
 
 namespace Poppy.Core.CodeGen;
@@ -292,23 +293,23 @@ public sealed class SegmentManager {
 	/// Creates default segments for a target architecture.
 	/// </summary>
 	/// <param name="target">The target architecture.</param>
-	public void CreateDefaultSegments(Semantics.TargetArchitecture target) {
+	public void CreateDefaultSegments(Arch.TargetArchitecture target) {
 		switch (target) {
-			case Semantics.TargetArchitecture.MOS6502:
+			case Arch.TargetArchitecture.MOS6502:
 				// NES default segments
 				Define("ZEROPAGE", 0x0000, 0x0100, SegmentType.ZeroPage, new SourceLocation("", 0, 0, 0));
 				Define("RAM", 0x0200, 0x0600, SegmentType.Ram, new SourceLocation("", 0, 0, 0));
 				Define("CODE", 0x8000, 0x8000, SegmentType.Code, new SourceLocation("", 0, 0, 0));
 				break;
 
-			case Semantics.TargetArchitecture.WDC65816:
+			case Arch.TargetArchitecture.WDC65816:
 				// SNES default segments
 				Define("ZEROPAGE", 0x0000, 0x0100, SegmentType.ZeroPage, new SourceLocation("", 0, 0, 0));
 				Define("RAM", 0x7e0000, 0x020000, SegmentType.Ram, new SourceLocation("", 0, 0, 0));
 				Define("CODE", 0x008000, 0x008000, SegmentType.Code, new SourceLocation("", 0, 0, 0));
 				break;
 
-			case Semantics.TargetArchitecture.SM83:
+			case Arch.TargetArchitecture.SM83:
 				// Game Boy default segments
 				Define("ROM0", 0x0000, 0x4000, SegmentType.Rom, new SourceLocation("", 0, 0, 0));
 				Define("ROMX", 0x4000, 0x4000, SegmentType.Rom, new SourceLocation("", 0, 0, 0));

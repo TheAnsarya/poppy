@@ -7,6 +7,7 @@
 // ============================================================================
 
 using Pansy.Core;
+using Poppy.Core.Arch;
 using Poppy.Core.Semantics;
 using PansyCrossRefType = Pansy.Core.CrossRefType;
 using PansySymbolType = Pansy.Core.SymbolType;

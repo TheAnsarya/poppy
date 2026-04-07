@@ -1,6 +1,7 @@
 // Poppy Compiler - Auto-Generated Label Unit Tests
 // Copyright © 2026
 
+using Poppy.Core.Arch;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;

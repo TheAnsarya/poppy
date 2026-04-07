@@ -6,6 +6,7 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using Poppy.Core.Arch;
 using Poppy.Core.Semantics;
 
 namespace Poppy.Core.CodeGen;

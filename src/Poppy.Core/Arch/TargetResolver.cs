@@ -1,7 +1,5 @@
 ﻿namespace Poppy.Core.Arch;
 
-using Poppy.Core.Semantics;
-
 /// <summary>
 /// Centralizes target architecture string-to-enum mapping.
 /// Eliminates duplication between SemanticAnalyzer, CodeGenerator, and CLI.

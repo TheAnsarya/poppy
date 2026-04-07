@@ -6,6 +6,7 @@
 // produces correct V30MZ binary output with proper WonderSwan ROM layout.
 // ============================================================================
 
+using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Semantics;
 using Xunit;
