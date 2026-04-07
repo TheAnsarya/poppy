@@ -14,6 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Poppy.Arch.MOS6502\Poppy.Arch.MOS6502.csproj" />
 		<ProjectReference Include="..\Poppy.Core\Poppy.Core.csproj" />
 	</ItemGroup>
 

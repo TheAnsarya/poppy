@@ -3,7 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.MOS6502;
 
 /// <summary>
 /// Builds Atari 2600 ROM files from code segments.

@@ -3,7 +3,9 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.MOS6502;
+
+using Poppy.Core.CodeGen;
 
 /// <summary>
 /// Builds Atari Lynx LNX ROM files from code segments.
@@ -255,18 +257,4 @@ public sealed class AtariLynxRomBuilder {
 		output[62] = 0;
 		output[63] = 0;
 	}
-}
-
-/// <summary>
-/// Screen rotation modes for Atari Lynx games.
-/// </summary>
-public enum LynxRotation : byte {
-	/// <summary>No rotation (default horizontal orientation).</summary>
-	None = 0,
-
-	/// <summary>Rotate display left 90 degrees.</summary>
-	Left = 1,
-
-	/// <summary>Rotate display right 90 degrees.</summary>
-	Right = 2
 }

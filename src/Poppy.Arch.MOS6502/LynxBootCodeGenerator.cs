@@ -3,7 +3,7 @@
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.MOS6502;
 
 /// <summary>
 /// Generates standard Atari Lynx boot code.

@@ -1,10 +1,21 @@
 ﻿namespace Poppy.Core.Arch;
 
+using System.Collections.Concurrent;
+
 /// <summary>
 /// Centralizes target architecture string-to-enum mapping.
 /// Eliminates duplication between SemanticAnalyzer, CodeGenerator, and CLI.
 /// </summary>
 public static class TargetResolver {
+	private static readonly ConcurrentDictionary<TargetArchitecture, ITargetProfile> _registry = new();
+
+	/// <summary>
+	/// Registers an external profile, overriding any built-in profile for that architecture.
+	/// </summary>
+	public static void Register(ITargetProfile profile) {
+		_registry[profile.Architecture] = profile;
+	}
+
 	/// <summary>
 	/// Resolves a target name string to a TargetArchitecture enum value.
 	/// Accepts all known aliases (platform names, CPU names, abbreviations).
@@ -60,10 +71,13 @@ public static class TargetResolver {
 	/// Gets the ITargetProfile for a given architecture, or null if unsupported.
 	/// </summary>
 	public static ITargetProfile? TryGetProfile(TargetArchitecture arch) {
+		// Check external registry first (arch projects register here)
+		if (_registry.TryGetValue(arch, out var registered)) {
+			return registered;
+		}
+
+		// Fall back to built-in profiles
 		return arch switch {
-			TargetArchitecture.MOS6502 => Profiles.Mos6502Profile.Instance,
-			TargetArchitecture.MOS6507 => Profiles.Mos6507Profile.Instance,
-			TargetArchitecture.MOS65SC02 => Profiles.Mos65sc02Profile.Instance,
 			TargetArchitecture.WDC65816 => Profiles.Wdc65816Profile.Instance,
 			TargetArchitecture.SM83 => Profiles.Sm83Profile.Instance,
 			TargetArchitecture.M68000 => Profiles.M68000Profile.Instance,

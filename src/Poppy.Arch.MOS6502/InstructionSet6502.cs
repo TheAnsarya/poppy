@@ -7,7 +7,10 @@ using System.Collections.Frozen;
 
 using Poppy.Core.Parser;
 
-namespace Poppy.Core.CodeGen;
+namespace Poppy.Arch.MOS6502;
+
+using Poppy.Core.CodeGen;
+using Poppy.Core.Parser;
 
 /// <summary>
 /// Provides instruction encoding for the MOS 6502 processor.

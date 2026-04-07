@@ -26,6 +26,8 @@ internal static class Program {
 	/// <param name="args">Command line arguments.</param>
 	/// <returns>Exit code (0 for success).</returns>
 	public static int Main(string[] args) {
+		// Register architecture plugins
+		Poppy.Arch.MOS6502.Registration.RegisterAll();
 		// Parse command line arguments
 		var options = ParseArguments(args);
 
