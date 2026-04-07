@@ -116,4 +116,13 @@ public interface ITargetProfile {
 	/// </summary>
 	IReadOnlyList<(string Name, long StartAddress, long MaxSize, SegmentType Type)> GetDefaultSegments()
 		=> [];
+
+	/// <summary>
+	/// Tries to handle a platform-specific directive.
+	/// Returns true if the directive was handled by this profile.
+	/// Returns false if the directive is not recognized by this platform.
+	/// </summary>
+	/// <param name="node">The directive AST node.</param>
+	/// <param name="analyzer">The semantic analyzer (for evaluating expressions, reporting errors, and setting header properties).</param>
+	bool TryHandleDirective(DirectiveNode node, SemanticAnalyzer analyzer) => false;
 }
