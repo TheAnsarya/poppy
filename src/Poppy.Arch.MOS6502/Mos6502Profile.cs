@@ -45,6 +45,150 @@ internal sealed class Mos6502Profile : ITargetProfile {
 		("CODE", 0x8000, 0x8000, SegmentType.Code),
 	];
 
+	/// <inheritdoc />
+	public bool TryHandleDirective(DirectiveNode node, SemanticAnalyzer analyzer) {
+		var directiveName = node.Name.ToLowerInvariant();
+
+		switch (directiveName) {
+			case "mapper":
+				return HandleMapperDirective(node, analyzer);
+
+			case "ines_prg":
+			case "ines_chr":
+			case "ines_mapper":
+			case "ines_submapper":
+			case "ines_mirroring":
+			case "ines_battery":
+			case "ines_trainer":
+			case "ines_fourscreen":
+			case "ines_prgram":
+			case "ines_chrram":
+			case "ines_pal":
+			case "ines2":
+				return HandleINesDirective(node, analyzer, directiveName);
+
+			default:
+				return false;
+		}
+	}
+
+	private static bool HandleMapperDirective(DirectiveNode node, SemanticAnalyzer analyzer) {
+		if (analyzer.Pass != 1) return true;
+
+		if (node.Arguments.Count < 1) {
+			analyzer.AddError(".mapper directive requires a mapper number", node.Location);
+			return true;
+		}
+
+		var mapperValue = analyzer.EvaluateExpression(node.Arguments[0]);
+		if (mapperValue is null) {
+			analyzer.AddError(".mapper directive requires a constant mapper number", node.Location);
+			return true;
+		}
+
+		if (analyzer.NesMapper is not null) {
+			analyzer.AddError("Mapper already set - cannot change", node.Location);
+			return true;
+		}
+
+		analyzer.NesMapper = (int)mapperValue;
+		return true;
+	}
+
+	private static bool HandleINesDirective(DirectiveNode node, SemanticAnalyzer analyzer, string directiveName) {
+		if (analyzer.Pass != 1) return true;
+
+		// Get the value from first argument (if required)
+		long? value = null;
+		if (node.Arguments.Count > 0) {
+			value = analyzer.EvaluateExpression(node.Arguments[0]);
+			if (value is null) {
+				analyzer.AddError($".{directiveName} directive requires a constant value", node.Location);
+				return true;
+			}
+		}
+
+		switch (directiveName) {
+			case "ines_prg":
+				if (value is null) {
+					analyzer.AddError(".ines_prg directive requires a PRG ROM size (in 16KB units)", node.Location);
+					return true;
+				}
+				analyzer.InesPrgSize = (int)value;
+				break;
+
+			case "ines_chr":
+				if (value is null) {
+					analyzer.AddError(".ines_chr directive requires a CHR ROM size (in 8KB units)", node.Location);
+					return true;
+				}
+				analyzer.InesChrSize = (int)value;
+				break;
+
+			case "ines_mapper":
+				if (value is null) {
+					analyzer.AddError(".ines_mapper directive requires a mapper number", node.Location);
+					return true;
+				}
+				analyzer.InesMapper = (int)value;
+				break;
+
+			case "ines_submapper":
+				if (value is null) {
+					analyzer.AddError(".ines_submapper directive requires a submapper number", node.Location);
+					return true;
+				}
+				analyzer.InesSubmapper = (int)value;
+				break;
+
+			case "ines_mirroring":
+				if (value is null) {
+					analyzer.AddError(".ines_mirroring directive requires a mirroring mode (0=horizontal, 1=vertical)", node.Location);
+					return true;
+				}
+				analyzer.InesMirroring = value != 0;    // 0 = horizontal, 1 = vertical
+				break;
+
+			case "ines_battery":
+				analyzer.InesBattery = value is null || value != 0;
+				break;
+
+			case "ines_trainer":
+				analyzer.InesTrainer = value is null || value != 0;
+				break;
+
+			case "ines_fourscreen":
+				analyzer.InesFourScreen = value is null || value != 0;
+				break;
+
+			case "ines_prgram":
+				if (value is null) {
+					analyzer.AddError(".ines_prgram directive requires a PRG RAM size (in 8KB units)", node.Location);
+					return true;
+				}
+				analyzer.InesPrgRamSize = (int)value;
+				break;
+
+			case "ines_chrram":
+				if (value is null) {
+					analyzer.AddError(".ines_chrram directive requires a CHR RAM size (in 8KB units)", node.Location);
+					return true;
+				}
+				analyzer.InesChrRamSize = (int)value;
+				break;
+
+			case "ines_pal":
+				analyzer.InesPal = value is null || value != 0;
+				break;
+
+			case "ines2":
+				analyzer.UseINes2 = value is null || value != 0;
+				break;
+		}
+
+		return true;
+	}
+
 	private sealed class Mos6502RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetINesHeaderBuilder();
