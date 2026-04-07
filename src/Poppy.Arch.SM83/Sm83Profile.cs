@@ -21,6 +21,18 @@ internal sealed class Sm83Profile : ITargetProfile {
 
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Sm83RomBuilderAdapter(analyzer);
 
+	/// <inheritdoc />
+	public int MapCpuToRomOffset(int cpuAddress) =>
+		cpuAddress >= 0 && cpuAddress < 0x8000 ? cpuAddress : -1;
+
+	/// <inheritdoc />
+	public string GetMemoryRegionName(long address) => address switch {
+		< 0x8000 => "ROM",
+		< 0xa000 => "VRAM",
+		< 0xc000 => "SRAM",
+		_ => "WRAM"
+	};
+
 	private sealed class Sm83RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetGbHeaderBuilder();

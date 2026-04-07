@@ -17,6 +17,7 @@ namespace Poppy.Core.CodeGen;
 public sealed class CdlGenerator {
 	private readonly SymbolTable _symbolTable;
 	private readonly TargetArchitecture _target;
+	private readonly ITargetProfile? _profile;
 	private readonly IReadOnlyList<OutputSegment> _segments;
 	private readonly ListingGenerator? _listing;
 
@@ -63,6 +64,7 @@ public sealed class CdlGenerator {
 		ListingGenerator? listing = null) {
 		_symbolTable = symbolTable;
 		_target = target;
+		_profile = TargetResolver.TryGetProfile(target);
 		_segments = segments;
 		_listing = listing;
 	}
@@ -189,31 +191,9 @@ public sealed class CdlGenerator {
 	/// Maps CPU address to ROM file offset.
 	/// </summary>
 	private int CpuToRomAddress(int cpuAddress) {
-		// NES: PRG ROM starts at $8000, typically maps to offset 0x10 (after iNES header)
-		if (_target == TargetArchitecture.MOS6502) {
-			if (cpuAddress >= 0x8000) {
-				return cpuAddress - 0x8000 + 0x10;  // 16-byte iNES header
-			}
-			return -1;  // Not PRG ROM
-		}
-
-		// SNES: Complex banking, simplified for LoROM
-		if (_target == TargetArchitecture.WDC65816) {
-			// LoROM mapping (simplified)
-			var bank = (cpuAddress >> 16) & 0xff;
-			var offset = cpuAddress & 0xffff;
-			if (offset >= 0x8000) {
-				return ((bank & 0x7f) * 0x8000) + (offset - 0x8000);
-			}
-			return -1;
-		}
-
-		// Game Boy: Direct mapping with header offset
-		if (_target == TargetArchitecture.SM83) {
-			if (cpuAddress >= 0 && cpuAddress < 0x8000) {
-				return cpuAddress;
-			}
-			return -1;
+		if (_profile is not null) {
+			var offset = _profile.MapCpuToRomOffset(cpuAddress);
+			return offset >= 0 ? offset + _profile.RomFileHeaderSize : -1;
 		}
 
 		// Default: assume direct mapping

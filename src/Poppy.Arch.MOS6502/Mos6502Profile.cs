@@ -20,6 +20,24 @@ internal sealed class Mos6502Profile : ITargetProfile {
 	/// <inheritdoc />
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Mos6502RomBuilderAdapter(analyzer);
 
+	/// <inheritdoc />
+	public int RomFileHeaderSize => 16; // 16-byte iNES header
+
+	/// <inheritdoc />
+	public int MapCpuToRomOffset(int cpuAddress) =>
+		cpuAddress >= 0x8000 ? cpuAddress - 0x8000 : -1;
+
+	/// <inheritdoc />
+	public string GetMemoryRegionName(long address) => address switch {
+		< 0x2000 => "RAM",     // Internal RAM
+		< 0x8000 => "REG",     // PPU/APU registers, cartridge space
+		_ => "PRG"             // PRG ROM
+	};
+
+	/// <inheritdoc />
+	public int GetAddressBank(long address) =>
+		address >= 0x8000 ? (int)((address - 0x8000) / 0x4000) : 0;
+
 	private sealed class Mos6502RomBuilderAdapter(SemanticAnalyzer analyzer) : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
 			var headerBuilder = analyzer.GetINesHeaderBuilder();

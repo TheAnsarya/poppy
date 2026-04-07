@@ -13,6 +13,7 @@ namespace Poppy.Core.CodeGen;
 public sealed class SymbolExporter {
 	private readonly SymbolTable _symbolTable;
 	private readonly TargetArchitecture _target;
+	private readonly ITargetProfile? _profile;
 
 	/// <summary>
 	/// Creates a new symbol exporter.
@@ -22,6 +23,7 @@ public sealed class SymbolExporter {
 	public SymbolExporter(SymbolTable symbolTable, TargetArchitecture target) {
 		_symbolTable = symbolTable;
 		_target = target;
+		_profile = TargetResolver.TryGetProfile(target);
 	}
 
 	/// <summary>
@@ -124,47 +126,13 @@ public sealed class SymbolExporter {
 	/// Gets the memory region classification for Mesen format.
 	/// </summary>
 	private string GetMemoryRegion(long address) {
-		// NES memory map
-		if (_target == TargetArchitecture.MOS6502) {
-			return address switch {
-				< 0x2000 => "RAM",     // Internal RAM
-				< 0x8000 => "REG",     // PPU/APU registers, cartridge space
-				_ => "PRG"             // PRG ROM
-			};
-		}
-
-		// SNES memory map (simplified)
-		if (_target == TargetArchitecture.WDC65816) {
-			return address switch {
-				< 0x2000 => "WRAM",
-				_ => "PRG"
-			};
-		}
-
-		// Game Boy memory map
-		if (_target == TargetArchitecture.SM83) {
-			return address switch {
-				< 0x8000 => "ROM",
-				< 0xa000 => "VRAM",
-				< 0xc000 => "SRAM",
-				_ => "WRAM"
-			};
-		}
-
-		return "PRG";
+		return _profile?.GetMemoryRegionName(address) ?? "PRG";
 	}
 
 	/// <summary>
 	/// Gets the bank number for an address.
 	/// </summary>
 	private byte GetBank(long address) {
-		// Simple bank calculation (16KB banks for NES)
-		if (_target == TargetArchitecture.MOS6502) {
-			if (address >= 0x8000) {
-				return (byte)((address - 0x8000) / 0x4000);
-			}
-		}
-
-		return 0;
+		return (byte)(_profile?.GetAddressBank(address) ?? 0);
 	}
 }

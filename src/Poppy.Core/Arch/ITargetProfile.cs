@@ -80,4 +80,32 @@ public interface ITargetProfile {
 	(bool AccumulatorIs16Bit, bool IndexIs16Bit) UpdateProcessorFlags(
 		string mnemonic, long? operandValue, bool accumulatorIs16Bit, bool indexIs16Bit)
 		=> (accumulatorIs16Bit, indexIs16Bit);
+
+	/// <summary>
+	/// Size of the ROM file header in bytes (e.g., 16 for iNES header).
+	/// Used by output generators to convert CPU addresses to file offsets.
+	/// Default: 0 (no header).
+	/// </summary>
+	int RomFileHeaderSize => 0;
+
+	/// <summary>
+	/// Maps a CPU address to a ROM offset (excluding file header).
+	/// Returns -1 if the address is not in ROM space.
+	/// Default: identity mapping (returns cpuAddress unchanged).
+	/// </summary>
+	int MapCpuToRomOffset(int cpuAddress) => cpuAddress;
+
+	/// <summary>
+	/// Gets the memory region classification name for an address.
+	/// Used by symbol exporters for debug format output.
+	/// Default: "PRG".
+	/// </summary>
+	string GetMemoryRegionName(long address) => "PRG";
+
+	/// <summary>
+	/// Gets the bank number for a given address.
+	/// Used by symbol exporters for banked ROM systems.
+	/// Default: 0.
+	/// </summary>
+	int GetAddressBank(long address) => 0;
 }

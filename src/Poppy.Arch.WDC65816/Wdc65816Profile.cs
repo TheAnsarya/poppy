@@ -26,6 +26,23 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 	public IRomBuilder? CreateRomBuilder(SemanticAnalyzer analyzer) => new Wdc65816RomBuilderAdapter(analyzer);
 
 	/// <inheritdoc />
+	public int MapCpuToRomOffset(int cpuAddress) {
+		// LoROM mapping (simplified)
+		var bank = (cpuAddress >> 16) & 0xff;
+		var offset = cpuAddress & 0xffff;
+		if (offset >= 0x8000) {
+			return ((bank & 0x7f) * 0x8000) + (offset - 0x8000);
+		}
+		return -1;
+	}
+
+	/// <inheritdoc />
+	public string GetMemoryRegionName(long address) => address switch {
+		< 0x2000 => "WRAM",
+		_ => "PRG"
+	};
+
+	/// <inheritdoc />
 	public int GetBankSize(SemanticAnalyzer analyzer) {
 		var mapping = analyzer.MemoryMapping;
 		if (mapping is not null && mapping.Equals("hirom", StringComparison.OrdinalIgnoreCase))

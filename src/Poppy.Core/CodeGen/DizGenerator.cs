@@ -18,6 +18,7 @@ namespace Poppy.Core.CodeGen;
 public sealed class DizGenerator {
 	private readonly SymbolTable _symbolTable;
 	private readonly TargetArchitecture _target;
+	private readonly ITargetProfile? _profile;
 	private readonly IReadOnlyList<OutputSegment> _segments;
 	private readonly ListingGenerator? _listing;
 	private readonly string _projectName;
@@ -72,6 +73,7 @@ public sealed class DizGenerator {
 		ListingGenerator? listing = null) {
 		_symbolTable = symbolTable;
 		_target = target;
+		_profile = TargetResolver.TryGetProfile(target);
 		_segments = segments;
 		_projectName = projectName;
 		_listing = listing;
@@ -230,25 +232,17 @@ public sealed class DizGenerator {
 	/// Converts SNES CPU address to ROM file offset.
 	/// </summary>
 	private int SnesAddressToRomOffset(int address) {
-		// LoROM mapping (simplified)
+		if (_profile is not null) {
+			// DIZ format uses ROM offset without file header
+			return _profile.MapCpuToRomOffset(address);
+		}
+
+		// Fallback: LoROM mapping (simplified)
 		var bank = (address >> 16) & 0xff;
 		var offset = address & 0xffff;
 
 		if (offset >= 0x8000) {
 			return ((bank & 0x7f) * 0x8000) + (offset - 0x8000);
-		}
-
-		// For NES/GB, simpler mapping
-		if (_target == TargetArchitecture.MOS6502) {
-			if (address >= 0x8000 && address < 0x10000) {
-				return address - 0x8000;  // No header in DIZ
-			}
-		}
-
-		if (_target == TargetArchitecture.SM83) {
-			if (address >= 0 && address < 0x8000) {
-				return address;
-			}
 		}
 
 		return address;
