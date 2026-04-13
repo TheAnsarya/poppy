@@ -383,6 +383,7 @@ Check out the example projects in the `examples/` directory:
 | [v1.x Roadmap](~plans/v1.x-roadmap.md) | Plans for v1.1-v1.3 (project system, assets, advanced features) |
 | [v2.0 Roadmap](~plans/v2.0-roadmap.md) | Platform expansion (GBA, Genesis, SPC700, LSP, WASM) |
 | [v1.0.0 Release Report](~plans/v1.0.0-final-release-report.md) | Complete v1.0.0 release summary |
+| [All Plans](~plans/) | Architecture plans, encoding specs, issue analysis |
 
 ### Internal Documentation
 
