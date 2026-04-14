@@ -1,4 +1,4 @@
-# CDL/DIZ Workflow Guide
+﻿# CDL/DIZ Workflow Guide
 
 This document describes the roundtrip workflow between **Poppy** (assembler) and **Peony** (disassembler) using CDL (Code/Data Log) and DIZ (DiztinGUIsh) files.
 

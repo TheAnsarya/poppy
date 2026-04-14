@@ -1,4 +1,4 @@
-# 🌸 Poppy Compiler
+﻿# 🌸 Poppy Compiler
 
 > **Smart multi-system assembly compiler for retro gaming projects**
 

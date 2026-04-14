@@ -1,4 +1,4 @@
-# 📁 Poppy Project File Format
+﻿# 📁 Poppy Project File Format
 
 > Specification for `.poppy` project files
 
