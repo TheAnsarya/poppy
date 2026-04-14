@@ -5,7 +5,7 @@
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v2.0.0)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-[![Tests](https://img.shields.io/badge/tests-3164%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+[![Tests](https://img.shields.io/badge/tests-1417%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
 
 ---
 
@@ -439,11 +439,11 @@ rts
 
 ## 🏗️ Project Status
 
-**Current Version:** v1.0.0 (Released January 15, 2026)
+**Current Version:** v2.0.0 (Released 2026)
 
 **Completed:**
 
-- ✅ Full NES support (6502, iNES 2.0, 942 tests passing)
+- ✅ Full NES support (6502, iNES 2.0)
 - ✅ Full SNES support (65816, LoROM/HiROM/ExHiROM)
 - ✅ Full Game Boy support (SM83, MBC1/3/5, CGB modes)
 - ✅ Full Atari 2600 support (6507)
@@ -456,19 +456,12 @@ rts
 - ✅ VS Code extension (published to marketplace)
 - ✅ Comprehensive documentation (21 guides, 5,800+ lines)
 - ✅ Example projects for all platforms
-- ✅ 3,155 tests passing
+- ✅ Pansy.Core integration for metadata export
+- ✅ Bank switching support
+- ✅ 1,417 tests passing
 
-**Next Version:** v1.1.0 (Q1 2026)
+**Planned:**
 
-- Project file system (poppy.json)
-- Multi-file compilation with dependency tracking
-- Watch mode for auto-rebuild
-- Enhanced expression evaluation
-- VS Code workspace symbols
-
-**Future:** v2.0.0 (Q4 2026)
-
-- Platform expansion (GBA, Genesis, Atari 2600, TG16, etc.)
 - Language Server Protocol (LSP)
 - Web-based compiler (WASM)
 - Plugin system
