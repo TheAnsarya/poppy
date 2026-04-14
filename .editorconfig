@@ -6,7 +6,7 @@ root = true
 
 # Global defaults - TABS EVERYWHERE
 [*]
-charset = utf-8
+charset = utf-8-bom
 end_of_line = crlf
 indent_style = tab
 indent_size = 4

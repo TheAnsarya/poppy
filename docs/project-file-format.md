@@ -505,6 +505,4 @@ When no project file is specified, Poppy searches for:
 ## 🔗 Related Documents
 
 - [User Manual](user-manual.md)
-- [Asset Pipeline](asset-pipeline.md) (coming soon)
-- [Memory Maps](memory-maps.md) (coming soon)
 

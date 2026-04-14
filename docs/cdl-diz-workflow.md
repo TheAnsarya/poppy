@@ -234,7 +234,5 @@ Console.WriteLine($"CDL coverage: {percent:F1}%");
 
 ## Related Documentation
 
-- [Poppy Assembler CLI](../poppy/docs/cli.md)
-- [Peony Disassembler CLI](../peony/docs/cli.md)
-- [CDL Format Specification](../docs/formats/cdl-format.md)
-- [DIZ Format Specification](../docs/formats/diz-format.md)
+- [User Manual](user-manual.md)
+- [File Formats](file-formats.md)

@@ -5,7 +5,7 @@
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://unlicense.org)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TheAnsarya/poppy/releases/tag/v2.0.0)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly)
-[![Tests](https://img.shields.io/badge/tests-1417%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
+[![Tests](https://img.shields.io/badge/tests-3185%20passing-brightgreen.svg)](https://github.com/TheAnsarya/poppy)
 
 ---
 
@@ -176,7 +176,7 @@ cd poppy
 cd src
 dotnet build -c Release
 
-# The compiler will be at: src/Poppy.CLI/bin/Release/net9.0/poppy.exe
+# The compiler will be at: src/Poppy.CLI/bin/Release/net10.0/poppy.exe
 ```
 
 #### VS Code Extension
@@ -458,7 +458,7 @@ rts
 - ✅ Example projects for all platforms
 - ✅ Pansy.Core integration for metadata export
 - ✅ Bank switching support
-- ✅ 1,417 tests passing
+- ✅ 3,185 tests passing
 
 **Planned:**
 
