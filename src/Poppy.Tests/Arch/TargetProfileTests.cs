@@ -213,7 +213,7 @@ public sealed class TargetProfileTests {
 	}
 
 	// ========================================================================
-	// CreateRomBuilder — Currently All Return Null (Phase 2 TODO)
+	// CreateRomBuilder — Verify All Profiles Return An Adapter
 	// ========================================================================
 
 	[Theory]
