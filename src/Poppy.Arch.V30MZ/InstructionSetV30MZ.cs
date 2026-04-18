@@ -351,6 +351,85 @@ internal static class InstructionSetV30MZ {
 			   _loopInstructions.ContainsKey(lower);
 	}
 
+	// ========================================================================
+	// ModR/M Instruction Tables
+	// ========================================================================
+
+	/// <summary>
+	/// ALU operation info: base opcode (for r/m8,r8 form) and /r extension digit.
+	/// Opcodes follow the pattern: base+0=r/m8,r8, base+1=r/m16,r16,
+	/// base+2=r8,r/m8, base+3=r16,r/m16, base+4=AL,imm8, base+5=AX,imm16.
+	/// Immediate to r/m: 0x80 /digit=r/m8,imm8, 0x81 /digit=r/m16,imm16, 0x83 /digit=r/m16,simm8.
+	/// </summary>
+	private static readonly FrozenDictionary<string, (byte BaseOpcode, int RegDigit)> _aluOps =
+		new Dictionary<string, (byte, int)>(StringComparer.OrdinalIgnoreCase) {
+			{ "add", (0x00, 0) },
+			{ "or",  (0x08, 1) },
+			{ "adc", (0x10, 2) },
+			{ "sbb", (0x18, 3) },
+			{ "and", (0x20, 4) },
+			{ "sub", (0x28, 5) },
+			{ "xor", (0x30, 6) },
+			{ "cmp", (0x38, 7) },
+		}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Unary operation /r digits for 0xf6 (8-bit) / 0xf7 (16-bit) opcode group.
+	/// </summary>
+	private static readonly FrozenDictionary<string, int> _unaryOps =
+		new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
+			{ "not",  2 },
+			{ "neg",  3 },
+			{ "mul",  4 },
+			{ "imul", 5 },
+			{ "div",  6 },
+			{ "idiv", 7 },
+		}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Shift/rotate operation /r digits for 0xd0-0xd3 opcode group.
+	/// 0xd0=r/m8,1  0xd1=r/m16,1  0xd2=r/m8,CL  0xd3=r/m16,CL
+	/// </summary>
+	private static readonly FrozenDictionary<string, int> _shiftOps =
+		new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
+			{ "rol", 0 },
+			{ "ror", 1 },
+			{ "rcl", 2 },
+			{ "rcr", 3 },
+			{ "shl", 4 },
+			{ "sal", 4 },
+			{ "shr", 5 },
+			{ "sar", 7 },
+		}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Gets ALU operation info if the mnemonic is an ALU instruction.
+	/// </summary>
+	public static bool TryGetAluOp(string mnemonic, out byte baseOpcode, out int regDigit) {
+		if (_aluOps.TryGetValue(mnemonic, out var entry)) {
+			baseOpcode = entry.BaseOpcode;
+			regDigit = entry.RegDigit;
+			return true;
+		}
+		baseOpcode = 0;
+		regDigit = 0;
+		return false;
+	}
+
+	/// <summary>
+	/// Gets unary operation /r digit if the mnemonic is a unary instruction.
+	/// </summary>
+	public static bool TryGetUnaryOp(string mnemonic, out int regDigit) {
+		return _unaryOps.TryGetValue(mnemonic, out regDigit);
+	}
+
+	/// <summary>
+	/// Gets shift/rotate operation /r digit if the mnemonic is a shift/rotate instruction.
+	/// </summary>
+	public static bool TryGetShiftOp(string mnemonic, out int regDigit) {
+		return _shiftOps.TryGetValue(mnemonic, out regDigit);
+	}
+
 	/// <summary>
 	/// Gets the list of all supported mnemonics for documentation.
 	/// </summary>

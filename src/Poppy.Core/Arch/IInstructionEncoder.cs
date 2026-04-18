@@ -72,6 +72,14 @@ public interface IInstructionEncoder {
 	int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix) => 0;
 
 	/// <summary>
+	/// Gets the instruction size with additional operand information for multi-operand architectures.
+	/// Default implementation delegates to the single-operand overload.
+	/// </summary>
+	int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix,
+		IReadOnlyList<ResolvedOperand>? additionalOperands) =>
+		GetSpecialInstructionSize(mnemonic, operandIdentifier, hasOperand, sizeSuffix);
+
+	/// <summary>
 	/// Tries to emit architecture-specific instructions that cannot be expressed
 	/// through the generic opcode + operand pipeline.
 	/// Returns true if the instruction was handled; false to fall through.

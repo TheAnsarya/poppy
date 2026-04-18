@@ -721,4 +721,395 @@ public class InstructionSetV30MZTests {
 	}
 
 	#endregion
+
+	// ========================================================================
+	// ModR/M Two-Operand Encoding Tests
+	// ========================================================================
+
+	#region ALU Register-Register Tests
+
+	[Theory]
+	[InlineData("add", 0x01)]
+	[InlineData("or",  0x09)]
+	[InlineData("adc", 0x11)]
+	[InlineData("sbb", 0x19)]
+	[InlineData("and", 0x21)]
+	[InlineData("sub", 0x29)]
+	[InlineData("xor", 0x31)]
+	[InlineData("cmp", 0x39)]
+	public void AluRegReg16_EncodesCorrectly(string mnemonic, byte expectedOpcode) {
+		var source = $".target wonderswan\n{mnemonic} ax, bx";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(expectedOpcode, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 3, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void AluRegReg8_AddAlBl_EncodesCorrectly() {
+		var source = ".target wonderswan\nadd al, bl";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x00, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 3, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void AluRegReg16_SubSiDi_EncodesCorrectly() {
+		var source = ".target wonderswan\nsub si, di";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x29, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 7, 6), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	#endregion
+
+	#region ALU Accumulator-Immediate Shortcut Tests
+
+	[Fact]
+	public void AluAccImm8_AddAlImm8_UsesShortForm() {
+		var source = ".target wonderswan\nadd al, #$12";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x04, code[0]);
+		Assert.Equal(0x12, code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void AluAccImm16_AddAxImm16_UsesShortForm() {
+		var source = ".target wonderswan\nadd ax, #$1234";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x05, code[0]);
+		Assert.Equal(0x34, code[1]);
+		Assert.Equal(0x12, code[2]);
+		Assert.Equal(0xff, code[3]);
+	}
+
+	[Theory]
+	[InlineData("add", 0x04, 0x05)]
+	[InlineData("or",  0x0c, 0x0d)]
+	[InlineData("adc", 0x14, 0x15)]
+	[InlineData("sbb", 0x1c, 0x1d)]
+	[InlineData("and", 0x24, 0x25)]
+	[InlineData("sub", 0x2c, 0x2d)]
+	[InlineData("xor", 0x34, 0x35)]
+	[InlineData("cmp", 0x3c, 0x3d)]
+	public void AluAccImm_AllOps_UseShortForm(string mnemonic, byte alOpcode, byte axOpcode) {
+		var source1 = $".target wonderswan\n{mnemonic} al, #$42";
+		var (code1, gen1) = GenerateV30MZCode(source1);
+		Assert.False(gen1.HasErrors, $"AL errors: {string.Join(", ", gen1.Errors)}");
+		Assert.Equal(alOpcode, code1[0]);
+
+		var source2 = $".target wonderswan\n{mnemonic} ax, #$4200";
+		var (code2, gen2) = GenerateV30MZCode(source2);
+		Assert.False(gen2.HasErrors, $"AX errors: {string.Join(", ", gen2.Errors)}");
+		Assert.Equal(axOpcode, code2[0]);
+	}
+
+	#endregion
+
+	#region ALU General Register-Immediate Tests
+
+	[Fact]
+	public void AluRegImm16_AddCxImm16_UsesModRM() {
+		var source = ".target wonderswan\nadd cx, #$1234";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x81, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 0, 1), code[1]);
+		Assert.Equal(0x34, code[2]);
+		Assert.Equal(0x12, code[3]);
+		Assert.Equal(0xff, code[4]);
+	}
+
+	[Fact]
+	public void AluRegImm8SignExt_SubDxSmallImm_UsesShortForm() {
+		var source = ".target wonderswan\nsub dx, #$05";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x83, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 5, 2), code[1]);
+		Assert.Equal(0x05, code[2]);
+		Assert.Equal(0xff, code[3]);
+	}
+
+	[Fact]
+	public void AluRegImm8_CmpBlImm8_Uses8BitForm() {
+		var source = ".target wonderswan\ncmp bl, #$42";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x80, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 7, 3), code[1]);
+		Assert.Equal(0x42, code[2]);
+		Assert.Equal(0xff, code[3]);
+	}
+
+	#endregion
+
+	#region MOV Register-Register Tests
+
+	[Fact]
+	public void MovRegReg16_MovAxBx_EncodesCorrectly() {
+		var source = ".target wonderswan\nmov ax, bx";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x89, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 3, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void MovRegReg8_MovAlBh_EncodesCorrectly() {
+		var source = ".target wonderswan\nmov al, bh";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x88, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 7, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	#endregion
+
+	#region MOV Register-Immediate Tests
+
+	[Fact]
+	public void MovRegImm16_MovAxImm_UsesShortForm() {
+		var source = ".target wonderswan\nmov ax, #$1234";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xb8, code[0]);
+		Assert.Equal(0x34, code[1]);
+		Assert.Equal(0x12, code[2]);
+		Assert.Equal(0xff, code[3]);
+	}
+
+	[Fact]
+	public void MovRegImm16_MovCxImm_UsesCorrectReg() {
+		var source = ".target wonderswan\nmov cx, #$5678";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xb9, code[0]);
+		Assert.Equal(0x78, code[1]);
+		Assert.Equal(0x56, code[2]);
+		Assert.Equal(0xff, code[3]);
+	}
+
+	[Fact]
+	public void MovRegImm8_MovAlImm_UsesShortForm() {
+		var source = ".target wonderswan\nmov al, #$42";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xb0, code[0]);
+		Assert.Equal(0x42, code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void MovRegImm8_MovDhImm_UsesCorrectReg() {
+		var source = ".target wonderswan\nmov dh, #$ab";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xb6, code[0]);
+		Assert.Equal(0xab, code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	#endregion
+
+	#region TEST Instruction Tests
+
+	[Fact]
+	public void TestRegReg16_TestAxBx_EncodesCorrectly() {
+		var source = ".target wonderswan\ntest ax, bx";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x85, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 3, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void TestAccImm_TestAlImm8_UsesShortForm() {
+		var source = ".target wonderswan\ntest al, #$12";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xa8, code[0]);
+		Assert.Equal(0x12, code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void TestAccImm_TestAxImm16_UsesShortForm() {
+		var source = ".target wonderswan\ntest ax, #$1234";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xa9, code[0]);
+		Assert.Equal(0x34, code[1]);
+		Assert.Equal(0x12, code[2]);
+		Assert.Equal(0xff, code[3]);
+	}
+
+	#endregion
+
+	#region Unary ModR/M Instruction Tests
+
+	[Theory]
+	[InlineData("not",  2)]
+	[InlineData("neg",  3)]
+	[InlineData("mul",  4)]
+	[InlineData("imul", 5)]
+	[InlineData("div",  6)]
+	[InlineData("idiv", 7)]
+	public void UnaryReg16_EncodesCorrectly(string mnemonic, int regDigit) {
+		var source = $".target wonderswan\n{mnemonic} ax";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xf7, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, regDigit, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Theory]
+	[InlineData("not",  2)]
+	[InlineData("neg",  3)]
+	[InlineData("mul",  4)]
+	[InlineData("imul", 5)]
+	[InlineData("div",  6)]
+	[InlineData("idiv", 7)]
+	public void UnaryReg8_EncodesCorrectly(string mnemonic, int regDigit) {
+		var source = $".target wonderswan\n{mnemonic} al";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xf6, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, regDigit, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	#endregion
+
+	#region Shift/Rotate Instruction Tests
+
+	[Theory]
+	[InlineData("shl", 4)]
+	[InlineData("shr", 5)]
+	[InlineData("sar", 7)]
+	[InlineData("rol", 0)]
+	[InlineData("ror", 1)]
+	[InlineData("rcl", 2)]
+	[InlineData("rcr", 3)]
+	public void ShiftReg16ByOne_EncodesCorrectly(string mnemonic, int regDigit) {
+		var source = $".target wonderswan\n{mnemonic} ax, #$01";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xd1, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, regDigit, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Theory]
+	[InlineData("shl", 4)]
+	[InlineData("shr", 5)]
+	[InlineData("sar", 7)]
+	[InlineData("rol", 0)]
+	[InlineData("ror", 1)]
+	[InlineData("rcl", 2)]
+	[InlineData("rcr", 3)]
+	public void ShiftReg16ByCl_EncodesCorrectly(string mnemonic, int regDigit) {
+		var source = $".target wonderswan\n{mnemonic} ax, cl";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xd3, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, regDigit, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void ShiftReg8ByOne_ShlAlOne_EncodesCorrectly() {
+		var source = ".target wonderswan\nshl al, #$01";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xd0, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 4, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void ShiftReg8ByCl_ShrBlCl_EncodesCorrectly() {
+		var source = ".target wonderswan\nshr bl, cl";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0xd2, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 5, 3), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	#endregion
+
+	#region XCHG Two-Operand Tests
+
+	[Fact]
+	public void XchgRegReg16_XchgAxCx_UsesShortForm() {
+		var source = ".target wonderswan\nxchg ax, cx";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x91, code[0]);
+		Assert.Equal(0xff, code[1]);
+	}
+
+	[Fact]
+	public void XchgRegReg16_XchgBxCx_UsesModRM() {
+		var source = ".target wonderswan\nxchg bx, cx";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x87, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 1, 3), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	[Fact]
+	public void XchgRegReg8_XchgAlBl_UsesModRM() {
+		var source = ".target wonderswan\nxchg al, bl";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+		Assert.Equal(0x86, code[0]);
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 3, 0), code[1]);
+		Assert.Equal(0xff, code[2]);
+	}
+
+	#endregion
+
+	#region Combined Instruction Sequence Tests
+
+	[Fact]
+	public void CombinedModRM_MultipleInstructions_CorrectOutput() {
+		var source = ".target wonderswan\nmov ax, #$1234\nadd ax, bx\nsub cx, #$05\nxor al, al\nnot dx\nshl bx, #$01\nret";
+		var (code, gen) = GenerateV30MZCode(source);
+		Assert.False(gen.HasErrors, $"Errors: {string.Join(", ", gen.Errors)}");
+
+		int i = 0;
+		Assert.Equal(0xb8, code[i++]); // mov ax, #$1234
+		Assert.Equal(0x34, code[i++]);
+		Assert.Equal(0x12, code[i++]);
+		Assert.Equal(0x01, code[i++]); // add ax, bx
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 3, 0), code[i++]);
+		Assert.Equal(0x83, code[i++]); // sub cx, #$05
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 5, 1), code[i++]);
+		Assert.Equal(0x05, code[i++]);
+		Assert.Equal(0x30, code[i++]); // xor al, al
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 0, 0), code[i++]);
+		Assert.Equal(0xf7, code[i++]); // not dx
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 2, 2), code[i++]);
+		Assert.Equal(0xd1, code[i++]); // shl bx, #$01
+		Assert.Equal(InstructionSetV30MZ.EncodeModRM(3, 4, 3), code[i++]);
+		Assert.Equal(0xc3, code[i++]); // ret
+		Assert.Equal(0xff, code[i]);
+	}
+
+	#endregion
 }

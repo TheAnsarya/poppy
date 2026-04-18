@@ -1165,7 +1165,21 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		var sizeProfile = Arch.TargetResolver.TryGetProfile(Target);
 		if (sizeProfile is not null) {
 			var operandId = node.Operand is IdentifierNode idn ? idn.Name : null;
-			var specialSize = sizeProfile.Encoder.GetSpecialInstructionSize(mnemonic, operandId, node.Operand is not null, node.SizeSuffix);
+
+			// Build additional operand info for multi-operand architectures
+			List<ResolvedOperand>? additionalOperands = null;
+			if (node.Operands.Count > 1) {
+				additionalOperands = new List<ResolvedOperand>(node.Operands.Count - 1);
+				for (int i = 1; i < node.Operands.Count; i++) {
+					var addlOp = node.Operands[i];
+					var addlId = addlOp is IdentifierNode idn2 ? idn2.Name : null;
+					var addlValue = TryGetConstantOperandValue(addlOp);
+					additionalOperands.Add(new ResolvedOperand(addlId, addlValue));
+				}
+			}
+
+			var specialSize = sizeProfile.Encoder.GetSpecialInstructionSize(
+				mnemonic, operandId, node.Operand is not null, node.SizeSuffix, additionalOperands);
 			if (specialSize > 0) {
 				return specialSize;
 			}
