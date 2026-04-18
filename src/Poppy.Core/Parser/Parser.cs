@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // Parser.cs - Assembly Source Parser
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -259,11 +259,31 @@ public sealed class Parser {
 
 		// Implied addressing (no operand)
 		if (IsAtEndOfStatement()) {
-			return new InstructionNode(token.Location, mnemonic, sizeSuffix, null, AddressingMode.Implied);
+			return new InstructionNode(token.Location, mnemonic, sizeSuffix, operand: null, AddressingMode.Implied);
 		}
 
 		// Parse operand and determine addressing mode
 		var (operand, addressingMode) = ParseOperand();
+
+		// Check for additional comma-separated operands (multi-operand instructions:
+		// x86/V30MZ, M68K, ARM, HuC6280 block transfer, 65816 block move)
+		if (!IsAtEndOfStatement() && Check(TokenType.Comma)) {
+			var operands = new List<ExpressionNode>();
+			if (operand is not null) {
+				operands.Add(operand);
+			}
+
+			while (Check(TokenType.Comma)) {
+				Advance(); // consume comma
+				var (nextOp, _) = ParseOperand();
+				if (nextOp is not null) {
+					operands.Add(nextOp);
+				}
+			}
+
+			ExpectEndOfStatement();
+			return new InstructionNode(token.Location, mnemonic, sizeSuffix, operands, addressingMode);
+		}
 
 		ExpectEndOfStatement();
 		return new InstructionNode(token.Location, mnemonic, sizeSuffix, operand, addressingMode);
@@ -294,8 +314,12 @@ public sealed class Parser {
 		// Direct/absolute addressing with possible indexing
 		var operand = ParseExpression();
 
-		// Check for indexing
-		if (Match(TokenType.Comma)) {
+		// Check for 6502-style indexing (,x / ,y / ,s).
+		// Only consume the comma if the next token is a single-letter 6502 index register.
+		// Multi-operand architectures (V30MZ, M68K, ARM, HuC6280) use multi-letter register
+		// names (ax, bx, d0, r0, etc.) so they won't match this check.
+		if (Check(TokenType.Comma) && Is6502IndexRegisterAfterComma()) {
+			Advance(); // consume comma
 			var indexToken = Advance();
 
 			return indexToken.Text switch {
@@ -306,7 +330,8 @@ public sealed class Parser {
 			};
 		}
 
-		// Plain absolute/zero page addressing (determined later by value)
+		// Plain absolute/zero page addressing (determined later by value).
+		// If a comma follows, ParseInstruction() will pick it up as a multi-operand separator.
 		return (operand, AddressingMode.Absolute);
 	}
 
@@ -1139,6 +1164,23 @@ public sealed class Parser {
 
 	private bool CheckNext(TokenType type) =>
 		_current + 1 < _tokens.Count && _tokens[_current + 1].Type == type;
+
+	/// <summary>
+	/// Checks whether the token immediately after the current position (assumed to be a comma)
+	/// is a 6502-family index register identifier (x, y, or s). Used to disambiguate between
+	/// 6502-style indexed addressing (lda $00,x) and multi-operand separators (mov ax, bx).
+	/// </summary>
+	private bool Is6502IndexRegisterAfterComma() {
+		if (_current + 1 >= _tokens.Count) {
+			return false;
+		}
+
+		var next = _tokens[_current + 1];
+		return next.Type == TokenType.Identifier &&
+			(next.Text.Equals("x", StringComparison.OrdinalIgnoreCase) ||
+			next.Text.Equals("y", StringComparison.OrdinalIgnoreCase) ||
+			next.Text.Equals("s", StringComparison.OrdinalIgnoreCase));
+	}
 
 	private Token Advance() {
 		if (!IsAtEnd()) {

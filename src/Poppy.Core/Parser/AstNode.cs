@@ -194,9 +194,17 @@ public sealed class InstructionNode : StatementNode {
 	public char? SizeSuffix { get; }
 
 	/// <summary>
-	/// The operand expression, if any.
+	/// All operand expressions for this instruction.
+	/// Single-operand architectures (6502/65816/SM83) will have 0 or 1 entries.
+	/// Multi-operand architectures (x86/V30MZ, M68K, ARM, HuC6280 block transfer) may have 2-3.
 	/// </summary>
-	public ExpressionNode? Operand { get; }
+	public IReadOnlyList<ExpressionNode> Operands { get; }
+
+	/// <summary>
+	/// Backward-compatible convenience property for the first (or only) operand.
+	/// Returns null when <see cref="Operands"/> is empty.
+	/// </summary>
+	public ExpressionNode? Operand => Operands.Count > 0 ? Operands[0] : null;
 
 	/// <summary>
 	/// The addressing mode of this instruction.
@@ -209,7 +217,7 @@ public sealed class InstructionNode : StatementNode {
 	/// <param name="location">The source location where this node begins.</param>
 	/// <param name="mnemonic">The instruction mnemonic.</param>
 	/// <param name="sizeSuffix">Optional size suffix (b, w, l for 65816).</param>
-	/// <param name="operand">The operand expression, if any.</param>
+	/// <param name="operand">The first operand expression, if any. For single-operand instructions.</param>
 	/// <param name="addressingMode">The addressing mode of this instruction.</param>
 	public InstructionNode(
 		SourceLocation location,
@@ -220,7 +228,28 @@ public sealed class InstructionNode : StatementNode {
 		: base(location) {
 		Mnemonic = mnemonic;
 		SizeSuffix = sizeSuffix;
-		Operand = operand;
+		Operands = operand is not null ? [operand] : [];
+		AddressingMode = addressingMode;
+	}
+
+	/// <summary>
+	/// Creates a new instruction node with multiple operands.
+	/// </summary>
+	/// <param name="location">The source location where this node begins.</param>
+	/// <param name="mnemonic">The instruction mnemonic.</param>
+	/// <param name="sizeSuffix">Optional size suffix (b, w, l for 65816).</param>
+	/// <param name="operands">The operand expressions.</param>
+	/// <param name="addressingMode">The addressing mode of this instruction.</param>
+	public InstructionNode(
+		SourceLocation location,
+		string mnemonic,
+		char? sizeSuffix,
+		IReadOnlyList<ExpressionNode> operands,
+		AddressingMode addressingMode = AddressingMode.Implied)
+		: base(location) {
+		Mnemonic = mnemonic;
+		SizeSuffix = sizeSuffix;
+		Operands = operands;
 		AddressingMode = addressingMode;
 	}
 

@@ -209,8 +209,10 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 
 	/// <inheritdoc />
 	public object? VisitInstruction(InstructionNode node) {
-		// Visit operand to resolve symbols
-		node.Operand?.Accept(this);
+		// Visit all operands to resolve symbols
+		foreach (var operand in node.Operands) {
+			operand.Accept(this);
+		}
 
 		// Auto-generate labels for JSR/JMP targets in pass 1
 		if (AutoGenerateRoutineLabels && _pass == 1) {

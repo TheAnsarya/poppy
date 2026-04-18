@@ -190,9 +190,20 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 		}
 
 		// Architecture-specific extended instruction encoding path
+		List<ResolvedOperand>? additionalOperands = null;
+		if (node.Operands.Count > 1) {
+			additionalOperands = new List<ResolvedOperand>(node.Operands.Count - 1);
+			for (int i = 1; i < node.Operands.Count; i++) {
+				var addlOp = node.Operands[i];
+				var addlId = addlOp is IdentifierNode addlIdNode ? addlIdNode.Name : null;
+				var addlValue = _analyzer.EvaluateExpression(addlOp);
+				additionalOperands.Add(new ResolvedOperand(addlId, addlValue));
+			}
+		}
+
 		var specialContext = new SpecialInstructionContext(mnemonic,
 			node.Operand is IdentifierNode idNode ? idNode.Name : null,
-			addressingMode, operandValue, node.Location);
+			addressingMode, operandValue, node.Location, additionalOperands);
 		if (_profile.Encoder.TryEmitSpecialInstruction(specialContext, this)) {
 			RecordListingEntry(instructionStartAddress, node.Location);
 			return null;

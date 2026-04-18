@@ -10,6 +10,11 @@ using Poppy.Core.Parser;
 public readonly record struct EncodedInstruction(byte Opcode, int Size);
 
 /// <summary>
+/// Represents a resolved operand for architecture-specific instruction emission.
+/// </summary>
+public readonly record struct ResolvedOperand(string? Identifier, long? Value);
+
+/// <summary>
 /// Context for architecture-specific special instruction emission.
 /// Flattened from AST node to avoid coupling encoders to the parser AST.
 /// </summary>
@@ -18,7 +23,8 @@ public readonly record struct SpecialInstructionContext(
 	string? OperandIdentifier,
 	AddressingMode AddressingMode,
 	long? OperandValue,
-	SourceLocation Location);
+	SourceLocation Location,
+	IReadOnlyList<ResolvedOperand>? AdditionalOperands = null);
 
 /// <summary>
 /// Encodes mnemonics into machine code for a specific architecture.

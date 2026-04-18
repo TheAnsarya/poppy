@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // ParserTests.cs - Parser Unit Tests
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -708,9 +708,18 @@ public class ParserTests {
 	// ========================================================================
 
 	[Fact]
-	public void Parse_InvalidIndexRegister_ReportsError() {
-		var (_, errors) = ParseWithErrors("lda $2000,z");
-		Assert.NotEmpty(errors);
+	public void Parse_NonIndexRegisterAfterComma_ParsesAsMultiOperand() {
+		// With multi-operand support, "lda $2000,z" is parsed as two operands
+		// rather than an invalid index register error. Semantic analysis
+		// validates operand count per-architecture.
+		var program = Parse("lda $2000,z");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("lda", instr.Mnemonic);
+		Assert.Equal(2, instr.Operands.Count);
+		var op1 = Assert.IsType<NumberLiteralNode>(instr.Operands[0]);
+		Assert.Equal(0x2000, op1.Value);
+		var op2 = Assert.IsType<IdentifierNode>(instr.Operands[1]);
+		Assert.Equal("z", op2.Name);
 	}
 
 	[Fact]
@@ -729,6 +738,104 @@ public class ParserTests {
 	public void Parse_UnclosedBracket_ReportsError() {
 		var (_, errors) = ParseWithErrors("lda [$00");
 		Assert.NotEmpty(errors);
+	}
+
+	// ========================================================================
+	// Multi-Operand Instruction Tests
+	// ========================================================================
+
+	[Fact]
+	public void Parse_TwoOperands_RegisterRegister() {
+		// V30MZ-style: mov ax, bx
+		var program = Parse("mov ax, bx");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("mov", instr.Mnemonic);
+		Assert.Equal(2, instr.Operands.Count);
+		var op1 = Assert.IsType<IdentifierNode>(instr.Operands[0]);
+		Assert.Equal("ax", op1.Name);
+		var op2 = Assert.IsType<IdentifierNode>(instr.Operands[1]);
+		Assert.Equal("bx", op2.Name);
+	}
+
+	[Fact]
+	public void Parse_TwoOperands_RegisterImmediate() {
+		// V30MZ-style: cmp ax, #$10
+		var program = Parse("cmp ax, #$10");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("cmp", instr.Mnemonic);
+		Assert.Equal(2, instr.Operands.Count);
+		var op1 = Assert.IsType<IdentifierNode>(instr.Operands[0]);
+		Assert.Equal("ax", op1.Name);
+		var op2 = Assert.IsType<NumberLiteralNode>(instr.Operands[1]);
+		Assert.Equal(0x10, op2.Value);
+	}
+
+	[Fact]
+	public void Parse_ThreeOperands_BlockTransfer() {
+		// HuC6280-style: tii $2000, $3000, $100
+		var program = Parse("tii $2000, $3000, $100");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("tii", instr.Mnemonic);
+		Assert.Equal(3, instr.Operands.Count);
+		Assert.Equal(0x2000, Assert.IsType<NumberLiteralNode>(instr.Operands[0]).Value);
+		Assert.Equal(0x3000, Assert.IsType<NumberLiteralNode>(instr.Operands[1]).Value);
+		Assert.Equal(0x100, Assert.IsType<NumberLiteralNode>(instr.Operands[2]).Value);
+	}
+
+	[Fact]
+	public void Parse_TwoOperands_65816BlockMove() {
+		// 65816 block move: mvn $00, $7e
+		var program = Parse("mvn $00, $7e");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("mvn", instr.Mnemonic);
+		Assert.Equal(2, instr.Operands.Count);
+		Assert.Equal(0x00, Assert.IsType<NumberLiteralNode>(instr.Operands[0]).Value);
+		Assert.Equal(0x7e, Assert.IsType<NumberLiteralNode>(instr.Operands[1]).Value);
+	}
+
+	[Fact]
+	public void Parse_6502IndexedMode_StillWorks() {
+		// Ensure 6502 ,x / ,y / ,s indexing is unaffected
+		var program = Parse("lda $2000,x");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("lda", instr.Mnemonic);
+		Assert.Single(instr.Operands);
+		Assert.Equal(AddressingMode.AbsoluteX, instr.AddressingMode);
+	}
+
+	[Fact]
+	public void Parse_6502IndexedY_StillWorks() {
+		var program = Parse("lda $00,y");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("lda", instr.Mnemonic);
+		Assert.Single(instr.Operands);
+		Assert.Equal(AddressingMode.AbsoluteY, instr.AddressingMode);
+	}
+
+	[Fact]
+	public void Parse_StackRelative_StillWorks() {
+		var program = Parse("lda $01,s");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Equal("lda", instr.Mnemonic);
+		Assert.Single(instr.Operands);
+		Assert.Equal(AddressingMode.StackRelative, instr.AddressingMode);
+	}
+
+	[Fact]
+	public void Parse_SingleOperand_BackwardCompat() {
+		// The Operand shim property should still work
+		var program = Parse("lda #$ff");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.NotNull(instr.Operand);
+		Assert.Equal(instr.Operands[0], instr.Operand);
+	}
+
+	[Fact]
+	public void Parse_ImpliedMode_OperandIsNull() {
+		var program = Parse("nop");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+		Assert.Null(instr.Operand);
+		Assert.Empty(instr.Operands);
 	}
 
 	// ========================================================================
