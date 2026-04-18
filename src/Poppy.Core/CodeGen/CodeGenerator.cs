@@ -255,8 +255,22 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 			}
 
 			// Handle branch instructions (relative addressing)
-			if (IsBranchInstruction(mnemonic)) {
-				// Branch offset is relative to the address AFTER the branch instruction
+			if (IsLongBranchInstruction(mnemonic)) {
+				// Long branch (e.g., BRL on 65816): 16-bit relative offset
+				// After opcode is emitted, _currentAddress points to the operand bytes
+				// The offset is calculated from the next instruction (operand address + 2)
+				var nextInstructionAddress = _currentAddress + 2;
+				var offset = operandValue.Value - nextInstructionAddress;
+				if (offset < -32768 || offset > 32767) {
+					_errors.Add(new CodeError(
+						$"Long branch target out of range ({offset} bytes, must be -32768 to +32767)",
+						node.Location));
+				}
+
+				EmitByte((byte)(offset & 0xff));
+				EmitByte((byte)((offset >> 8) & 0xff));
+			} else if (IsBranchInstruction(mnemonic)) {
+				// Short branch: 8-bit relative offset
 				// After opcode is emitted, _currentAddress points to the operand byte
 				// The offset is calculated from the next instruction (operand address + 1)
 				var nextInstructionAddress = _currentAddress + 1;
@@ -305,6 +319,17 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 		// Convert Absolute to Relative for branch instructions
 		if (IsBranchInstruction(mnemonic) && mode == AddressingMode.Absolute) {
 			return AddressingMode.Relative;
+		}
+
+		// Upgrade Absolute → AbsoluteLong when value exceeds 16-bit range
+		if (value > 0xffff) {
+			return mode switch {
+				AddressingMode.Absolute when TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteLong, out _)
+					=> AddressingMode.AbsoluteLong,
+				AddressingMode.AbsoluteX when TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteLongX, out _)
+					=> AddressingMode.AbsoluteLongX,
+				_ => mode
+			};
 		}
 
 		// Check if we can optimize to zero page variant
@@ -985,6 +1010,13 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 	/// </summary>
 	private bool IsBranchInstruction(string mnemonic) {
 		return _profile.Encoder.IsBranchInstruction(mnemonic);
+	}
+
+	/// <summary>
+	/// Checks if an instruction is a long (16-bit offset) relative branch.
+	/// </summary>
+	private bool IsLongBranchInstruction(string mnemonic) {
+		return _profile.Encoder.IsLongBranchInstruction(mnemonic);
 	}
 
 	// === ICodeEmitter explicit implementation ===

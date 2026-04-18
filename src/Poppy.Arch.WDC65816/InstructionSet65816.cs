@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // InstructionSet65816.cs - WDC 65816 Instruction Encoding
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -48,6 +48,7 @@ internal static class InstructionSet65816 {
 		{ ("adc", AddressingMode.IndexedIndirect), new(0x61, 2) },
 		{ ("adc", AddressingMode.IndirectIndexed), new(0x71, 2) },
 		// 65816 additions
+		{ ("adc", AddressingMode.ZeroPageIndirect), new(0x72, 2) },
 		{ ("adc", AddressingMode.AbsoluteLong), new(0x6f, 4) },
 		{ ("adc", AddressingMode.AbsoluteLongX), new(0x7f, 4) },
 		{ ("adc", AddressingMode.StackRelative), new(0x63, 2) },
@@ -67,6 +68,7 @@ internal static class InstructionSet65816 {
 		{ ("and", AddressingMode.IndexedIndirect), new(0x21, 2) },
 		{ ("and", AddressingMode.IndirectIndexed), new(0x31, 2) },
 		// 65816 additions
+		{ ("and", AddressingMode.ZeroPageIndirect), new(0x32, 2) },
 		{ ("and", AddressingMode.AbsoluteLong), new(0x2f, 4) },
 		{ ("and", AddressingMode.AbsoluteLongX), new(0x3f, 4) },
 		{ ("and", AddressingMode.StackRelative), new(0x23, 2) },
@@ -123,7 +125,9 @@ internal static class InstructionSet65816 {
 		// BRK/COP - Software Interrupts
 		// ========================================================================
 		{ ("brk", AddressingMode.Implied), new(0x00, 2) }, // 65816 BRK is 2 bytes
+		{ ("brk", AddressingMode.Immediate), new(0x00, 2) }, // BRK with signature byte
 		{ ("cop", AddressingMode.Implied), new(0x02, 2) }, // 65816 only
+		{ ("cop", AddressingMode.Immediate), new(0x02, 2) }, // COP with signature byte
 
 		// ========================================================================
 		// Clear/Set Flags
@@ -148,6 +152,7 @@ internal static class InstructionSet65816 {
 		{ ("cmp", AddressingMode.IndexedIndirect), new(0xc1, 2) },
 		{ ("cmp", AddressingMode.IndirectIndexed), new(0xd1, 2) },
 		// 65816 additions
+		{ ("cmp", AddressingMode.ZeroPageIndirect), new(0xd2, 2) },
 		{ ("cmp", AddressingMode.AbsoluteLong), new(0xcf, 4) },
 		{ ("cmp", AddressingMode.AbsoluteLongX), new(0xdf, 4) },
 		{ ("cmp", AddressingMode.StackRelative), new(0xc3, 2) },
@@ -173,6 +178,7 @@ internal static class InstructionSet65816 {
 		// DEC - Decrement
 		// ========================================================================
 		{ ("dec", AddressingMode.Accumulator), new(0x3a, 1) }, // 65816 only
+		{ ("dec", AddressingMode.Implied), new(0x3a, 1) }, // dec (no operand = accumulator)
 		{ ("dec", AddressingMode.ZeroPage), new(0xc6, 2) },
 		{ ("dec", AddressingMode.ZeroPageX), new(0xd6, 2) },
 		{ ("dec", AddressingMode.Absolute), new(0xce, 3) },
@@ -197,6 +203,7 @@ internal static class InstructionSet65816 {
 		{ ("eor", AddressingMode.IndexedIndirect), new(0x41, 2) },
 		{ ("eor", AddressingMode.IndirectIndexed), new(0x51, 2) },
 		// 65816 additions
+		{ ("eor", AddressingMode.ZeroPageIndirect), new(0x52, 2) },
 		{ ("eor", AddressingMode.AbsoluteLong), new(0x4f, 4) },
 		{ ("eor", AddressingMode.AbsoluteLongX), new(0x5f, 4) },
 		{ ("eor", AddressingMode.StackRelative), new(0x43, 2) },
@@ -208,6 +215,7 @@ internal static class InstructionSet65816 {
 		// INC - Increment
 		// ========================================================================
 		{ ("inc", AddressingMode.Accumulator), new(0x1a, 1) }, // 65816 only
+		{ ("inc", AddressingMode.Implied), new(0x1a, 1) }, // inc (no operand = accumulator)
 		{ ("inc", AddressingMode.ZeroPage), new(0xe6, 2) },
 		{ ("inc", AddressingMode.ZeroPageX), new(0xf6, 2) },
 		{ ("inc", AddressingMode.Absolute), new(0xee, 3) },
@@ -232,6 +240,7 @@ internal static class InstructionSet65816 {
 		{ ("jml", AddressingMode.Absolute), new(0x5c, 4) }, // Alias for JMP long
 		{ ("jml", AddressingMode.AbsoluteLong), new(0x5c, 4) },
 		{ ("jml", AddressingMode.AbsoluteIndirectLong), new(0xdc, 3) },
+		{ ("jml", AddressingMode.DirectPageIndirectLong), new(0xdc, 3) }, // Parser may classify [$xx] as DP indirect
 
 		// ========================================================================
 		// JSR/JSL - Jump to Subroutine
@@ -255,6 +264,7 @@ internal static class InstructionSet65816 {
 		{ ("lda", AddressingMode.IndexedIndirect), new(0xa1, 2) },
 		{ ("lda", AddressingMode.IndirectIndexed), new(0xb1, 2) },
 		// 65816 additions
+		{ ("lda", AddressingMode.ZeroPageIndirect), new(0xb2, 2) },
 		{ ("lda", AddressingMode.AbsoluteLong), new(0xaf, 4) },
 		{ ("lda", AddressingMode.AbsoluteLongX), new(0xbf, 4) },
 		{ ("lda", AddressingMode.StackRelative), new(0xa3, 2) },
@@ -313,6 +323,7 @@ internal static class InstructionSet65816 {
 		{ ("ora", AddressingMode.IndexedIndirect), new(0x01, 2) },
 		{ ("ora", AddressingMode.IndirectIndexed), new(0x11, 2) },
 		// 65816 additions
+		{ ("ora", AddressingMode.ZeroPageIndirect), new(0x12, 2) },
 		{ ("ora", AddressingMode.AbsoluteLong), new(0x0f, 4) },
 		{ ("ora", AddressingMode.AbsoluteLongX), new(0x1f, 4) },
 		{ ("ora", AddressingMode.StackRelative), new(0x03, 2) },
@@ -392,6 +403,7 @@ internal static class InstructionSet65816 {
 		{ ("sbc", AddressingMode.IndexedIndirect), new(0xe1, 2) },
 		{ ("sbc", AddressingMode.IndirectIndexed), new(0xf1, 2) },
 		// 65816 additions
+		{ ("sbc", AddressingMode.ZeroPageIndirect), new(0xf2, 2) },
 		{ ("sbc", AddressingMode.AbsoluteLong), new(0xef, 4) },
 		{ ("sbc", AddressingMode.AbsoluteLongX), new(0xff, 4) },
 		{ ("sbc", AddressingMode.StackRelative), new(0xe3, 2) },
@@ -410,6 +422,7 @@ internal static class InstructionSet65816 {
 		{ ("sta", AddressingMode.IndexedIndirect), new(0x81, 2) },
 		{ ("sta", AddressingMode.IndirectIndexed), new(0x91, 2) },
 		// 65816 additions
+		{ ("sta", AddressingMode.ZeroPageIndirect), new(0x92, 2) },
 		{ ("sta", AddressingMode.AbsoluteLong), new(0x8f, 4) },
 		{ ("sta", AddressingMode.AbsoluteLongX), new(0x9f, 4) },
 		{ ("sta", AddressingMode.StackRelative), new(0x83, 2) },
@@ -518,6 +531,13 @@ internal static class InstructionSet65816 {
 			"bcc" or "bcs" or "beq" or "bmi" or "bne" or "bpl" or "bvc" or "bvs" or "bra" or "brl" => true,
 			_ => false
 		};
+	}
+
+	/// <summary>
+	/// Checks if an instruction is a long (16-bit offset) relative branch.
+	/// </summary>
+	public static bool IsLongBranchInstruction(string mnemonic) {
+		return mnemonic.Equals("brl", StringComparison.OrdinalIgnoreCase);
 	}
 
 	/// <summary>

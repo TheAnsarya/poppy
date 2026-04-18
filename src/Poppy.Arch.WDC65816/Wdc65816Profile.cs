@@ -1,4 +1,4 @@
-namespace Poppy.Arch.WDC65816;
+﻿namespace Poppy.Arch.WDC65816;
 
 using System.Collections.Frozen;
 using Poppy.Core.Arch;
@@ -279,7 +279,11 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 
 			var romBuilder = new SnesRomBuilder(mapMode, header);
 			foreach (var segment in segments) {
-				romBuilder.AddSegment(segment.StartAddress, segment.Data.ToArray());
+				// Construct full SNES address from bank + CPU address
+				var snesAddress = segment.Bank >= 0
+					? ((long)segment.Bank << 16) | (segment.StartAddress & 0xffff)
+					: segment.StartAddress;
+				romBuilder.AddSegment(snesAddress, segment.Data.ToArray());
 			}
 			return romBuilder.Build();
 		}
@@ -311,5 +315,38 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 
 		public bool IsBranchInstruction(string mnemonic) =>
 			InstructionSet65816.IsBranchInstruction(mnemonic);
+
+		public bool IsLongBranchInstruction(string mnemonic) =>
+			InstructionSet65816.IsLongBranchInstruction(mnemonic);
+
+		public int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix,
+			IReadOnlyList<ResolvedOperand>? additionalOperands) {
+			var lower = mnemonic.ToLowerInvariant();
+			// MVP/MVN are 3 bytes: opcode + dst_bank + src_bank
+			if (lower is "mvp" or "mvn" && additionalOperands is { Count: > 0 }) {
+				return 3;
+			}
+			return 0;
+		}
+
+		public bool TryEmitSpecialInstruction(SpecialInstructionContext context, ICodeEmitter emitter) {
+			var lower = context.Mnemonic.ToLowerInvariant();
+
+			// MVP/MVN block move: mvp src,dst → opcode, operand1, operand2
+			if (lower is "mvp" or "mvn" && context.AdditionalOperands is { Count: > 0 } && context.OperandValue.HasValue) {
+				byte opcode = lower == "mvp" ? (byte)0x44 : (byte)0x54;
+				emitter.EmitByte(opcode);
+				emitter.EmitByte((byte)(context.OperandValue.Value & 0xff));
+				var secondOp = context.AdditionalOperands[0];
+				if (secondOp.Value.HasValue) {
+					emitter.EmitByte((byte)(secondOp.Value.Value & 0xff));
+				} else {
+					emitter.EmitByte(0);
+				}
+				return true;
+			}
+
+			return false;
+		}
 	}
 }

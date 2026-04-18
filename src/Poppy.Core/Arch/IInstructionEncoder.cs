@@ -42,6 +42,12 @@ public interface IInstructionEncoder {
 	bool IsBranchInstruction(string mnemonic);
 
 	/// <summary>
+	/// Returns true if the mnemonic is a long (16-bit offset) relative branch.
+	/// Default: false (most architectures only have 8-bit branches).
+	/// </summary>
+	bool IsLongBranchInstruction(string mnemonic) => false;
+
+	/// <summary>
 	/// Gets the set of all mnemonics recognized by this encoder.
 	/// Used by the lexer for target-aware mnemonic tokenization.
 	/// </summary>

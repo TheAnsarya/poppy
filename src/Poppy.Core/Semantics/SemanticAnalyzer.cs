@@ -331,6 +331,14 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		return false;
 	}
 
+	/// <summary>
+	/// Checks if an instruction is a long (16-bit offset) relative branch.
+	/// </summary>
+	private bool IsLongBranchInstruction(string mnemonic) {
+		var branchProfile = Arch.TargetResolver.TryGetProfile(Target);
+		return branchProfile is not null && branchProfile.Encoder.IsLongBranchInstruction(mnemonic);
+	}
+
 	/// <inheritdoc />
 	public object? VisitDirective(DirectiveNode node) {
 		switch (node.Name.ToLowerInvariant()) {
@@ -1185,6 +1193,10 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			}
 		}
 
+		if (IsLongBranchInstruction(mnemonic)) {
+			return 3; // opcode + 2 byte relative offset
+		}
+
 		if (IsBranchInstruction(mnemonic)) {
 			return 2; // opcode + 1 byte relative offset
 		}
@@ -1236,6 +1248,16 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			return mode;
 		}
 
+		// Upgrade Absolute → AbsoluteLong when value exceeds 16-bit range
+		if (value > 0xffff) {
+			return mode switch {
+				AddressingMode.Absolute when SupportsAddressingMode(lower, AddressingMode.AbsoluteLong) => AddressingMode.AbsoluteLong,
+				AddressingMode.AbsoluteX when SupportsAddressingMode(lower, AddressingMode.AbsoluteLongX) => AddressingMode.AbsoluteLongX,
+				_ => mode
+			};
+		}
+
+		// Downgrade Absolute → ZeroPage when value fits in 8 bits
 		var isZeroPage = value >= 0 && value <= 0xff;
 		if (!isZeroPage) {
 			return mode;
