@@ -1243,6 +1243,14 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 			lower = lower[..^2];
 		}
 
+		// Canonicalize parser (addr,x) form for instructions that only support
+		// absolute indexed-indirect and not indexed-indirect.
+		if (mode == AddressingMode.IndexedIndirect
+			&& !SupportsAddressingMode(lower, AddressingMode.IndexedIndirect)
+			&& SupportsAddressingMode(lower, AddressingMode.AbsoluteIndexedIndirect)) {
+			return AddressingMode.AbsoluteIndexedIndirect;
+		}
+
 		// Branch instructions: Absolute → Relative (already handled by IsBranchInstruction)
 		if (IsBranchInstruction(lower)) {
 			return mode;

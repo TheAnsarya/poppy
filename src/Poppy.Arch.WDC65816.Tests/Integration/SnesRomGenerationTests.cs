@@ -111,6 +111,52 @@ reset:
 	}
 
 	[Fact]
+	public void Generate_JsrIndexedIndirect_WithZeroPageOperand_EncodesAbsoluteIndexedIndirect() {
+		var source = @"
+.snes
+.org $8000
+jsr ($0080,x)
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.WDC65816);
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.WDC65816);
+		var binary = generator.Generate(program);
+
+		Assert.False(analyzer.HasErrors);
+		Assert.False(generator.HasErrors);
+		Assert.Equal([0xfc, 0x80, 0x00], binary);
+	}
+
+	[Fact]
+	public void Generate_JsrWIndexedIndirect_WithZeroPageOperand_EncodesAbsoluteIndexedIndirect() {
+		var source = @"
+.snes
+.org $8000
+jsr.w ($0080,x)
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.WDC65816);
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.WDC65816);
+		var binary = generator.Generate(program);
+
+		Assert.False(analyzer.HasErrors);
+		Assert.False(generator.HasErrors);
+		Assert.Equal([0xfc, 0x80, 0x00], binary);
+	}
+
+	[Fact]
 	public void Generate_HiRom_SetsCorrectMapMode() {
 		// arrange - HiROM SNES ROM
 		var source = @"

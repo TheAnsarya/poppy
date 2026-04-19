@@ -322,6 +322,14 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 			return AddressingMode.Relative;
 		}
 
+		// Canonicalize parser (addr,x) form for instructions that only support
+		// absolute indexed-indirect (e.g. 65816 jsr/jmp) and not zero-page indexed-indirect.
+		if (mode == AddressingMode.IndexedIndirect
+			&& !TryGetInstructionEncoding(mnemonic, AddressingMode.IndexedIndirect, out _)
+			&& TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteIndexedIndirect, out _)) {
+			return AddressingMode.AbsoluteIndexedIndirect;
+		}
+
 		// Upgrade Absolute → AbsoluteLong when value exceeds 16-bit range
 		if (value > 0xffff) {
 			return mode switch {
@@ -371,9 +379,8 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 				&& TryGetInstructionEncoding(mnemonic, AddressingMode.ZeroPageIndirect, out _)
 				=> AddressingMode.ZeroPageIndirect,
 
-			// 65SC02: IndexedIndirect with absolute address should be AbsoluteIndexedIndirect
-			// The parser uses IndexedIndirect for all (addr,x) syntax, but 65SC02 has
-			// a separate AbsoluteIndexedIndirect mode for JMP (abs,x)
+			// IndexedIndirect with non-zero-page operand should be AbsoluteIndexedIndirect
+			// when the instruction supports the absolute indexed-indirect encoding.
 			AddressingMode.IndexedIndirect when !isZeroPage
 				&& TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteIndexedIndirect, out _)
 				=> AddressingMode.AbsoluteIndexedIndirect,
