@@ -173,8 +173,9 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 			operandValue = _analyzer.EvaluateExpression(node.Operand);
 
 			// Optimize Absolute to ZeroPage if value fits and instruction supports it
+			// Skip optimization when a size suffix forces a wider mode (.w, .l)
 			if (operandValue.HasValue) {
-				addressingMode = ResolveAddressingMode(mnemonic, addressingMode, operandValue.Value);
+				addressingMode = ResolveAddressingMode(mnemonic, addressingMode, operandValue.Value, node.SizeSuffix);
 
 				// Validate memory writes to reserved addresses (platform-specific)
 				_profile.ValidateMemoryAddress(mnemonic, operandValue.Value, node.Location,
@@ -315,7 +316,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 	/// <summary>
 	/// Resolves the best addressing mode based on operand value.
 	/// </summary>
-	private AddressingMode ResolveAddressingMode(string mnemonic, AddressingMode mode, long value) {
+	private AddressingMode ResolveAddressingMode(string mnemonic, AddressingMode mode, long value, char? sizeSuffix = null) {
 		// Convert Absolute to Relative for branch instructions
 		if (IsBranchInstruction(mnemonic) && mode == AddressingMode.Absolute) {
 			return AddressingMode.Relative;
@@ -330,6 +331,22 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 					=> AddressingMode.AbsoluteLongX,
 				_ => mode
 			};
+		}
+
+		// .l explicitly forces long addressing when available.
+		if (sizeSuffix == 'l') {
+			return mode switch {
+				AddressingMode.Absolute when TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteLong, out _)
+					=> AddressingMode.AbsoluteLong,
+				AddressingMode.AbsoluteX when TryGetInstructionEncoding(mnemonic, AddressingMode.AbsoluteLongX, out _)
+					=> AddressingMode.AbsoluteLongX,
+				_ => mode
+			};
+		}
+
+		// .w prevents absolute->zero-page downgrades.
+		if (sizeSuffix == 'w') {
+			return mode;
 		}
 
 		// Check if we can optimize to zero page variant

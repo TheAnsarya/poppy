@@ -340,16 +340,28 @@ public sealed class Parser {
 
 		var expr = ParseExpression();
 
-		// ($00,x) - Indexed Indirect
+		// ($00,x) - Indexed Indirect  OR  ($00,s),y - Stack Relative Indirect Indexed
 		if (Match(TokenType.Comma)) {
 			var indexToken = Advance();
-			if (!indexToken.Text.Equals("x", StringComparison.OrdinalIgnoreCase)) {
-				throw new ParseException($"Expected 'X' for indexed indirect, got: {indexToken.Text}", indexToken.Location);
+			if (indexToken.Text.Equals("x", StringComparison.OrdinalIgnoreCase)) {
+				Expect(TokenType.RightParen, "Expected ')' after indexed indirect operand");
+				return (expr, AddressingMode.IndexedIndirect);
 			}
 
-			Expect(TokenType.RightParen, "Expected ')' after indexed indirect operand");
+			if (indexToken.Text.Equals("s", StringComparison.OrdinalIgnoreCase)) {
+				Expect(TokenType.RightParen, "Expected ')' after stack-relative operand");
+				// ($dp,s),y - Stack Relative Indirect Indexed Y
+				if (Match(TokenType.Comma)) {
+					var yToken = Advance();
+					if (!yToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase)) {
+						throw new ParseException($"Expected 'Y' for stack-relative indirect indexed, got: {yToken.Text}", yToken.Location);
+					}
+					return (expr, AddressingMode.StackRelativeIndirectIndexed);
+				}
+				throw new ParseException("Expected ',Y' after stack-relative indirect '($dp,s)'", CurrentToken.Location);
+			}
 
-			return (expr, AddressingMode.IndexedIndirect);
+			throw new ParseException($"Expected 'X' or 'S' for indirect operand, got: {indexToken.Text}", indexToken.Location);
 		}
 
 		Expect(TokenType.RightParen, "Expected ')' after indirect operand");
