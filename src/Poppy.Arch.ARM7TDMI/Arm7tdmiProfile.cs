@@ -1,4 +1,4 @@
-namespace Poppy.Arch.ARM7TDMI;
+﻿namespace Poppy.Arch.ARM7TDMI;
 
 using System.Collections.Frozen;
 using Poppy.Core.Arch;

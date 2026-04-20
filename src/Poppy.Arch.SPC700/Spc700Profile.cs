@@ -1,4 +1,4 @@
-namespace Poppy.Arch.SPC700;
+﻿namespace Poppy.Arch.SPC700;
 
 using System.Collections.Frozen;
 using Poppy.Core.Arch;

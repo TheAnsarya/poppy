@@ -1,4 +1,4 @@
-; ============================================================================
+﻿; ============================================================================
 ; NES Hello World - Poppy Assembly Example Project
 ; ============================================================================
 ; This example demonstrates basic Poppy features for NES development:
@@ -16,7 +16,7 @@
 ; iNES Header Configuration
 ; ============================================================================
 ; This generates the 16-byte iNES header automatically
-.system:nes
+.system nes
 .ines_mapper 0           ; NROM mapper
 .ines_prg 2              ; 32KB PRG-ROM (2 x 16KB)
 .ines_chr 1              ; 8KB CHR-ROM
@@ -77,12 +77,12 @@ Reset:
     stx APU_DMC_CTRL        ; Disable DMC IRQs
 
     ; Wait for first vblank
-    %wait_vblank
+    @wait_vblank
 
     ; Clear RAM ($0000-$07ff)
     lda #$00
     ldx #$00
-.clear_ram:
+@clear_ram:
     sta $0000, x
     sta $0100, x
     sta $0200, x
@@ -92,10 +92,10 @@ Reset:
     sta $0600, x
     sta $0700, x
     inx
-    bne .clear_ram
+    bne @clear_ram
 
     ; Wait for second vblank (PPU fully ready)
-    %wait_vblank
+    @wait_vblank
 
     ; Initialize PPU
     jsr init_palette
@@ -108,7 +108,7 @@ Reset:
     sta PPU_MASK
 
 ; Main loop - runs continuously
-.main_loop:
+@main_loop:
     ; Wait for NMI to complete frame processing
     lda frame_counter
 -:
@@ -118,7 +118,7 @@ Reset:
     ; Game logic goes here
     ; ...
 
-    jmp .main_loop
+    jmp @main_loop
 
 ; ============================================================================
 ; NMI Handler - Called every vblank
@@ -159,15 +159,15 @@ IRQ:
 ; init_palette - Load palette data into PPU
 ; ----------------------------------------------------------------------------
 init_palette:
-    %ppu_addr $3f00         ; Palette RAM address
+    @set_ppu_addr $3f00     ; Palette RAM address
 
     ldx #$00
-.loop:
+@loop:
     lda palette_data, x
     sta PPU_DATA
     inx
     cpx #32                 ; 32 palette entries
-    bne .loop
+    bne @loop
     rts
 
 ; ----------------------------------------------------------------------------
@@ -177,16 +177,16 @@ init_nametable:
     ; Set address to center of screen (row 14, column 11)
     ; Nametable address = $2000 + (row * 32) + column
     ; $2000 + (14 * 32) + 11 = $21cb
-    %ppu_addr $21cb
+    @set_ppu_addr $21cb
 
     ldx #$00
-.loop:
+@loop:
     lda hello_text, x
-    beq .done               ; Zero terminator
+    beq @done               ; Zero terminator
     sta PPU_DATA
     inx
-    bne .loop               ; Always branches (text < 256 chars)
-.done:
+    bne @loop               ; Always branches (text < 256 chars)
+@done:
     rts
 
 ; ============================================================================

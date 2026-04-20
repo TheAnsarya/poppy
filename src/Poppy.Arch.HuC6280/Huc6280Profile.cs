@@ -1,4 +1,4 @@
-namespace Poppy.Arch.HuC6280;
+﻿namespace Poppy.Arch.HuC6280;
 
 using System.Collections.Frozen;
 using Poppy.Core.Arch;

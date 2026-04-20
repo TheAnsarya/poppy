@@ -1,4 +1,4 @@
-namespace Poppy.Arch.SM83;
+﻿namespace Poppy.Arch.SM83;
 
 using System.Collections.Frozen;
 using Poppy.Core.Arch;
