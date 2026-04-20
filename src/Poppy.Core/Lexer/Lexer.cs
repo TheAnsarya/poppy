@@ -1,9 +1,11 @@
-// ============================================================================
+﻿// ============================================================================
 // Lexer.cs - Assembly Language Tokenizer
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
 
 namespace Poppy.Core.Lexer;
+
+using System.Collections.Frozen;
 
 /// <summary>
 /// Tokenizes Poppy assembly source code into a stream of tokens.
@@ -476,83 +478,87 @@ public sealed class Lexer {
 			return _targetMnemonics.Contains(text);
 		}
 
-		// Fallback: accept all known mnemonics from all architectures (case-insensitive switch)
-		return text.ToLowerInvariant() switch {
-			// 6502 mnemonics
-			"adc" or "and" or "asl" or "bcc" or "bcs" or "beq" or "bit" or "bmi" or
-			"bne" or "bpl" or "brk" or "bvc" or "bvs" or "clc" or "cld" or "cli" or
-			"clv" or "cmp" or "cpx" or "cpy" or "dec" or "dex" or "dey" or "eor" or
-			"inc" or "inx" or "iny" or "jmp" or "jsr" or "lda" or "ldx" or "ldy" or
-			"lsr" or "nop" or "ora" or "pha" or "php" or "pla" or "plp" or "rol" or
-			"ror" or "rti" or "rts" or "sbc" or "sec" or "sed" or "sei" or "sta" or
-			"stx" or "sty" or "tax" or "tay" or "tsx" or "txa" or "txs" or "tya" or
-			// 65816 additional mnemonics
-			"bra" or "brl" or "cop" or "jml" or "jsl" or "mvn" or "mvp" or "pea" or
-			"pei" or "per" or "phb" or "phd" or "phk" or "phx" or "phy" or "plb" or
-			"pld" or "plx" or "ply" or "rep" or "rtl" or "sep" or "stp" or "stz" or
-			"tcd" or "tcs" or "tdc" or "trb" or "tsb" or "tsc" or "txy" or "tyx" or
-			"wai" or "wdm" or "xba" or "xce" or
-			// Game Boy SM83 mnemonics (not already covered)
-			"ld" or "ldh" or "ldi" or "ldd" or "add" or "sub" or "sbc" or "cp" or
-			"rl" or "rr" or "rlc" or "rrc" or "sla" or "sra" or "srl" or "swap" or
-			"res" or "set" or "halt" or "stop" or "di" or "ei" or "reti" or "rst" or
-			"ccf" or "scf" or "daa" or "cpl" or "jr" or "jp" or "call" or "ret" or
-			"push" or "pop" or
-			// HuC6280 (PC Engine / TurboGrafx-16) specific mnemonics
-			"csh" or "csl" or "tam" or "tma" or
-			"st0" or "st1" or "st2" or
-			"tii" or "tdd" or "tin" or "tia" or "tai" or
-			"sax" or "say" or "sxy" or "tst" or
-			// HuC6280 bit-indexed instructions (bbr0-7, bbs0-7, rmb0-7, smb0-7)
-			"bbr0" or "bbr1" or "bbr2" or "bbr3" or "bbr4" or "bbr5" or "bbr6" or "bbr7" or
-			"bbs0" or "bbs1" or "bbs2" or "bbs3" or "bbs4" or "bbs5" or "bbs6" or "bbs7" or
-			"rmb0" or "rmb1" or "rmb2" or "rmb3" or "rmb4" or "rmb5" or "rmb6" or "rmb7" or
-			"smb0" or "smb1" or "smb2" or "smb3" or "smb4" or "smb5" or "smb6" or "smb7" or
-			// V30MZ (WonderSwan) mnemonics (not already covered by 6502/SM83)
-			"aaa" or "aad" or "aam" or "aas" or "cbw" or "cmc" or "cwd" or "das" or
-			"div" or "hlt" or "idiv" or "imul" or "in" or "int" or "int3" or "into" or
-			"iret" or "lahf" or "lea" or "mov" or "mul" or "neg" or "not" or "or" or
-			"out" or "popa" or "popf" or "pusha" or "pushf" or "rcl" or "rcr" or
-			"retf" or "sahf" or "sal" or "sar" or "shr" or "shl" or
-			"sbb" or "stc" or "std" or "sti" or "test" or "wait" or "xchg" or "xlat" or "xlatb" or "xor" or
-			// V30MZ conditional jumps
-			"ja" or "jae" or "jb" or "jbe" or "jc" or "jcxz" or "je" or "jg" or
-			"jge" or "jl" or "jle" or "jna" or "jnae" or "jnb" or "jnbe" or "jnc" or
-			"jne" or "jng" or "jnge" or "jnl" or "jnle" or "jno" or "jnp" or "jns" or
-			"jnz" or "jo" or "jpe" or "jpo" or "js" or "jz" or
-			// V30MZ string/loop instructions
-			"cmpsb" or "cmpsw" or "lodsb" or "lodsw" or "movsb" or "movsw" or
-			"scasb" or "scasw" or "stosb" or "stosw" or
-			"loop" or "loope" or "loopne" or "loopnz" or "loopz" or
-			"rep" or "repe" or "repne" or "repnz" or "repz" or
-			// M68000 (Genesis/Mega Drive) mnemonics (not already covered)
-			"abcd" or "adda" or "addi" or "addq" or "addx" or "andi" or
-			"bchg" or "bclr" or "bset" or "bsr" or "btst" or "chk" or "clr" or
-			"cmpa" or "cmpi" or "cmpm" or "divs" or "divu" or "exg" or "ext" or
-			"illegal" or "link" or "movea" or "movem" or "muls" or "mulu" or
-			"nbcd" or "negx" or "ori" or "reset" or "roxl" or "roxr" or
-			"sbcd" or "suba" or "subi" or "subq" or "subx" or "tas" or
-			"trap" or "trapv" or "unlk" or
-			// M68000 set-on-condition (scc variants)
-			"seq" or "sne" or "sge" or "sgt" or "sle" or "slt" or "shi" or "sls" or
-			"scc" or "scs" or "spl" or "smi" or "svc" or "svs" or "sf" or "st" or
-			// M68000 decrement-and-branch
-			"dbcc" or "dbcs" or "dbeq" or "dbge" or "dbgt" or "dbhi" or "dble" or
-			"dbls" or "dblt" or "dbmi" or "dbne" or "dbpl" or "dbra" or "dbt" or
-			"dbvc" or "dbvs" or "dbf" or
-			// ARM7TDMI (GBA) mnemonics (not already covered)
-			"b" or "bl" or "bx" or "cmn" or "eor" or "bic" or "mvn" or "orr" or
-			"ldr" or "ldrb" or "ldrh" or "ldrsb" or "ldrsh" or
-			"str" or "strb" or "strh" or
-			"ldm" or "ldmia" or "ldmib" or "ldmda" or "ldmdb" or
-			"stm" or "stmia" or "stmib" or "stmda" or "stmdb" or
-			"mrs" or "msr" or "swi" or "swp" or "swpb" or
-			"mla" or "smull" or "smlal" or "umull" or "umlal" or
-			"teq" or "tst" or "lsl" or "lsr" or "asr" or "ror" or
-			// ARM7TDMI conditional suffixes handled at parser level
-			"adds" or "subs" or "ands" or "orrs" or "eors" or "bics" or "muls"
-			=> true,
-			_ => false,
-		};
+		// Fallback: accept all known mnemonics from all architectures (case-insensitive FrozenSet)
+		return s_allMnemonics.Contains(text);
 	}
+
+	/// <summary>
+	/// All known mnemonics across all supported architectures.
+	/// Used as fallback when no target-specific mnemonic set is provided.
+	/// </summary>
+	private static readonly FrozenSet<string> s_allMnemonics = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+		// 6502 mnemonics
+		"adc", "and", "asl", "bcc", "bcs", "beq", "bit", "bmi",
+		"bne", "bpl", "brk", "bvc", "bvs", "clc", "cld", "cli",
+		"clv", "cmp", "cpx", "cpy", "dec", "dex", "dey", "eor",
+		"inc", "inx", "iny", "jmp", "jsr", "lda", "ldx", "ldy",
+		"lsr", "nop", "ora", "pha", "php", "pla", "plp", "rol",
+		"ror", "rti", "rts", "sbc", "sec", "sed", "sei", "sta",
+		"stx", "sty", "tax", "tay", "tsx", "txa", "txs", "tya",
+		// 65816 additional mnemonics
+		"bra", "brl", "cop", "jml", "jsl", "mvn", "mvp", "pea",
+		"pei", "per", "phb", "phd", "phk", "phx", "phy", "plb",
+		"pld", "plx", "ply", "rep", "rtl", "sep", "stp", "stz",
+		"tcd", "tcs", "tdc", "trb", "tsb", "tsc", "txy", "tyx",
+		"wai", "wdm", "xba", "xce",
+		// Game Boy SM83 mnemonics (not already covered)
+		"ld", "ldh", "ldi", "ldd", "add", "sub", "cp",
+		"rl", "rr", "rlc", "rrc", "sla", "sra", "srl", "swap",
+		"res", "set", "halt", "stop", "di", "ei", "reti", "rst",
+		"ccf", "scf", "daa", "cpl", "jr", "jp", "call", "ret",
+		"push", "pop",
+		// HuC6280 (PC Engine / TurboGrafx-16) specific mnemonics
+		"csh", "csl", "tam", "tma",
+		"st0", "st1", "st2",
+		"tii", "tdd", "tin", "tia", "tai",
+		"sax", "say", "sxy", "tst",
+		// HuC6280 bit-indexed instructions (bbr0-7, bbs0-7, rmb0-7, smb0-7)
+		"bbr0", "bbr1", "bbr2", "bbr3", "bbr4", "bbr5", "bbr6", "bbr7",
+		"bbs0", "bbs1", "bbs2", "bbs3", "bbs4", "bbs5", "bbs6", "bbs7",
+		"rmb0", "rmb1", "rmb2", "rmb3", "rmb4", "rmb5", "rmb6", "rmb7",
+		"smb0", "smb1", "smb2", "smb3", "smb4", "smb5", "smb6", "smb7",
+		// V30MZ (WonderSwan) mnemonics (not already covered by 6502/SM83)
+		"aaa", "aad", "aam", "aas", "cbw", "cmc", "cwd", "das",
+		"div", "hlt", "idiv", "imul", "in", "int", "int3", "into",
+		"iret", "lahf", "lea", "mov", "mul", "neg", "not", "or",
+		"out", "popa", "popf", "pusha", "pushf", "rcl", "rcr",
+		"retf", "sahf", "sal", "sar", "shr", "shl",
+		"sbb", "stc", "std", "sti", "test", "wait", "xchg", "xlat", "xlatb", "xor",
+		// V30MZ conditional jumps
+		"ja", "jae", "jb", "jbe", "jc", "jcxz", "je", "jg",
+		"jge", "jl", "jle", "jna", "jnae", "jnb", "jnbe", "jnc",
+		"jne", "jng", "jnge", "jnl", "jnle", "jno", "jnp", "jns",
+		"jnz", "jo", "jpe", "jpo", "js", "jz",
+		// V30MZ string/loop instructions
+		"cmpsb", "cmpsw", "lodsb", "lodsw", "movsb", "movsw",
+		"scasb", "scasw", "stosb", "stosw",
+		"loop", "loope", "loopne", "loopnz", "loopz",
+		"repe", "repne", "repnz", "repz",
+		// M68000 (Genesis/Mega Drive) mnemonics (not already covered)
+		"abcd", "adda", "addi", "addq", "addx", "andi",
+		"bchg", "bclr", "bset", "bsr", "btst", "chk", "clr",
+		"cmpa", "cmpi", "cmpm", "divs", "divu", "exg", "ext",
+		"illegal", "link", "movea", "movem", "muls", "mulu",
+		"nbcd", "negx", "ori", "reset", "roxl", "roxr",
+		"sbcd", "suba", "subi", "subq", "subx", "tas",
+		"trap", "trapv", "unlk",
+		// M68000 set-on-condition (scc variants)
+		"seq", "sne", "sge", "sgt", "sle", "slt", "shi", "sls",
+		"scc", "scs", "spl", "smi", "svc", "svs", "sf", "st",
+		// M68000 decrement-and-branch
+		"dbcc", "dbcs", "dbeq", "dbge", "dbgt", "dbhi", "dble",
+		"dbls", "dblt", "dbmi", "dbne", "dbpl", "dbra", "dbt",
+		"dbvc", "dbvs", "dbf",
+		// ARM7TDMI (GBA) mnemonics (not already covered)
+		"b", "bl", "bx", "cmn", "bic", "mvn", "orr",
+		"ldr", "ldrb", "ldrh", "ldrsb", "ldrsh",
+		"str", "strb", "strh",
+		"ldm", "ldmia", "ldmib", "ldmda", "ldmdb",
+		"stm", "stmia", "stmib", "stmda", "stmdb",
+		"mrs", "msr", "swi", "swp", "swpb",
+		"mla", "smull", "smlal", "umull", "umlal",
+		"teq", "lsl", "asr",
+		// ARM7TDMI conditional suffixes handled at parser level
+		"adds", "subs", "ands", "orrs", "eors", "bics", "muls",
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 }
