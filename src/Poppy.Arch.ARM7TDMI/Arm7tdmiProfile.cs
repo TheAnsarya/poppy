@@ -153,7 +153,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 	}
 
 	private sealed class Arm7tdmiEncoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetARM7TDMI.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSetARM7TDMI.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			// ARM7TDMI uses a different encoding model; TryGetInstructionEncoding

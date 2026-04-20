@@ -32,7 +32,8 @@ internal sealed class V30mzProfile : ITargetProfile {
 	}
 
 	private sealed class V30mzEncoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetV30MZ.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSetV30MZ.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSetV30MZ.TryGetEncodingFromShared(mnemonic, mode, out var opcode, out var size)) {

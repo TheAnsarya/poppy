@@ -31,7 +31,8 @@ internal sealed class Huc6280Profile : ITargetProfile {
 	}
 
 	private sealed class Huc6280Encoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetHuC6280.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSetHuC6280.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSetHuC6280.TryGetEncoding(mnemonic, mode, out var opcode, out var size)) {

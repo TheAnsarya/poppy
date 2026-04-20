@@ -31,7 +31,8 @@ internal sealed class Z80Profile : ITargetProfile {
 	}
 
 	private sealed class Z80Encoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetZ80.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSetZ80.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSetZ80.TryGetEncodingFromShared(mnemonic, mode, out var opcode, out var size)) {

@@ -132,7 +132,8 @@ internal sealed class Spc700Profile : ITargetProfile {
 	}
 
 	private sealed class Spc700Encoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSetSPC700.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSetSPC700.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSetSPC700.TryGetEncoding(mnemonic, mode, out var opcode, out var size)) {

@@ -302,7 +302,8 @@ internal sealed class Wdc65816Profile : ITargetProfile {
 	}
 
 	private sealed class Wdc65816Encoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSet65816.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSet65816.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSet65816.TryGetEncoding(mnemonic, mode, out var enc)) {

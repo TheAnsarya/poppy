@@ -200,7 +200,8 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 	}
 
 	private sealed class Mos65sc02Encoder : IInstructionEncoder {
-		public IReadOnlySet<string> Mnemonics { get; } = InstructionSet65SC02.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		private static readonly FrozenSet<string> s_mnemonics = InstructionSet65SC02.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSet65SC02.TryGetEncoding(mnemonic, mode, out var enc)) {
