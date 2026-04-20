@@ -45,8 +45,8 @@ reset:
 		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
 		Assert.False(generator.HasErrors, GetErrorsString(generator));
 
-		// Default Genesis ROM size is 1MB
-		Assert.Equal(1024 * 1024, binary.Length);
+		// Auto-sized ROM: power of 2, minimum 32KB for header/vectors
+		Assert.Equal(32768, binary.Length);
 	}
 
 	[Fact]
@@ -109,7 +109,7 @@ reset:
 
 		// Far unused area should be $ff
 		Assert.Equal(0xff, binary[0x1000]);
-		Assert.Equal(0xff, binary[0x10000]);
+		Assert.Equal(0xff, binary[0x4000]);
 	}
 
 	[Fact]
@@ -140,8 +140,8 @@ reset:
 			Assert.False(analyzer.HasErrors, $"Alias '{alias}' had analyzer errors: {GetErrorsString(analyzer)}");
 			Assert.False(generator.HasErrors, $"Alias '{alias}' had generator errors: {GetErrorsString(generator)}");
 
-			// All should produce 1MB Genesis ROM
-			Assert.Equal(1024 * 1024, binary.Length);
+			// All should produce auto-sized Genesis ROM (32KB for minimal content)
+			Assert.Equal(32768, binary.Length);
 		}
 	}
 

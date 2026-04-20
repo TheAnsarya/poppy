@@ -1,6 +1,7 @@
-namespace Poppy.Arch.M68000;
+﻿namespace Poppy.Arch.M68000;
 
 using System.Collections.Frozen;
+using System.Numerics;
 using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Parser;
@@ -22,7 +23,15 @@ internal sealed class M68000Profile : ITargetProfile {
 
 	private sealed class M68000RomBuilderAdapter : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
-			var builder = new GenesisRomBuilder();
+			// Auto-size ROM based on content (power of 2, minimum 32KB for header/vectors)
+			int maxEnd = 0;
+			foreach (var segment in segments) {
+				var end = (int)segment.StartAddress + segment.Data.Count;
+				if (end > maxEnd) maxEnd = end;
+			}
+			var romSize = (int)BitOperations.RoundUpToPowerOf2((uint)Math.Max(maxEnd, 0x8000));
+
+			var builder = new GenesisRomBuilder(romSize);
 			foreach (var segment in segments) {
 				builder.AddSegment((int)segment.StartAddress, segment.Data.ToArray());
 			}

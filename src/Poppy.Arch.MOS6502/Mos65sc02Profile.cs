@@ -188,8 +188,21 @@ internal sealed class Mos65sc02Profile : ITargetProfile {
 
 	private sealed class Mos65sc02RomBuilderAdapter : IRomBuilder {
 		public byte[] Build(IReadOnlyList<OutputSegment> segments, byte[] flatBinary) {
+			// Auto-size bank0 from content (round up to page boundary, minimum 1 page)
+			int maxRomEnd = 0;
+			foreach (var segment in segments) {
+				var end = (int)segment.StartAddress + segment.Data.Count;
+				var romEnd = end >= AtariLynxRomBuilder.LoadAddress
+					? end - AtariLynxRomBuilder.LoadAddress
+					: end;
+				if (romEnd > maxRomEnd) maxRomEnd = romEnd;
+			}
+			var bank0Size = ((maxRomEnd + AtariLynxRomBuilder.PageSize - 1)
+				/ AtariLynxRomBuilder.PageSize) * AtariLynxRomBuilder.PageSize;
+			bank0Size = Math.Max(bank0Size, AtariLynxRomBuilder.PageSize);
+
 			var romBuilder = new AtariLynxRomBuilder(
-				bank0Size: 131072,
+				bank0Size: bank0Size,
 				bank1Size: 0,
 				gameName: "Poppy Game");
 			foreach (var segment in segments) {

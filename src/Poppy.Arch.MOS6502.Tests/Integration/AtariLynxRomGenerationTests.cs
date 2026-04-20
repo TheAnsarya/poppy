@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // AtariLynxRomGenerationTests.cs - Atari Lynx ROM Generation Tests
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -45,8 +45,8 @@ reset:
 		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
 		Assert.False(generator.HasErrors, GetErrorsString(generator));
 
-		// Lynx ROM = 64-byte header + 128K ROM data
-		Assert.Equal(64 + 131072, binary.Length);
+		// Lynx ROM = 64-byte header + auto-sized bank0 (1 page minimum)
+		Assert.Equal(64 + 256, binary.Length);
 
 		// Code at $0200 → ROM offset 0 → file offset 64 (after LNX header)
 		Assert.Equal(0x78, binary[64]);      // sei
@@ -116,7 +116,7 @@ reset:
 
 		// Unused ROM area (after code, before end) should be $ff
 		Assert.Equal(0xff, binary[64 + 2]);
-		Assert.Equal(0xff, binary[64 + 0x100]);
+		Assert.Equal(0xff, binary[64 + 10]);
 	}
 
 	[Fact]
@@ -192,8 +192,8 @@ loop:
 			Assert.False(analyzer.HasErrors, $"Alias '{alias}' had analyzer errors: {GetErrorsString(analyzer)}");
 			Assert.False(generator.HasErrors, $"Alias '{alias}' had generator errors: {GetErrorsString(generator)}");
 
-			// Lynx ROM = 64-byte header + 128K
-			Assert.Equal(64 + 131072, binary.Length);
+			// Lynx ROM = 64-byte header + auto-sized bank0
+			Assert.Equal(64 + 256, binary.Length);
 
 			// LYNX magic
 			Assert.Equal((byte)'L', binary[0]);
