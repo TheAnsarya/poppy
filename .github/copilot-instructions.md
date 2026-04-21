@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions for Poppy Compiler
+﻿# GitHub Copilot Instructions for Poppy Compiler
 
 ## Project Overview
 
