@@ -36,4 +36,8 @@
 		<Using Include="Xunit" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="Fixtures\**\*.pasm" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>
