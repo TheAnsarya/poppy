@@ -28,7 +28,7 @@ public class CodeGeneratorTests {
 		var analyzer = new SemanticAnalyzer();
 		analyzer.Analyze(program);
 
-		var generator = new CodeGenerator(analyzer);
+		var generator = new CodeGenerator(analyzer, analyzer.Target);
 		var code = generator.Generate(program);
 
 		return (code, generator);
@@ -112,6 +112,30 @@ public class CodeGeneratorTests {
 
 		Assert.False(gen.HasErrors);
 		Assert.Equal([0xea], code);
+	}
+
+	[Fact]
+	public void Generate_ChannelF_Nop_UsesF8Encoding() {
+		var source = """
+			.target channelf
+			nop
+			""";
+		var (code, gen) = GenerateCode(source);
+
+		Assert.False(gen.HasErrors, string.Join("\n", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x2b], code);
+	}
+
+	[Fact]
+	public void Generate_ChannelF_UnsupportedAddressingMode_ReportsError() {
+		var source = """
+			.target channelf
+			nop #$01
+			""";
+		var (_, gen) = GenerateCode(source);
+
+		Assert.True(gen.HasErrors);
+		Assert.Contains(gen.Errors, e => e.Message.Contains("Invalid addressing mode") && e.Message.Contains("nop"));
 	}
 
 	[Fact]
