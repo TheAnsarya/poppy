@@ -1,4 +1,4 @@
-.target f8
+﻿.target f8
 .org $0800
 start:
 	nop

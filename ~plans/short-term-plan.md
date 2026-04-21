@@ -1,4 +1,4 @@
-# 📋 Short-Term Plan - Poppy Compiler
+﻿# 📋 Short-Term Plan - Poppy Compiler
 
 **Period:** January 2026 (Weeks 1-4)
 **Focus:** Project Foundation & Architecture
@@ -118,13 +118,48 @@ By end of Week 4:
 ### Goals
 
 - [x] Add Channel F target alias recognition in `ProjectFile`
-- [x] Map Channel F target to current `MOS6502` scaffold backend
-- [x] Add project validation tests for Channel F target strings
-- [ ] Add Channel F asset conversion directives to project pipeline docs
-- [ ] Add dedicated F8/Channel F backend tasks (assembler semantics, memory model)
+- [x] Switch Channel F target to dedicated `TargetArchitecture.F8` scaffold profile
+- [x] Add semantic validation tests for Channel F target strings/directives
+- [x] Add MVP F8 opcode/addressing-mode encoding for deterministic fixture assembly
+- [x] Add fixture-driven end-to-end tests for Channel F deterministic output
+- [ ] Extend beyond MVP opcode surface to broader F8 instruction parity
+
+### F8 MVP Opcode/Addressing Matrix (#335)
+
+| Mnemonic | Addressing Mode | Opcode | Encoded Bytes | Status |
+|----------|------------------|--------|----------------|--------|
+| `nop` | implied | `$2b` | 1 | implemented |
+| `ldi` | immediate (`#imm8`) | `$20` | 2 | implemented |
+| `jmp` | absolute (`addr8` in scaffold) | `$29` | 2 | implemented |
+
+### Channel F MVP Directive Surface (#335)
+
+- Target selection: `.target channelf`, `.target channel_f`, `.target f8`, shortcut `.channelf`, shortcut `.f8`
+- Core address/data directives: `.org`, `.db`, `.dw`
+- Current bank/segment semantics: unbanked scaffold (`GetBankCpuBase` returns `-1`), default bank size `$0800`
+
+### Test Strategy Draft (#335)
+
+1. Parser/Semantics coverage
+2. Verify target aliases/shortcuts resolve to `TargetArchitecture.F8`
+3. Verify MVP directives parse and analyze without profile-selection failures
+4. Codegen coverage
+5. Verify valid MVP opcode + addressing combinations emit exact expected bytes
+6. Verify unsupported addressing combinations produce deterministic diagnostics
+7. Fixture integration coverage
+8. Compile fixture `.pasm` sources end-to-end and assert emitted bytes exactly match vectors
+9. Determinism coverage
+10. Compile same fixture multiple times and assert identical output bytes
+
+### Follow-Up Implementation Sub-Issues (#335)
+
+- `#336` target scaffold + MVP directive parsing: completed
+- `#337` F8 MVP opcode/addressing encoding + diagnostics: completed
+- `#338` fixture/end-to-end deterministic tests: completed
+- Remaining parent/epic execution: `#194`
 
 ### Notes
 
-- Current scope intentionally provides target parsing/validation scaffold only.
-- Full Channel F backend implementation remains tracked under poppy #194 with execution task poppy #195.
+- Current F8 support is intentionally MVP-scoped for deterministic fixture assembly and pipeline validation.
+- This plan section satisfies #335 acceptance criteria for matrix, directive scope, test strategy, and sub-issue mapping.
 

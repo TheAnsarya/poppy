@@ -1,4 +1,4 @@
-.target channelf
+﻿.target channelf
 .org $0800
 entry:
 	ldi #$42

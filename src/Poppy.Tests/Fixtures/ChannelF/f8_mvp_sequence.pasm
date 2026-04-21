@@ -1,4 +1,4 @@
-.target channel_f
+﻿.target channel_f
 .org $0800
 	ldi #$12
 	.db $34, $56
