@@ -1,4 +1,4 @@
-using Poppy.Core.Project;
+﻿using Poppy.Core.Project;
 using Xunit;
 
 namespace Poppy.Tests.Project;

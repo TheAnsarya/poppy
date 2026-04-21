@@ -1,4 +1,4 @@
-using Poppy.Core.Project;
+﻿using Poppy.Core.Project;
 using Poppy.Core.Semantics;
 using Xunit;
 
