@@ -46,7 +46,7 @@ public sealed class ProjectManifest {
 
 	/// <summary>
 	/// Target platform (required).
-	/// Valid values: nes, snes, gb, gbc, atari2600, lynx, genesis, sms, gba, wonderswan, tg16, spc700.
+	/// Valid values: nes, snes, gb, gbc, atari2600, lynx, genesis, sms, gba, wonderswan, tg16, spc700, channelf/channel-f/channel_f/f8.
 	/// </summary>
 	[JsonPropertyName("platform")]
 	[JsonRequired]

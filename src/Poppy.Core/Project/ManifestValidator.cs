@@ -1,4 +1,4 @@
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Text.RegularExpressions;
 
 namespace Poppy.Core.Project;
@@ -12,7 +12,8 @@ public static class ManifestValidator {
 	/// </summary>
 	private static readonly FrozenSet<string> ValidPlatforms = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
 		"nes", "snes", "gb", "gbc", "atari2600", "lynx",
-		"genesis", "sms", "gba", "wonderswan", "tg16", "spc700"
+		"genesis", "sms", "gba", "wonderswan", "tg16", "spc700",
+		"channelf", "channel-f", "channel_f", "f8"
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
@@ -138,6 +139,6 @@ public static class ManifestValidator {
 	/// </summary>
 	/// <returns>List of valid platform identifiers.</returns>
 	public static IReadOnlyList<string> GetValidPlatforms() {
-		return [.. ValidPlatforms.OrderBy(p => p)];
+		return [.. ValidPlatforms.OrderBy(p => p, StringComparer.Ordinal)];
 	}
 }

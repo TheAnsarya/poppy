@@ -163,6 +163,10 @@ public class ManifestValidatorTests {
 	[InlineData("wonderswan")]
 	[InlineData("tg16")]
 	[InlineData("spc700")]
+	[InlineData("channelf")]
+	[InlineData("channel-f")]
+	[InlineData("channel_f")]
+	[InlineData("f8")]
 	public void Validate_ValidPlatforms_ReturnsNoErrors(string platform) {
 		var manifest = new ProjectManifest {
 			Name = "test-game",
@@ -346,6 +350,28 @@ public class ManifestValidatorTests {
 		Assert.Contains("snes", platforms);
 		Assert.Contains("gb", platforms);
 		Assert.Contains("genesis", platforms);
-		Assert.Equal(12, platforms.Count);  // All supported platforms
+		Assert.Contains("channelf", platforms);
+		Assert.Contains("f8", platforms);
+		Assert.Equal(16, platforms.Count);  // All supported platforms and aliases
+	}
+
+	[Theory]
+	[InlineData("channelf")]
+	[InlineData("channel-f")]
+	[InlineData("channel_f")]
+	[InlineData("f8")]
+	public void Validate_CompilerTarget_ChannelFAliases_ReturnNoErrors(string alias) {
+		var manifest = new ProjectManifest {
+			Name = "test-game",
+			Version = "1.0.0",
+			Platform = alias,
+			Compiler = new ManifestCompilerConfig {
+				Target = alias
+			}
+		};
+
+		var errors = ManifestValidator.Validate(manifest);
+
+		Assert.Empty(errors);
 	}
 }

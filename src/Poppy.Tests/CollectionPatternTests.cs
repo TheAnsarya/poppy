@@ -60,6 +60,10 @@ public class CollectionPatternTests {
 	[InlineData("tg16")]
 	[InlineData("spc700")]
 	[InlineData("gbc")]
+	[InlineData("channelf")]
+	[InlineData("channel-f")]
+	[InlineData("channel_f")]
+	[InlineData("f8")]
 	public void ValidPlatforms_ContainsAllPlatforms(string platform) {
 		Assert.True(ManifestValidator.IsValidPlatform(platform));
 	}
@@ -69,6 +73,9 @@ public class CollectionPatternTests {
 	[InlineData("Snes")]
 	[InlineData("GBA")]
 	[InlineData("GENESIS")]
+	[InlineData("ChannelF")]
+	[InlineData("CHANNEL-F")]
+	[InlineData("F8")]
 	public void ValidPlatforms_CaseInsensitive(string platform) {
 		Assert.True(ManifestValidator.IsValidPlatform(platform));
 	}
@@ -85,10 +92,12 @@ public class CollectionPatternTests {
 	public void GetValidPlatforms_ReturnsAllPlatforms() {
 		var platforms = ManifestValidator.GetValidPlatforms();
 
-		Assert.Equal(12, platforms.Count);
+		Assert.Equal(16, platforms.Count);
 		Assert.Contains("nes", platforms);
 		Assert.Contains("snes", platforms);
 		Assert.Contains("gba", platforms);
+		Assert.Contains("channelf", platforms);
+		Assert.Contains("f8", platforms);
 	}
 
 	[Fact]
