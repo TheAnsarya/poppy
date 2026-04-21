@@ -878,6 +878,21 @@ public class SemanticAnalyzerTests {
 	}
 
 	[Fact]
+	public void Analyze_ChannelF_MvpDirectives_ParseWithoutProfileErrors() {
+		var source = """
+			.target channelf
+			.org $0800
+			.db $12, $34
+			.dw $5678
+			""";
+
+		var analyzer = Analyze(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("\n", analyzer.Errors.Select(e => e.Message)));
+		Assert.Equal(TargetArchitecture.F8, analyzer.Target);
+	}
+
+	[Fact]
 	public void Analyze_LoromOnNes_ReportsError() {
 		var source = """
 			.nes

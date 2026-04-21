@@ -175,8 +175,10 @@ public sealed class TargetResolverTests {
 	}
 
 	[Fact]
-	public void GetProfile_F8_ThrowsNotSupported() {
-		Assert.Throws<NotSupportedException>(() => TargetResolver.GetProfile(TargetArchitecture.F8));
+	public void GetProfile_F8_ReturnsScaffoldProfile() {
+		var profile = TargetResolver.GetProfile(TargetArchitecture.F8);
+		Assert.NotNull(profile);
+		Assert.Equal(TargetArchitecture.F8, profile.Architecture);
 	}
 
 	// ========================================================================

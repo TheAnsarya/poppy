@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 /// </summary>
 public static class TargetResolver {
 	private static readonly ConcurrentDictionary<TargetArchitecture, ITargetProfile> _registry = new();
+	private static readonly ITargetProfile s_f8Scaffold = F8ScaffoldProfile.Instance;
 
 	/// <summary>
 	/// Registers an external profile, overriding any built-in profile for that architecture.
@@ -76,7 +77,12 @@ public static class TargetResolver {
 			return registered;
 		}
 
-		// All profiles are registered externally by Poppy.Arch.* projects
+		// Channel F currently uses a core scaffold profile until the full arch plugin is implemented.
+		if (arch == TargetArchitecture.F8) {
+			return s_f8Scaffold;
+		}
+
+		// Other profiles are registered externally by Poppy.Arch.* projects.
 		return null;
 	}
 }
