@@ -1336,11 +1336,12 @@ main_loop:
 		// Convert
 		try {
 			var outputFormat = options.OutputFormat?.ToLowerInvariant() ?? "bin";
+			var inputExtension = Path.GetExtension(options.InputFile).ToLowerInvariant();
 
 			if (outputFormat == "asm" || outputFormat == "pasm" || outputFormat == "inc") {
 				// Generate assembly source
 				var tableName = options.DataName ?? Path.GetFileNameWithoutExtension(options.InputFile);
-				var asm = ImageToChrConverter.ConvertToAsm(imageData, tableName, conversionOptions);
+				var asm = ImageToChrConverter.ConvertToAsm(imageData, tableName, inputExtension, conversionOptions);
 
 				if (options.OutputFile is not null) {
 					File.WriteAllText(options.OutputFile, asm);
@@ -1360,7 +1361,7 @@ main_loop:
 				}
 			} else {
 				// Generate binary CHR data
-				var chrData = ImageToChrConverter.ConvertBmpToChr(imageData, conversionOptions);
+				var chrData = ImageToChrConverter.ConvertImageToChr(imageData, inputExtension, conversionOptions);
 
 				int bytesPerTile = ImageToChrConverter.GetBytesPerTile(tileFormat, options.BitsPerPixel);
 				int tileCount = chrData.Length / bytesPerTile;

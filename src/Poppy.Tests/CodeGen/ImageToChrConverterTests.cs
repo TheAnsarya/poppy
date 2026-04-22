@@ -1,6 +1,9 @@
-namespace Poppy.Tests.CodeGen;
+﻿namespace Poppy.Tests.CodeGen;
 
 using Poppy.Core.CodeGen;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 public class ImageToChrConverterTests {
 	#region BMP Parsing Tests
@@ -69,6 +72,19 @@ public class ImageToChrConverterTests {
 		return bmp;
 	}
 
+	private static byte[] CreateTestPng(int width, int height, byte grayValue) {
+		using var image = new Image<Rgba32>(width, height);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				image[x, y] = new Rgba32(grayValue, grayValue, grayValue, 255);
+			}
+		}
+
+		using var ms = new MemoryStream();
+		image.Save(ms, new PngEncoder());
+		return ms.ToArray();
+	}
+
 	[Fact]
 	public void ConvertBmpToChr_SingleTile_ConvertsCorrectly() {
 		// Create an 8x8 pixel test image (single tile)
@@ -111,6 +127,32 @@ public class ImageToChrConverterTests {
 
 		// 16 tiles * 16 bytes = 256 bytes
 		Assert.Equal(256, chr.Length);
+	}
+
+	[Fact]
+	public void ConvertImageToChr_BmpExtension_UsesBmpPath() {
+		var pixels = new byte[64];
+		var bmp = CreateTestBmp(8, 8, pixels);
+
+		var chr = ImageToChrConverter.ConvertImageToChr(bmp, ".bmp");
+
+		Assert.Equal(16, chr.Length);
+	}
+
+	[Fact]
+	public void ConvertImageToChr_PngExtension_ConvertsPngData() {
+		// 1x1 PNG. With 1x1 tiles and gba8 format we expect a single output byte.
+		var pngData = CreateTestPng(1, 1, 128);
+		var options = new ImageToChrConverter.ConversionOptions {
+			Format = ImageToChrConverter.TileFormat.Gba8bpp,
+			BitsPerPixel = 8,
+			TileWidth = 1,
+			TileHeight = 1
+		};
+
+		var chr = ImageToChrConverter.ConvertImageToChr(pngData, ".png", options);
+
+		Assert.Single(chr);
 	}
 
 	#endregion

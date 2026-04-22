@@ -1,6 +1,8 @@
 namespace Poppy.Core.CodeGen;
 
 using System.Text;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 /// <summary>
 /// Converts PNG/BMP images to CHR tile data for NES/SNES/etc
@@ -75,13 +77,58 @@ public static class ImageToChrConverter {
 		int bitsPerPixel = BitConverter.ToInt16(bmpData, 28);
 		bool topDown = BitConverter.ToInt32(bmpData, 22) < 0;
 
+		// Read pixel data
+		byte[,] pixels = ReadBmpPixels(bmpData, dataOffset, width, height, bitsPerPixel, topDown);
+		return ConvertPixelsToChr(pixels, options);
+	}
+
+	/// <summary>
+	/// Convert a PNG image to CHR tile data.
+	/// </summary>
+	public static byte[] ConvertPngToChr(byte[] pngData, ConversionOptions? options = null) {
+		options ??= new ConversionOptions();
+
+		using var image = Image.Load<Rgba32>(pngData);
+		int width = image.Width;
+		int height = image.Height;
+
+		if (width % options.TileWidth != 0 || height % options.TileHeight != 0) {
+			throw new ArgumentException(
+				$"Image dimensions {width}x{height} must be divisible by tile size {options.TileWidth}x{options.TileHeight}");
+		}
+
+		var pixels = new byte[height, width];
+		int maxIndex = (1 << Math.Clamp(options.BitsPerPixel, 1, 8)) - 1;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				var px = image[x, y];
+				int luminance = (px.R * 299 + px.G * 587 + px.B * 114) / 1000;
+				pixels[y, x] = (byte)Math.Clamp((luminance * maxIndex + 127) / 255, 0, maxIndex);
+			}
+		}
+
+		return ConvertPixelsToChr(pixels, options);
+	}
+
+	/// <summary>
+	/// Convert image bytes to CHR tile data based on file extension.
+	/// </summary>
+	public static byte[] ConvertImageToChr(byte[] imageData, string extension, ConversionOptions? options = null) {
+		return extension.ToLowerInvariant() switch {
+			".bmp" => ConvertBmpToChr(imageData, options),
+			".png" => ConvertPngToChr(imageData, options),
+			_ => throw new ArgumentException($"Unsupported image extension '{extension}'. Supported: .bmp, .png")
+		};
+	}
+
+	private static byte[] ConvertPixelsToChr(byte[,] pixels, ConversionOptions options) {
+		int width = pixels.GetLength(1);
+		int height = pixels.GetLength(0);
+
 		// Calculate tiles
 		int tilesX = width / options.TileWidth;
 		int tilesY = height / options.TileHeight;
-		int totalTiles = tilesX * tilesY;
-
-		// Read pixel data
-		byte[,] pixels = ReadBmpPixels(bmpData, dataOffset, width, height, bitsPerPixel, topDown);
 
 		// Convert to tiles
 		List<byte[]> tiles = [];
@@ -103,6 +150,19 @@ public static class ImageToChrConverter {
 	public static string ConvertToAsm(byte[] bmpData, string tableName, ConversionOptions? options = null) {
 		options ??= new ConversionOptions();
 		var chrData = ConvertBmpToChr(bmpData, options);
+		return ConvertChrToAsm(chrData, tableName, options);
+	}
+
+	/// <summary>
+	/// Convert image bytes (PNG/BMP) to assembly source.
+	/// </summary>
+	public static string ConvertToAsm(byte[] imageData, string tableName, string extension, ConversionOptions? options = null) {
+		options ??= new ConversionOptions();
+		var chrData = ConvertImageToChr(imageData, extension, options);
+		return ConvertChrToAsm(chrData, tableName, options);
+	}
+
+	private static string ConvertChrToAsm(byte[] chrData, string tableName, ConversionOptions options) {
 
 		var sb = new StringBuilder();
 		sb.AppendLine("; " + new string('=', 76));

@@ -7,6 +7,7 @@ using Poppy.Core.Arch;
 using Poppy.Core.Lexer;
 using Poppy.Core.Parser;
 using Poppy.Core.Semantics;
+using System.Text.Json;
 
 namespace Poppy.Core.CodeGen;
 
@@ -423,6 +424,14 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 
 			case "incbin":
 				HandleIncbinDirective(node);
+				break;
+
+			case "asset_manifest":
+				HandleAssetManifestDirective(node);
+				break;
+
+			case "asset":
+				HandleAssetDirective(node);
 				break;
 
 			case "align":
@@ -848,6 +857,402 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 		for (long i = 0; i < length; i++) {
 			EmitByte(data[offset + i]);
 		}
+	}
+
+	/// <summary>
+	/// Handles .asset_manifest "path/to/assets.json" directive.
+	/// </summary>
+	private void HandleAssetManifestDirective(DirectiveNode node) {
+		EnsureSegment(node.Location);
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError("Missing manifest filename for .asset_manifest directive", node.Location));
+			return;
+		}
+
+		if (!TryGetStringArgument(node.Arguments[0], out var manifestPath)) {
+			_errors.Add(new CodeError("Expected manifest filename string for .asset_manifest directive", node.Location));
+			return;
+		}
+
+		var resolvedPath = ResolvePath(node.Location.FilePath, manifestPath);
+		ProcessAssetManifest(resolvedPath, node.Location);
+	}
+
+	/// <summary>
+	/// Handles single-entry asset inclusion:
+	/// .asset "file" [, "type" [, "option1" [, option2 [, option3 [, option4]]]]]
+	/// </summary>
+	private void HandleAssetDirective(DirectiveNode node) {
+		EnsureSegment(node.Location);
+
+		if (node.Arguments.Count < 1) {
+			_errors.Add(new CodeError("Missing asset filename for .asset directive", node.Location));
+			return;
+		}
+
+		if (!TryGetStringArgument(node.Arguments[0], out var assetPath)) {
+			_errors.Add(new CodeError("Expected asset filename string for .asset directive", node.Location));
+			return;
+		}
+
+		var type = "binary";
+		if (node.Arguments.Count >= 2 && TryGetStringArgument(node.Arguments[1], out var typeArg)) {
+			type = typeArg;
+		}
+
+		var entry = new AssetEntryConfig {
+			Type = type,
+			Path = assetPath
+		};
+
+		if (node.Arguments.Count >= 3 && TryGetStringArgument(node.Arguments[2], out var opt1)) {
+			if (type.Equals("json-u8", StringComparison.OrdinalIgnoreCase)
+				|| type.Equals("json-u16le", StringComparison.OrdinalIgnoreCase)) {
+				entry.JsonPath = opt1;
+			} else if (type.Equals("chr", StringComparison.OrdinalIgnoreCase)) {
+				entry.Format = opt1;
+			}
+		}
+
+		if (node.Arguments.Count >= 4) {
+			var n = _analyzer.EvaluateExpression(node.Arguments[3]);
+			if (n.HasValue) {
+				if (type.Equals("binary", StringComparison.OrdinalIgnoreCase)) {
+					entry.Offset = n.Value;
+				} else if (type.Equals("chr", StringComparison.OrdinalIgnoreCase)) {
+					entry.BitsPerPixel = (int)n.Value;
+				}
+			}
+		}
+
+		if (node.Arguments.Count >= 5) {
+			var n = _analyzer.EvaluateExpression(node.Arguments[4]);
+			if (n.HasValue) {
+				if (type.Equals("binary", StringComparison.OrdinalIgnoreCase)) {
+					entry.Length = n.Value;
+				} else if (type.Equals("chr", StringComparison.OrdinalIgnoreCase)) {
+					entry.TileWidth = (int)n.Value;
+				}
+			}
+		}
+
+		if (node.Arguments.Count >= 6) {
+			var n = _analyzer.EvaluateExpression(node.Arguments[5]);
+			if (n.HasValue && type.Equals("chr", StringComparison.OrdinalIgnoreCase)) {
+				entry.TileHeight = (int)n.Value;
+			}
+		}
+
+		var baseDir = Path.GetDirectoryName(node.Location.FilePath) ?? ".";
+		ProcessAssetEntry(entry, baseDir, node.Location);
+	}
+
+	private void ProcessAssetManifest(string manifestPath, SourceLocation location) {
+		if (!File.Exists(manifestPath)) {
+			_errors.Add(new CodeError($"Asset manifest not found: {manifestPath}", location));
+			return;
+		}
+
+		JsonDocument? document = null;
+		try {
+			var json = File.ReadAllText(manifestPath);
+			document = JsonDocument.Parse(json);
+		} catch (Exception ex) {
+			_errors.Add(new CodeError($"Failed to parse asset manifest '{manifestPath}': {ex.Message}", location));
+			return;
+		}
+
+		using (document) {
+			var root = document.RootElement;
+			if (!root.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array) {
+				_errors.Add(new CodeError(
+					$"Asset manifest '{manifestPath}' must contain an 'assets' array",
+					location));
+				return;
+			}
+
+			var baseDir = Path.GetDirectoryName(manifestPath) ?? ".";
+			foreach (var asset in assets.EnumerateArray()) {
+				var entry = ParseAssetEntry(asset);
+				if (entry is null) {
+					_errors.Add(new CodeError($"Invalid asset entry in manifest '{manifestPath}'", location));
+					continue;
+				}
+
+				ProcessAssetEntry(entry, baseDir, location);
+			}
+		}
+	}
+
+	private AssetEntryConfig? ParseAssetEntry(JsonElement element) {
+		if (element.ValueKind != JsonValueKind.Object) {
+			return null;
+		}
+
+		if (!element.TryGetProperty("path", out var pathElement) || pathElement.ValueKind != JsonValueKind.String) {
+			return null;
+		}
+
+		var entry = new AssetEntryConfig {
+			Path = pathElement.GetString() ?? string.Empty,
+			Type = element.TryGetProperty("type", out var typeElement) && typeElement.ValueKind == JsonValueKind.String
+				? (typeElement.GetString() ?? "binary")
+				: "binary",
+			JsonPath = element.TryGetProperty("jsonPath", out var jsonPathElement) && jsonPathElement.ValueKind == JsonValueKind.String
+				? jsonPathElement.GetString()
+				: null,
+			Format = element.TryGetProperty("format", out var formatElement) && formatElement.ValueKind == JsonValueKind.String
+				? formatElement.GetString()
+				: null,
+			BitsPerPixel = TryGetInt(element, "bitsPerPixel"),
+			TileWidth = TryGetInt(element, "tileWidth"),
+			TileHeight = TryGetInt(element, "tileHeight"),
+			Offset = TryGetLong(element, "offset"),
+			Length = TryGetLong(element, "length")
+		};
+
+		return entry;
+	}
+
+	private void ProcessAssetEntry(AssetEntryConfig entry, string baseDir, SourceLocation location) {
+		var assetPath = Path.IsPathRooted(entry.Path)
+			? entry.Path
+			: Path.GetFullPath(Path.Combine(baseDir, entry.Path));
+
+		switch (entry.Type.ToLowerInvariant()) {
+			case "binary":
+				EmitBinaryAsset(assetPath, entry.Offset ?? 0, entry.Length, location);
+				break;
+
+			case "json-u8":
+				EmitJsonAsset(assetPath, entry.JsonPath, isWord: false, location);
+				break;
+
+			case "json-u16le":
+				EmitJsonAsset(assetPath, entry.JsonPath, isWord: true, location);
+				break;
+
+			case "chr":
+				EmitChrAsset(assetPath, entry, location);
+				break;
+
+			default:
+				_errors.Add(new CodeError($"Unsupported asset type '{entry.Type}'", location));
+				break;
+		}
+	}
+
+	private void EmitBinaryAsset(string assetPath, long offset, long? length, SourceLocation location) {
+		if (!File.Exists(assetPath)) {
+			_errors.Add(new CodeError($"Asset file not found: {assetPath}", location));
+			return;
+		}
+
+		var data = File.ReadAllBytes(assetPath);
+		var resolvedLength = length ?? (data.Length - offset);
+
+		if (offset < 0 || offset > data.Length) {
+			_errors.Add(new CodeError($"Invalid binary asset offset {offset} for '{assetPath}'", location));
+			return;
+		}
+
+		if (resolvedLength < 0 || offset + resolvedLength > data.Length) {
+			_errors.Add(new CodeError($"Invalid binary asset length {resolvedLength} for '{assetPath}'", location));
+			return;
+		}
+
+		for (long i = 0; i < resolvedLength; i++) {
+			EmitByte(data[offset + i]);
+		}
+	}
+
+	private void EmitJsonAsset(string assetPath, string? jsonPath, bool isWord, SourceLocation location) {
+		if (!File.Exists(assetPath)) {
+			_errors.Add(new CodeError($"Asset file not found: {assetPath}", location));
+			return;
+		}
+
+		JsonDocument? document = null;
+		try {
+			document = JsonDocument.Parse(File.ReadAllText(assetPath));
+		} catch (Exception ex) {
+			_errors.Add(new CodeError($"Failed to parse JSON asset '{assetPath}': {ex.Message}", location));
+			return;
+		}
+
+		using (document) {
+			var element = ResolveJsonPath(document.RootElement, jsonPath);
+			if (element is null || element.Value.ValueKind != JsonValueKind.Array) {
+				_errors.Add(new CodeError($"JSON asset path '{jsonPath ?? "<root>"}' is not an array in '{assetPath}'", location));
+				return;
+			}
+
+			foreach (var value in element.Value.EnumerateArray()) {
+				if (!TryReadNumericJsonValue(value, out var n)) {
+					_errors.Add(new CodeError($"JSON asset contains non-numeric value in '{assetPath}'", location));
+					continue;
+				}
+
+				if (isWord) {
+					if (n < 0 || n > 0xffff) {
+						_errors.Add(new CodeError($"JSON value {n} out of 16-bit range in '{assetPath}'", location));
+						continue;
+					}
+					EmitWord((ushort)n);
+				} else {
+					if (n < 0 || n > 0xff) {
+						_errors.Add(new CodeError($"JSON value {n} out of 8-bit range in '{assetPath}'", location));
+						continue;
+					}
+					EmitByte((byte)n);
+				}
+			}
+		}
+	}
+
+	private void EmitChrAsset(string assetPath, AssetEntryConfig entry, SourceLocation location) {
+		if (!File.Exists(assetPath)) {
+			_errors.Add(new CodeError($"Asset file not found: {assetPath}", location));
+			return;
+		}
+
+		var format = ParseTileFormat(entry.Format);
+		if (format is null) {
+			_errors.Add(new CodeError($"Unsupported CHR format '{entry.Format}'", location));
+			return;
+		}
+
+		var options = new ImageToChrConverter.ConversionOptions {
+			Format = format.Value,
+			BitsPerPixel = entry.BitsPerPixel ?? GetDefaultBpp(format.Value),
+			TileWidth = entry.TileWidth ?? 8,
+			TileHeight = entry.TileHeight ?? 8
+		};
+
+		try {
+			var bytes = File.ReadAllBytes(assetPath);
+			var ext = Path.GetExtension(assetPath);
+			var chrData = ImageToChrConverter.ConvertImageToChr(bytes, ext, options);
+			foreach (var b in chrData) {
+				EmitByte(b);
+			}
+		} catch (Exception ex) {
+			_errors.Add(new CodeError($"Failed to convert CHR asset '{assetPath}': {ex.Message}", location));
+		}
+	}
+
+	private static int GetDefaultBpp(ImageToChrConverter.TileFormat format) {
+		return format switch {
+			ImageToChrConverter.TileFormat.Snes4bpp => 4,
+			ImageToChrConverter.TileFormat.Gba4bpp => 4,
+			ImageToChrConverter.TileFormat.Gba8bpp => 8,
+			_ => 2
+		};
+	}
+
+	private static ImageToChrConverter.TileFormat? ParseTileFormat(string? format) {
+		var normalized = format?.ToLowerInvariant() ?? "nes2bpp";
+		return normalized switch {
+			"nes" or "nes2bpp" => ImageToChrConverter.TileFormat.NesPlanar,
+			"snes2" or "snes2bpp" => ImageToChrConverter.TileFormat.Snes2bpp,
+			"snes4" or "snes4bpp" => ImageToChrConverter.TileFormat.Snes4bpp,
+			"gba4" or "gba4bpp" => ImageToChrConverter.TileFormat.Gba4bpp,
+			"gba8" or "gba8bpp" => ImageToChrConverter.TileFormat.Gba8bpp,
+			"gb" or "gameboy" => ImageToChrConverter.TileFormat.GameBoy2bpp,
+			_ => null
+		};
+	}
+
+	private JsonElement? ResolveJsonPath(JsonElement root, string? jsonPath) {
+		if (string.IsNullOrWhiteSpace(jsonPath)) {
+			return root;
+		}
+
+		var current = root;
+		var parts = jsonPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+		foreach (var part in parts) {
+			if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(part, out var child)) {
+				return null;
+			}
+			current = child;
+		}
+
+		return current;
+	}
+
+	private static bool TryReadNumericJsonValue(JsonElement element, out long value) {
+		switch (element.ValueKind) {
+			case JsonValueKind.Number:
+				if (element.TryGetInt64(out var n)) {
+					value = n;
+					return true;
+				}
+				break;
+
+			case JsonValueKind.String:
+				var s = element.GetString();
+				if (!string.IsNullOrWhiteSpace(s)) {
+					if (s.StartsWith('$') && long.TryParse(s[1..], System.Globalization.NumberStyles.HexNumber, null, out var hex)) {
+						value = hex;
+						return true;
+					}
+					if (long.TryParse(s, out var dec)) {
+						value = dec;
+						return true;
+					}
+				}
+				break;
+		}
+
+		value = 0;
+		return false;
+	}
+
+	private static bool TryGetStringArgument(ExpressionNode arg, out string value) {
+		switch (arg) {
+			case StringLiteralNode s:
+				value = s.Value;
+				return true;
+
+			case IdentifierNode i:
+				value = i.Name;
+				return true;
+		}
+
+		value = string.Empty;
+		return false;
+	}
+
+	private static string ResolvePath(string sourceFilePath, string relativePath) {
+		var basePath = Path.GetDirectoryName(sourceFilePath) ?? ".";
+		return Path.GetFullPath(Path.Combine(basePath, relativePath));
+	}
+
+	private static int? TryGetInt(JsonElement obj, string propertyName) {
+		if (obj.TryGetProperty(propertyName, out var element) && element.TryGetInt32(out var value)) {
+			return value;
+		}
+		return null;
+	}
+
+	private static long? TryGetLong(JsonElement obj, string propertyName) {
+		if (obj.TryGetProperty(propertyName, out var element) && element.TryGetInt64(out var value)) {
+			return value;
+		}
+		return null;
+	}
+
+	private sealed class AssetEntryConfig {
+		public string Type { get; set; } = "binary";
+		public string Path { get; set; } = string.Empty;
+		public string? JsonPath { get; set; }
+		public string? Format { get; set; }
+		public int? BitsPerPixel { get; set; }
+		public int? TileWidth { get; set; }
+		public int? TileHeight { get; set; }
+		public long? Offset { get; set; }
+		public long? Length { get; set; }
 	}
 
 	/// <summary>

@@ -55,6 +55,7 @@ The compiler supports real-world game development with comprehensive tooling, in
 
 - 📦 `.include` directive for file inclusion
 - 📂 `.incbin` directive for binary data inclusion
+- 🧩 `.asset` / `.asset_manifest` directives for binary/JSON/CHR reinsertion
 - 🔄 Preprocessor with include path resolution
 - 🗂️ Multi-file project support
 

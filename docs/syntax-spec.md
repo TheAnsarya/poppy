@@ -164,6 +164,31 @@ All directives use a dot prefix for clarity.
 .incbin "chr.bin", $10, $100  ; Offset and length
 ```
 
+### Asset Reinsertion
+
+```asm
+; Include a single asset directly
+.asset "assets/title.bin"                     ; default type: binary
+.asset "assets/table.json", "json-u8", "bytes"
+.asset "assets/tiles.png", "chr", "nes2bpp", 2, 8, 8
+
+; Manifest-driven multi-asset inclusion
+.asset_manifest "assets/assets.json"
+```
+
+`assets.json` schema:
+
+```json
+{
+    "assets": [
+        { "type": "binary", "path": "title.bin", "offset": 0, "length": 256 },
+        { "type": "json-u8", "path": "table.json", "jsonPath": "bytes" },
+        { "type": "json-u16le", "path": "tilemap.json", "jsonPath": "indices" },
+        { "type": "chr", "path": "tiles.png", "format": "nes2bpp", "bitsPerPixel": 2, "tileWidth": 8, "tileHeight": 8 }
+    ]
+}
+```
+
 ### Conditional Assembly
 
 ```asm
