@@ -1,4 +1,4 @@
-# Issue 341 Plan - Asset Manifest Pipeline
+﻿# Issue 341 Plan - Asset Manifest Pipeline
 
 ## Goal
 

@@ -1,4 +1,4 @@
-namespace Poppy.Core.CodeGen;
+﻿namespace Poppy.Core.CodeGen;
 
 using System.Text;
 using SixLabors.ImageSharp;

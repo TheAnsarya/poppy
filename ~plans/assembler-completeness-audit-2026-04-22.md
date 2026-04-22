@@ -1,4 +1,4 @@
-# Assembler Completeness Audit - 2026-04-22
+﻿# Assembler Completeness Audit - 2026-04-22
 
 ## Scope
 

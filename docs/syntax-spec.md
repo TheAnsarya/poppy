@@ -1,4 +1,4 @@
-# 📜 Poppy Assembly Syntax Specification
+﻿# 📜 Poppy Assembly Syntax Specification
 
 > Draft v0.1 - January 11, 2026
 
