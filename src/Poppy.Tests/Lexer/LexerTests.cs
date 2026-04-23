@@ -285,6 +285,19 @@ public class LexerTests {
 		Assert.Equal(input, tokens[0].Text);
 	}
 
+	[Theory]
+	[InlineData("addeq")]
+	[InlineData("mulseq")]
+	[InlineData("ldrne")]
+	public void Tokenize_ArmConditionalMnemonic_ReturnsMnemonicToken(string input) {
+		var lexer = new Core.Lexer.Lexer(input);
+		var tokens = lexer.Tokenize();
+
+		Assert.Equal(2, tokens.Count);
+		Assert.Equal(TokenType.Mnemonic, tokens[0].Type);
+		Assert.Equal(input, tokens[0].Text);
+	}
+
 	#endregion
 
 	#region Operator Tests

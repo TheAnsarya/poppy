@@ -177,4 +177,20 @@ strb r7, [r8, r9]
 		Assert.Equal([0x06, 0x40, 0xd5, 0xe7], code[8..12]);
 		Assert.Equal([0x09, 0x70, 0xc8, 0xe7], code[12..16]);
 	}
+
+	[Fact]
+	public void ConditionalMultiplyMnemonic_EmitsExpectedWord() {
+		var source = @"
+.target gba
+.org $08000000
+mulseq r0, r1, r2
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x91, 0x02, 0x10, 0x00], code[..4]);
+	}
+
 }

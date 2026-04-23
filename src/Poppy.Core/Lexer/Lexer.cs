@@ -475,12 +475,31 @@ public sealed class Lexer {
 	private bool IsMnemonic(string text) {
 		// If a target-specific mnemonic set was provided, use it for precise matching
 		if (_targetMnemonics is not null) {
-			return _targetMnemonics.Contains(text);
+			return _targetMnemonics.Contains(text) || IsConditionalMnemonicVariant(text, _targetMnemonics);
 		}
 
 		// Fallback: accept all known mnemonics from all architectures (case-insensitive FrozenSet)
-		return s_allMnemonics.Contains(text);
+		return s_allMnemonics.Contains(text) || IsConditionalMnemonicVariant(text, s_allMnemonics);
 	}
+
+	private static bool IsConditionalMnemonicVariant(string text, IReadOnlySet<string> knownMnemonics) {
+		if (text.Length <= 2) {
+			return false;
+		}
+
+		var suffix = text[^2..];
+		if (!s_armConditionSuffixes.Contains(suffix)) {
+			return false;
+		}
+
+		var baseMnemonic = text[..^2];
+		return knownMnemonics.Contains(baseMnemonic);
+	}
+
+	private static readonly FrozenSet<string> s_armConditionSuffixes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+		"eq", "ne", "cs", "hs", "cc", "lo", "mi", "pl",
+		"vs", "vc", "hi", "ls", "ge", "lt", "gt", "le", "al"
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// All known mnemonics across all supported architectures.
