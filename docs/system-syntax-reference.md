@@ -90,6 +90,7 @@ Current operand-shape limits for this slice:
 	- `mnemonic rd, rn[, #imm]`
 	- `mnemonic rd, [rn]`
 	- `mnemonic rd, [rn, #imm]`
+	- `mnemonic rd, [rn, #-imm]`
 	- `mnemonic rd, [rn, rm]`
 - Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 

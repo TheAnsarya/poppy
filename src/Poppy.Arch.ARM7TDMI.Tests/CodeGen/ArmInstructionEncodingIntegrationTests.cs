@@ -179,6 +179,27 @@ strb r7, [r8, r9]
 	}
 
 	[Fact]
+	public void NegativeImmediateLoadStoreForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+ldr r0, [r1, #-4]
+str r2, [r3, #-12]
+ldrb r4, [r5, #-1]
+strb r6, [r7, #-2]
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x04, 0x00, 0x11, 0xe5], code[0..4]);
+		Assert.Equal([0x0c, 0x20, 0x03, 0xe5], code[4..8]);
+		Assert.Equal([0x01, 0x40, 0x55, 0xe5], code[8..12]);
+		Assert.Equal([0x02, 0x60, 0x47, 0xe5], code[12..16]);
+	}
+
+	[Fact]
 	public void ConditionalMultiplyMnemonic_EmitsExpectedWord() {
 		var source = @"
 .target gba
