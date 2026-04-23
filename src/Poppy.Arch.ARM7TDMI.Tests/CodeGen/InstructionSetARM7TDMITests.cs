@@ -140,6 +140,27 @@ public class InstructionSetARM7TDMITests {
 		Assert.Equal(InstructionSetARM7TDMI.Conditions.EQ, condition);
 	}
 
+	[Fact]
+	public void TryParseCondition_AmbiguousSuffixMnemonic_Muls_DoesNotStripCondition() {
+		Assert.True(InstructionSetARM7TDMI.TryParseCondition("muls", out string baseMnemonic, out byte condition));
+		Assert.Equal("muls", baseMnemonic);
+		Assert.Equal(InstructionSetARM7TDMI.Conditions.AL, condition);
+	}
+
+	[Fact]
+	public void TryParseCondition_AmbiguousSuffixMnemonic_Mlas_DoesNotStripCondition() {
+		Assert.True(InstructionSetARM7TDMI.TryParseCondition("mlas", out string baseMnemonic, out byte condition));
+		Assert.Equal("mlas", baseMnemonic);
+		Assert.Equal(InstructionSetARM7TDMI.Conditions.AL, condition);
+	}
+
+	[Fact]
+	public void TryParseCondition_ConditionalVariant_Mulseq_ParsesCorrectly() {
+		Assert.True(InstructionSetARM7TDMI.TryParseCondition("mulseq", out string baseMnemonic, out byte condition));
+		Assert.Equal("muls", baseMnemonic);
+		Assert.Equal(InstructionSetARM7TDMI.Conditions.EQ, condition);
+	}
+
 	#endregion
 
 	#region Instruction Classification Tests

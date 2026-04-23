@@ -318,17 +318,29 @@ internal static class InstructionSetARM7TDMI {
 		baseMnemonic = mnemonic;
 		condition = Conditions.AL;
 
-		if (string.IsNullOrEmpty(mnemonic) || mnemonic.Length < 3) {
-			return true;
+		if (string.IsNullOrEmpty(mnemonic)) {
+			baseMnemonic = string.Empty;
+			return false;
 		}
 
 		var lower = mnemonic.ToLowerInvariant();
+		baseMnemonic = lower;
+
+		// If the mnemonic is valid as-is, do not attempt suffix stripping.
+		// This avoids false-positive condition parsing for mnemonics like "muls".
+		if (ArmMnemonics.Contains(lower) || ThumbMnemonics.Contains(lower) || lower.Length < 3) {
+			return true;
+		}
 
 		// Check for 2-character condition suffix
 		var suffix = lower[^2..];
 		if (ConditionMap.TryGetValue(suffix, out var cond)) {
-			baseMnemonic = lower[..^2];
-			condition = cond;
+			var candidateBase = lower[..^2];
+			if (ArmMnemonics.Contains(candidateBase) || ThumbMnemonics.Contains(candidateBase)) {
+				baseMnemonic = candidateBase;
+				condition = cond;
+			}
+
 			return true;
 		}
 
