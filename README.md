@@ -371,6 +371,7 @@ Check out the example projects in the `examples/` directory:
 | Document | Description |
 |----------|-------------|
 | [Architecture](docs/architecture.md) | Compiler design and structure |
+| [Benchmarks](docs/benchmarks.md) | BenchmarkDotNet suite and ARM special-emission benchmark workflows |
 | [PASM File Format](docs/pasm-file-format.md) | Poppy Assembly `.pasm` file format specification |
 | [CDL/DIZ Workflow](docs/cdl-diz-workflow.md) | Poppy ↔ Peony roundtrip workflow with CDL/DIZ files |
 | [File Formats](docs/file-formats.md) | ROM and patch format reference |
