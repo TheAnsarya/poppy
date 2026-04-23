@@ -21,16 +21,16 @@
 
 | Platform | CPU | Status |
 |----------|-----|--------|
-| **NES** | MOS 6502 | ✅ Complete |
-| **SNES** | WDC 65816 | ✅ Complete |
-| **Game Boy** | Sharp SM83 | ✅ Complete |
-| **Atari 2600** | MOS 6507 | ✅ Complete |
-| **Atari Lynx** | WDC 65C02 | ✅ Complete |
-| **Genesis** | Motorola 68000 | 🚧 In Progress |
-| **GBA** | ARM7TDMI | 🚧 In Progress |
-| **WonderSwan** | NEC V30MZ | 🚧 In Progress |
-| **Master System** | Zilog Z80 | 📋 Planned |
-| **TurboGrafx-16** | HuC6280 | 📋 Planned |
+| **NES** | MOS 6502 | ✅ Compile-validated |
+| **SNES** | WDC 65816 | ✅ Compile-validated |
+| **Game Boy** | Sharp SM83 | ✅ Compile-validated |
+| **Atari 2600** | MOS 6507 | ✅ Compile-validated |
+| **Atari Lynx** | WDC 65C02 | ✅ Compile-validated |
+| **Genesis** | Motorola 68000 | ✅ Compile-validated |
+| **GBA** | ARM7TDMI | ✅ Compile-validated |
+| **WonderSwan** | NEC V30MZ | ✅ Compile-validated |
+| **Master System** | Zilog Z80 | ✅ Compile-validated |
+| **TurboGrafx-16** | HuC6280 | ✅ Compile-validated |
 
 The compiler supports real-world game development with comprehensive tooling, including a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=TheAnsarya.poppy-assembly) with IntelliSense, formatting, and build integration.
 
@@ -348,6 +348,7 @@ Check out the example projects in the `examples/` directory:
 | [SNES Development Guide](docs/snes-guide.md) | Comprehensive SNES/65816 guide |
 | [Game Boy Development Guide](docs/gameboy-guide.md) | Complete GB/GBC guide with SM83 |
 | [Atari Lynx Guide](docs/atari-lynx-guide.md) | Atari Lynx/65C02 assembly guide |
+| [System Syntax Reference](docs/system-syntax-reference.md) | Per-system `.target`, CLI platform commands, and baseline syntax |
 | [Build from Project](docs/build-from-project.md) | Nexen → Peony → Poppy pipeline |
 | [Project File Format](docs/project-file-format.md) | `.poppy` project configuration |
 | [Syntax Specification](docs/syntax-spec.md) | Assembly language syntax guide |
