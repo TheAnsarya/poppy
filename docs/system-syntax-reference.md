@@ -25,7 +25,7 @@ These smoke checks are designed to catch target-registry breakage quickly and ar
 | Genesis | Motorola 68000 | `genesis` | `genesis` | M68000 profile supports core opcodes (`nop`) and system-specific evolution is ongoing |
 | Master System | Z80 | `sms` | `sms` | Z80 profile supports baseline instructions like `nop`, `halt` |
 | WonderSwan | NEC V30MZ | `ws` | `ws` / `wonderswan` | V30MZ profile supports baseline control ops like `nop`, `cli` |
-| GBA | ARM7TDMI | `gba` | `gba` | ARM mode supports byte-verified core mnemonics: `mov`, `add`, `sub`, `cmp`, `b`, `bl`, `bx`, `swi` |
+| GBA | ARM7TDMI | `gba` | `gba` | ARM mode supports byte-verified core mnemonics: `mov`, `add`, `sub`, `cmp`, `b`, `bl`, `bx`, `swi`, `ldr`/`str`/`ldrb`/`strb`, `mul`/`mla` |
 | SPC700 | Sony SPC700 | `spc700` | `spc700` | SPC700 profile supports baseline instructions such as `nop`, `clrc` |
 | TurboGrafx-16 / PC Engine | HuC6280 | `tg16` | `tg16` / `pce` | HuC6280 profile supports baseline instructions such as `nop`, `inx` |
 | Channel F | Fairchild F8 | `channelf` / `f8` | `channelf` / `f8` | Channel F scaffold profile supports baseline fixture syntax (`ldi`, `jmp`, labels) |
@@ -73,10 +73,18 @@ Current ARM mode instruction emission is verified end-to-end for:
 - Data processing: `mov`, `add`, `sub`, `cmp` (register and encodable immediate forms)
 - Control flow: `b`, `bl`, `bx`
 - Supervisor call: `swi`
+- Load/store (simple register-base forms): `ldr`, `str`, `ldrb`, `strb`
+- Multiply: `mul`, `mla`
+
+Current operand-shape limits for this slice:
+
+- Load/store currently accepts `mnemonic rd, rn` and `mnemonic rd, rn, #imm`
+- Register-offset and bracketed ARM memory operands are not emitted yet
+- Multiply long-family (`umull`, `smull`, `umlal`, `smlal`) is not emitted yet
 
 Tracked follow-up work:
 
-- Broader ARM7TDMI instruction family coverage (load/store, multiply variants, richer operand forms): issue #343
+- Broader ARM7TDMI instruction family coverage (long multiply, richer addressing forms, conditional-suffix edge cases): issues #343 and #344
 
 For platform-specific headers and extended directives, see:
 

@@ -153,6 +153,33 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 	}
 
 	private sealed class Arm7tdmiEncoder : IInstructionEncoder {
+		private static readonly FrozenDictionary<string, byte> s_conditionSuffixes = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase) {
+			["eq"] = InstructionSetARM7TDMI.Conditions.EQ,
+			["ne"] = InstructionSetARM7TDMI.Conditions.NE,
+			["cs"] = InstructionSetARM7TDMI.Conditions.CS,
+			["hs"] = InstructionSetARM7TDMI.Conditions.HS,
+			["cc"] = InstructionSetARM7TDMI.Conditions.CC,
+			["lo"] = InstructionSetARM7TDMI.Conditions.LO,
+			["mi"] = InstructionSetARM7TDMI.Conditions.MI,
+			["pl"] = InstructionSetARM7TDMI.Conditions.PL,
+			["vs"] = InstructionSetARM7TDMI.Conditions.VS,
+			["vc"] = InstructionSetARM7TDMI.Conditions.VC,
+			["hi"] = InstructionSetARM7TDMI.Conditions.HI,
+			["ls"] = InstructionSetARM7TDMI.Conditions.LS,
+			["ge"] = InstructionSetARM7TDMI.Conditions.GE,
+			["lt"] = InstructionSetARM7TDMI.Conditions.LT,
+			["gt"] = InstructionSetARM7TDMI.Conditions.GT,
+			["le"] = InstructionSetARM7TDMI.Conditions.LE,
+			["al"] = InstructionSetARM7TDMI.Conditions.AL
+		}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+		private static readonly FrozenSet<string> s_specialSupportedMnemonics = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+			"mov", "movs", "add", "adds", "sub", "subs", "cmp",
+			"b", "bl", "bx", "swi", "svc", "nop",
+			"ldr", "str", "ldrb", "strb",
+			"mul", "muls", "mla", "mlas"
+		}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
 		private static readonly FrozenSet<string> s_mnemonics = InstructionSetARM7TDMI.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
@@ -166,7 +193,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 		public int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix,
 			IReadOnlyList<ResolvedOperand>? additionalOperands) {
-			if (!InstructionSetARM7TDMI.TryParseCondition(mnemonic, out var baseMnemonic, out _)) {
+			if (!TryNormalizeSpecialMnemonic(mnemonic, out var baseMnemonic, out _)) {
 				return 0;
 			}
 
@@ -174,6 +201,9 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 				"mov" or "movs" => hasOperand && additionalOperands is { Count: 1 } ? 4 : 0,
 				"add" or "adds" or "sub" or "subs" => hasOperand && additionalOperands is { Count: 2 } ? 4 : 0,
 				"cmp" => hasOperand && additionalOperands is { Count: 1 } ? 4 : 0,
+				"ldr" or "str" or "ldrb" or "strb" => hasOperand && additionalOperands is not null && (additionalOperands.Count == 1 || additionalOperands.Count == 2) ? 4 : 0,
+				"mul" or "muls" => hasOperand && additionalOperands is { Count: 2 } ? 4 : 0,
+				"mla" or "mlas" => hasOperand && additionalOperands is { Count: 3 } ? 4 : 0,
 				"b" or "bl" => hasOperand ? 4 : 0,
 				"bx" => hasOperand ? 4 : 0,
 				"swi" or "svc" => hasOperand ? 4 : 0,
@@ -183,12 +213,12 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 		}
 
 		public bool TryEmitSpecialInstruction(SpecialInstructionContext context, ICodeEmitter emitter) {
-			if (!InstructionSetARM7TDMI.TryParseCondition(context.Mnemonic, out var baseMnemonic, out var condition)) {
+			if (!TryNormalizeSpecialMnemonic(context.Mnemonic, out var baseMnemonic, out var condition)) {
 				return false;
 			}
 
 			var normalized = baseMnemonic.ToLowerInvariant();
-			if (normalized is not ("mov" or "movs" or "add" or "adds" or "sub" or "subs" or "cmp" or "b" or "bl" or "bx" or "swi" or "svc" or "nop")) {
+			if (!s_specialSupportedMnemonics.Contains(normalized)) {
 				return false;
 			}
 
@@ -197,6 +227,12 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 				"add" or "adds" => EmitDataProcessingThreeOperand(context, emitter, InstructionSetARM7TDMI.ArmOpcodes.ADD, normalized, condition),
 				"sub" or "subs" => EmitDataProcessingThreeOperand(context, emitter, InstructionSetARM7TDMI.ArmOpcodes.SUB, normalized, condition),
 				"cmp" => EmitCmp(context, emitter, condition),
+				"ldr" => EmitLoadStore(context, emitter, isLoad: true, isByte: false, condition: condition),
+				"str" => EmitLoadStore(context, emitter, isLoad: false, isByte: false, condition: condition),
+				"ldrb" => EmitLoadStore(context, emitter, isLoad: true, isByte: true, condition: condition),
+				"strb" => EmitLoadStore(context, emitter, isLoad: false, isByte: true, condition: condition),
+				"mul" or "muls" => EmitMultiply(context, emitter, accumulate: false, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
+				"mla" or "mlas" => EmitMultiply(context, emitter, accumulate: true, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
 				"b" => EmitBranch(context, emitter, false, condition),
 				"bl" => EmitBranch(context, emitter, true, condition),
 				"bx" => EmitBx(context, emitter, condition),
@@ -316,6 +352,75 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			return true;
 		}
 
+		private static bool EmitLoadStore(SpecialInstructionContext context, ICodeEmitter emitter, bool isLoad, bool isByte, byte condition) {
+			if (!TryResolveRegister(context.OperandIdentifier, out var rd, context, emitter)) {
+				return true;
+			}
+
+			if (context.AdditionalOperands is not { Count: 1 or 2 }) {
+				emitter.ReportError($"'{context.Mnemonic}' requires two or three operands", context.Location);
+				return true;
+			}
+
+			if (!TryResolveRegister(context.AdditionalOperands[0].Identifier, out var rn, context, emitter)) {
+				return true;
+			}
+
+			var offset = 0;
+			if (context.AdditionalOperands.Count == 2) {
+				var offsetOperand = context.AdditionalOperands[1];
+				if (offsetOperand.Identifier is not null) {
+					emitter.ReportError($"'{context.Mnemonic}' register-offset operands are not yet supported", context.Location);
+					return true;
+				}
+
+				if (!offsetOperand.Value.HasValue) {
+					emitter.ReportError($"'{context.Mnemonic}' offset must resolve to a constant", context.Location);
+					return true;
+				}
+
+				if (offsetOperand.Value.Value < -4095 || offsetOperand.Value.Value > 4095) {
+					emitter.ReportError($"'{context.Mnemonic}' immediate offset must be in range -4095..4095", context.Location);
+					return true;
+				}
+
+				offset = (int)offsetOperand.Value.Value;
+			}
+
+			var bytes = InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: true, writeBack: false, condition: condition);
+			EmitLong(emitter, bytes);
+			return true;
+		}
+
+		private static bool EmitMultiply(SpecialInstructionContext context, ICodeEmitter emitter, bool accumulate, bool setFlags, byte condition) {
+			if (!TryResolveRegister(context.OperandIdentifier, out var rd, context, emitter)) {
+				return true;
+			}
+
+			var expectedAdditional = accumulate ? 3 : 2;
+			if (context.AdditionalOperands is null || context.AdditionalOperands.Count != expectedAdditional) {
+				emitter.ReportError($"'{context.Mnemonic}' requires {(accumulate ? "four" : "three")} register operands", context.Location);
+				return true;
+			}
+
+			if (!TryResolveRegister(context.AdditionalOperands[0].Identifier, out var rm, context, emitter)) {
+				return true;
+			}
+
+			if (!TryResolveRegister(context.AdditionalOperands[1].Identifier, out var rs, context, emitter)) {
+				return true;
+			}
+
+			var rn = 0;
+			if (accumulate && !TryResolveRegister(context.AdditionalOperands[2].Identifier, out rn, context, emitter)) {
+				return true;
+			}
+
+			var bytes = EncodeMultiply(rd, rm, rs, rn, accumulate, setFlags, condition);
+			EmitLong(emitter, bytes);
+			return true;
+		}
+
 		private static bool EmitBranch(SpecialInstructionContext context, ICodeEmitter emitter, bool link, byte condition) {
 			if (!context.OperandValue.HasValue) {
 				emitter.ReportError($"'{context.Mnemonic}' requires a resolvable branch target", context.Location);
@@ -383,6 +488,59 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			foreach (var b in bytes) {
 				emitter.EmitByte(b);
 			}
+		}
+
+		private static byte[] EncodeMultiply(int rd, int rm, int rs, int rn, bool accumulate, bool setFlags, byte condition) {
+			uint instruction = 0;
+
+			instruction |= (uint)(condition & 0xf) << 28;
+			if (accumulate) {
+				instruction |= 1u << 21;
+			}
+
+			if (setFlags) {
+				instruction |= 1u << 20;
+			}
+
+			instruction |= (uint)(rd & 0xf) << 16;
+			instruction |= (uint)(rn & 0xf) << 12;
+			instruction |= (uint)(rs & 0xf) << 8;
+			instruction |= 0x90;
+			instruction |= (uint)(rm & 0xf);
+
+			return [
+				(byte)(instruction & 0xff),
+				(byte)((instruction >> 8) & 0xff),
+				(byte)((instruction >> 16) & 0xff),
+				(byte)((instruction >> 24) & 0xff)
+			];
+		}
+
+		private static bool TryNormalizeSpecialMnemonic(string mnemonic, out string baseMnemonic, out byte condition) {
+			baseMnemonic = mnemonic.ToLowerInvariant();
+			condition = InstructionSetARM7TDMI.Conditions.AL;
+
+			if (s_specialSupportedMnemonics.Contains(baseMnemonic)) {
+				return true;
+			}
+
+			if (baseMnemonic.Length <= 2) {
+				return false;
+			}
+
+			var suffix = baseMnemonic[^2..];
+			if (!s_conditionSuffixes.TryGetValue(suffix, out var parsedCondition)) {
+				return false;
+			}
+
+			var candidate = baseMnemonic[..^2];
+			if (!s_specialSupportedMnemonics.Contains(candidate)) {
+				return false;
+			}
+
+			baseMnemonic = candidate;
+			condition = parsedCondition;
+			return true;
 		}
 
 		private static bool TryResolveRegister(string? registerName, out int register,

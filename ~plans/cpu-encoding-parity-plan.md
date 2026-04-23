@@ -1,4 +1,4 @@
-# Poppy — CPU Instruction Encoding Parity Plan
+﻿# Poppy — CPU Instruction Encoding Parity Plan
 
 ## Overview
 
@@ -13,6 +13,32 @@ Four architectures need instruction encoding implemented in `CodeGenerator.TryGe
 | HuC6280 | PCE/TG16 | ✅ `TurboGrafxRomBuilder` | ❌ Falls to 6502 |
 | V30MZ | WonderSwan | ✅ `WonderSwanRomBuilder` | ❌ Falls to 6502 |
 | M68000 | Genesis | ✅ `GenesisRomBuilder` | ❌ Falls to 6502 |
+
+## ARM7TDMI Special-Emission Progress (GBA)
+
+Recent ARM7TDMI work is being delivered through profile special emission (`TryEmitSpecialInstruction`) to keep feature growth incremental and byte-verified.
+
+### Completed Slices
+
+- `#343`: Core ARM-mode emission and byte-verified tests
+	- Data processing: `mov`, `add`, `sub`, `cmp`
+	- Control: `b`, `bl`, `bx`
+	- Supervisor call: `swi` / `svc`
+- `#344` (in progress): load/store + multiply expansion
+	- Load/store (simple forms): `ldr`, `str`, `ldrb`, `strb`
+	- Multiply core: `mul`, `mla`
+
+### Planned Next Slices
+
+- Long multiply family: `umull`, `umlal`, `smull`, `smlal`
+- Richer ARM addressing shapes (register-offset and bracketed memory syntax)
+- Conditional-suffix ambiguity hardening (`muls`/`mlas` style edge cases) with explicit parser/encoder conformance tests
+
+### Validation Strategy
+
+- Byte-verified integration tests in `src/Poppy.Arch.ARM7TDMI.Tests/CodeGen/`
+- Cross-reference assertions for branch/call instructions
+- Full regression run in `src/Poppy.Tests`
 
 ## Z80 Instruction Encoding (SMS)
 

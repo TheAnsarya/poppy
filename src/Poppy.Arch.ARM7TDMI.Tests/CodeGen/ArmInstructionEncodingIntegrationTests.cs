@@ -1,4 +1,4 @@
-using Poppy.Core.Arch;
+﻿using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Semantics;
 
@@ -115,5 +115,45 @@ swi #$11
 		var callRef = gen.CrossReferences.Single(r => r.Type == 1);
 		Assert.Equal((uint)0x08000000, callRef.From);
 		Assert.Equal((uint)0x08000008, callRef.To);
+	}
+
+	[Fact]
+	public void LoadStoreImmediateForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+ldr r0, r1
+str r2, r3, #12
+ldrb r4, r5, #1
+strb r6, r7
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x00, 0x00, 0x91, 0xe5], code[..4]);
+		Assert.Equal([0x0c, 0x20, 0x83, 0xe5], code[4..8]);
+		Assert.Equal([0x01, 0x40, 0xd5, 0xe5], code[8..12]);
+		Assert.Equal([0x00, 0x60, 0xc7, 0xe5], code[12..16]);
+	}
+
+	[Fact]
+	public void MultiplyForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+mul r0, r1, r2
+mla r3, r4, r5, r6
+muls r8, r9, r10
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x91, 0x02, 0x00, 0xe0], code[..4]);
+		Assert.Equal([0x94, 0x65, 0x23, 0xe0], code[4..8]);
+		Assert.Equal([0x99, 0x0a, 0x18, 0xe0], code[8..12]);
 	}
 }
