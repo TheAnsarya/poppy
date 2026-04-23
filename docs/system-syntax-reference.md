@@ -25,7 +25,7 @@ These smoke checks are designed to catch target-registry breakage quickly and ar
 | Genesis | Motorola 68000 | `genesis` | `genesis` | M68000 profile supports core opcodes (`nop`) and system-specific evolution is ongoing |
 | Master System | Z80 | `sms` | `sms` | Z80 profile supports baseline instructions like `nop`, `halt` |
 | WonderSwan | NEC V30MZ | `ws` | `ws` / `wonderswan` | V30MZ profile supports baseline control ops like `nop`, `cli` |
-| GBA | ARM7TDMI | `gba` | `gba` | Data/segment pipeline is validated; instruction-model breadth is tracked as ongoing work |
+| GBA | ARM7TDMI | `gba` | `gba` | ARM mode supports byte-verified core mnemonics: `mov`, `add`, `sub`, `cmp`, `b`, `bl`, `bx`, `swi` |
 | SPC700 | Sony SPC700 | `spc700` | `spc700` | SPC700 profile supports baseline instructions such as `nop`, `clrc` |
 | TurboGrafx-16 / PC Engine | HuC6280 | `tg16` | `tg16` / `pce` | HuC6280 profile supports baseline instructions such as `nop`, `inx` |
 | Channel F | Fairchild F8 | `channelf` / `f8` | `channelf` / `f8` | Channel F scaffold profile supports baseline fixture syntax (`ldi`, `jmp`, labels) |
@@ -65,6 +65,18 @@ start:
 ```
 
 Swap `.target` and address window per platform, then use opcodes that are valid for that profile.
+
+## ARM7TDMI Coverage Notes
+
+Current ARM mode instruction emission is verified end-to-end for:
+
+- Data processing: `mov`, `add`, `sub`, `cmp` (register and encodable immediate forms)
+- Control flow: `b`, `bl`, `bx`
+- Supervisor call: `swi`
+
+Tracked follow-up work:
+
+- Broader ARM7TDMI instruction family coverage (load/store, multiply variants, richer operand forms): issue #343
 
 For platform-specific headers and extended directives, see:
 

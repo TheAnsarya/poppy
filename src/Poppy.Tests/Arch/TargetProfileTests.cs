@@ -534,19 +534,34 @@ public sealed class TargetProfileTests {
 	}
 
 	// ========================================================================
-	// Encoder Integration — ARM7TDMI (stub encoder, all return false)
+	// Encoder Integration — ARM7TDMI (special-emission path)
 	// ========================================================================
 
 	[Fact]
-	public void Encoder_Arm7tdmi_StubReturnsFlase_ForImplied() {
-		var encoder = TargetResolver.GetProfile(TargetArchitecture.ARM7TDMI).Encoder;
-		Assert.False(encoder.TryEncode("nop", AddressingMode.Implied, out _));
-	}
-
-	[Fact]
-	public void Encoder_Arm7tdmi_StubReturnsFlase_ForImmediate() {
+	public void Encoder_Arm7tdmi_UsesSpecialEmissionPath() {
 		var encoder = TargetResolver.GetProfile(TargetArchitecture.ARM7TDMI).Encoder;
 		Assert.False(encoder.TryEncode("mov", AddressingMode.Immediate, out _));
+	}
+
+	[Theory]
+	[InlineData("r0")]
+	[InlineData("r7")]
+	[InlineData("sp")]
+	[InlineData("lr")]
+	[InlineData("pc")]
+	public void Encoder_Arm7tdmi_RecognizesRegisters(string name) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.ARM7TDMI).Encoder;
+		Assert.True(encoder.IsRegister(name));
+	}
+
+	[Theory]
+	[InlineData("b")]
+	[InlineData("bl")]
+	[InlineData("bx")]
+	[InlineData("beq")]
+	public void IsBranch_Arm7tdmi_BranchInstructions_ReturnTrue(string mnemonic) {
+		var encoder = TargetResolver.GetProfile(TargetArchitecture.ARM7TDMI).Encoder;
+		Assert.True(encoder.IsBranchInstruction(mnemonic));
 	}
 
 	// ========================================================================

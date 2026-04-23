@@ -1,0 +1,119 @@
+using Poppy.Core.Arch;
+using Poppy.Core.CodeGen;
+using Poppy.Core.Semantics;
+
+using PoppyLexer = Poppy.Core.Lexer.Lexer;
+using PoppyParser = Poppy.Core.Parser.Parser;
+
+namespace Poppy.Arch.ARM7TDMI.Tests.CodeGen;
+
+/// <summary>
+/// End-to-end ARM instruction encoding tests that verify emitted machine bytes.
+/// </summary>
+public sealed class ArmInstructionEncodingIntegrationTests {
+	private static (byte[] Code, CodeGenerator Generator, SemanticAnalyzer Analyzer) Compile(string source) {
+		var lexer = new PoppyLexer(source, "arm-integration.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new PoppyParser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer();
+		analyzer.Analyze(program);
+
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.ARM7TDMI);
+		var code = generator.Generate(program);
+
+		return (code, generator, analyzer);
+	}
+
+	[Fact]
+	public void MovImmediate_EmitsExpectedArmWord() {
+		var source = @"
+.target gba
+.org $08000000
+mov r0, #42
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x2a, 0x00, 0xa0, 0xe3], code[..4]); // E3A0002A
+	}
+
+	[Fact]
+	public void AddRegister_EmitsExpectedArmWord() {
+		var source = @"
+.target gba
+.org $08000000
+add r1, r2, r3
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x03, 0x10, 0x82, 0xe0], code[..4]); // E0821003
+	}
+
+	[Fact]
+	public void CmpImmediate_EmitsExpectedArmWord() {
+		var source = @"
+.target gba
+.org $08000000
+cmp r0, #1
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x01, 0x00, 0x50, 0xe3], code[..4]); // E3500001
+	}
+
+	[Fact]
+	public void BranchForwardLabel_EmitsExpectedOffsetAndCrossRef() {
+		var source = @"
+.target gba
+.org $08000000
+b target
+nop
+target:
+nop
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x00, 0x00, 0x00, 0xea], code[..4]); // EA000000
+
+		var branchRef = gen.CrossReferences.Single(r => r.Type == 3);
+		Assert.Equal((uint)0x08000000, branchRef.From);
+		Assert.Equal((uint)0x08000008, branchRef.To);
+	}
+
+	[Fact]
+	public void BlAndBxAndSwi_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+bl target
+bx lr
+target:
+swi #$11
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x00, 0x00, 0x00, 0xeb], code[..4]);   // EB000000
+		Assert.Equal([0x1e, 0xff, 0x2f, 0xe1], code[4..8]); // E12FFF1E
+		Assert.Equal([0x11, 0x00, 0x00, 0xef], code[8..12]); // EF000011
+
+		var callRef = gen.CrossReferences.Single(r => r.Type == 1);
+		Assert.Equal((uint)0x08000000, callRef.From);
+		Assert.Equal((uint)0x08000008, callRef.To);
+	}
+}
