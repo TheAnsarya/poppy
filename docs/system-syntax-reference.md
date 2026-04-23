@@ -75,6 +75,7 @@ Current ARM mode instruction emission is verified end-to-end for:
 - Supervisor call: `swi`
 - Load/store (simple register-base forms): `ldr`, `str`, `ldrb`, `strb`
 - Multiply: `mul`, `mla`
+- Long multiply: `umull`, `smull`, `umlal`, `smlal`
 
 Conditional-suffix variants are byte-verified for representative forms beyond multiply, including:
 
@@ -89,7 +90,7 @@ Current operand-shape limits for this slice:
 	- `mnemonic rd, [rn]`
 	- `mnemonic rd, [rn, #imm]`
 	- `mnemonic rd, [rn, rm]`
-- Multiply long-family (`umull`, `smull`, `umlal`, `smlal`) is not emitted yet
+- Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 
 Tracked follow-up work:
 

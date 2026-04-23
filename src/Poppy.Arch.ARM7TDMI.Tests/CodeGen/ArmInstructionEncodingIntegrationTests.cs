@@ -226,4 +226,25 @@ nop
 		Assert.Equal([0x11, 0x00, 0x00, 0xaf], code[32..36]);
 	}
 
+	[Fact]
+	public void LongMultiplyForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+umull r0, r1, r2, r3
+smull r0, r1, r2, r3
+umlal r0, r1, r2, r3
+smlal r0, r1, r2, r3
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x92, 0x03, 0xc1, 0xe0], code[0..4]);
+		Assert.Equal([0x92, 0x03, 0x81, 0xe0], code[4..8]);
+		Assert.Equal([0x92, 0x03, 0xe1, 0xe0], code[8..12]);
+		Assert.Equal([0x92, 0x03, 0xa1, 0xe0], code[12..16]);
+	}
+
 }

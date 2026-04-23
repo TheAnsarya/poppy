@@ -177,7 +177,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			"mov", "movs", "add", "adds", "sub", "subs", "cmp",
 			"b", "bl", "bx", "swi", "svc", "nop",
 			"ldr", "str", "ldrb", "strb",
-			"mul", "muls", "mla", "mlas"
+			"mul", "muls", "mla", "mlas",
+			"umull", "umulls", "smull", "smulls", "umlal", "umlals", "smlal", "smlals"
 		}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 		private static readonly FrozenSet<string> s_mnemonics = InstructionSetARM7TDMI.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
@@ -204,6 +205,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 				"ldr" or "str" or "ldrb" or "strb" => hasOperand && additionalOperands is not null && (additionalOperands.Count == 1 || additionalOperands.Count == 2) ? 4 : 0,
 				"mul" or "muls" => hasOperand && additionalOperands is { Count: 2 } ? 4 : 0,
 				"mla" or "mlas" => hasOperand && additionalOperands is { Count: 3 } ? 4 : 0,
+				"umull" or "umulls" or "smull" or "smulls" or "umlal" or "umlals" or "smlal" or "smlals" => hasOperand && additionalOperands is { Count: 3 } ? 4 : 0,
 				"b" or "bl" => hasOperand ? 4 : 0,
 				"bx" => hasOperand ? 4 : 0,
 				"swi" or "svc" => hasOperand ? 4 : 0,
@@ -233,6 +235,10 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 				"strb" => EmitLoadStore(context, emitter, isLoad: false, isByte: true, condition: condition),
 				"mul" or "muls" => EmitMultiply(context, emitter, accumulate: false, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
 				"mla" or "mlas" => EmitMultiply(context, emitter, accumulate: true, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
+				"umull" or "umulls" => EmitMultiplyLong(context, emitter, isUnsigned: true, accumulate: false, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
+				"smull" or "smulls" => EmitMultiplyLong(context, emitter, isUnsigned: false, accumulate: false, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
+				"umlal" or "umlals" => EmitMultiplyLong(context, emitter, isUnsigned: true, accumulate: true, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
+				"smlal" or "smlals" => EmitMultiplyLong(context, emitter, isUnsigned: false, accumulate: true, setFlags: normalized.EndsWith("s", StringComparison.OrdinalIgnoreCase), condition: condition),
 				"b" => EmitBranch(context, emitter, false, condition),
 				"bl" => EmitBranch(context, emitter, true, condition),
 				"bx" => EmitBx(context, emitter, condition),
@@ -427,6 +433,33 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			return true;
 		}
 
+		private static bool EmitMultiplyLong(SpecialInstructionContext context, ICodeEmitter emitter, bool isUnsigned, bool accumulate, bool setFlags, byte condition) {
+			if (!TryResolveRegister(context.OperandIdentifier, out var rdLo, context, emitter)) {
+				return true;
+			}
+
+			if (context.AdditionalOperands is null || context.AdditionalOperands.Count != 3) {
+				emitter.ReportError($"'{context.Mnemonic}' requires four register operands", context.Location);
+				return true;
+			}
+
+			if (!TryResolveRegister(context.AdditionalOperands[0].Identifier, out var rdHi, context, emitter)) {
+				return true;
+			}
+
+			if (!TryResolveRegister(context.AdditionalOperands[1].Identifier, out var rm, context, emitter)) {
+				return true;
+			}
+
+			if (!TryResolveRegister(context.AdditionalOperands[2].Identifier, out var rs, context, emitter)) {
+				return true;
+			}
+
+			var bytes = EncodeMultiplyLong(rdLo, rdHi, rm, rs, isUnsigned, accumulate, setFlags, condition);
+			EmitLong(emitter, bytes);
+			return true;
+		}
+
 		private static bool EmitBranch(SpecialInstructionContext context, ICodeEmitter emitter, bool link, byte condition) {
 			if (!context.OperandValue.HasValue) {
 				emitter.ReportError($"'{context.Mnemonic}' requires a resolvable branch target", context.Location);
@@ -510,6 +543,38 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			instruction |= (uint)(rd & 0xf) << 16;
 			instruction |= (uint)(rn & 0xf) << 12;
+			instruction |= (uint)(rs & 0xf) << 8;
+			instruction |= 0x90;
+			instruction |= (uint)(rm & 0xf);
+
+			return [
+				(byte)(instruction & 0xff),
+				(byte)((instruction >> 8) & 0xff),
+				(byte)((instruction >> 16) & 0xff),
+				(byte)((instruction >> 24) & 0xff)
+			];
+		}
+
+		private static byte[] EncodeMultiplyLong(int rdLo, int rdHi, int rm, int rs, bool isUnsigned, bool accumulate, bool setFlags, byte condition) {
+			uint instruction = 0;
+
+			instruction |= (uint)(condition & 0xf) << 28;
+			instruction |= 1u << 23;
+
+			if (isUnsigned) {
+				instruction |= 1u << 22;
+			}
+
+			if (accumulate) {
+				instruction |= 1u << 21;
+			}
+
+			if (setFlags) {
+				instruction |= 1u << 20;
+			}
+
+			instruction |= (uint)(rdHi & 0xf) << 16;
+			instruction |= (uint)(rdLo & 0xf) << 12;
 			instruction |= (uint)(rs & 0xf) << 8;
 			instruction |= 0x90;
 			instruction |= (uint)(rm & 0xf);
