@@ -193,4 +193,37 @@ mulseq r0, r1, r2
 		Assert.Equal([0x91, 0x02, 0x10, 0x00], code[..4]);
 	}
 
+	[Fact]
+	public void ConditionalVariantsAcrossFamilies_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+moveq r0, #42
+addne r1, r2, r3
+cmplt r0, #1
+ldreq r0, [r1]
+strne r2, [r3, #12]
+beq target
+blne target
+bxne lr
+swige #$11
+target:
+nop
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x2a, 0x00, 0xa0, 0x03], code[0..4]);
+		Assert.Equal([0x03, 0x10, 0x82, 0x10], code[4..8]);
+		Assert.Equal([0x01, 0x00, 0x50, 0xb3], code[8..12]);
+		Assert.Equal([0x00, 0x00, 0x91, 0x05], code[12..16]);
+		Assert.Equal([0x0c, 0x20, 0x83, 0x15], code[16..20]);
+		Assert.Equal([0x02, 0x00, 0x00, 0x0a], code[20..24]);
+		Assert.Equal([0x01, 0x00, 0x00, 0x1b], code[24..28]);
+		Assert.Equal([0x1e, 0xff, 0x2f, 0x11], code[28..32]);
+		Assert.Equal([0x11, 0x00, 0x00, 0xaf], code[32..36]);
+	}
+
 }

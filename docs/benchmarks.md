@@ -1,4 +1,4 @@
-# Benchmarks
+﻿# Benchmarks
 
 Poppy includes a BenchmarkDotNet benchmark suite in `src/Poppy.Benchmarks/`.
 

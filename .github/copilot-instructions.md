@@ -239,11 +239,11 @@ dotnet run --project src/Poppy.CLI -- <args>
 
 ## Git Workflow
 
-### ⚠️ MANDATORY: Unexpected Modified Files
+### ⚠️ MANDATORY: Always Include Modified/Untracked Files
 
-If the user explicitly says to include unexpected/stray modified files, do not pause or ask follow-up questions about file selection.
+Always include unexpected/stray/untracked modified files in commits by default. Do not pause or ask follow-up questions about file selection.
 
-- Stage those modified files along with task changes
+- Stage all modified and untracked files along with task changes
 - Commit and push without additional confirmation prompts
 - Continue implementation work without stopping on dirty-tree surprises
 

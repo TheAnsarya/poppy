@@ -1,4 +1,4 @@
-// InstructionSetARM7TDMI.cs
+﻿// InstructionSetARM7TDMI.cs
 // ARM7TDMI instruction set implementation for Game Boy Advance (GBA)
 // Supports both ARM (32-bit) and Thumb (16-bit) instruction modes
 

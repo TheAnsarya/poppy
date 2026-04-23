@@ -1,4 +1,4 @@
-// InstructionSetARM7TDMITests.cs
+﻿// InstructionSetARM7TDMITests.cs
 // Unit tests for ARM7TDMI instruction set (GBA)
 
 using Poppy.Arch.ARM7TDMI;

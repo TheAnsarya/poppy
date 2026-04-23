@@ -1,4 +1,4 @@
-// Poppy Compiler - Lexer Unit Tests
+﻿// Poppy Compiler - Lexer Unit Tests
 // Copyright © 2026
 
 using Poppy.Core.Lexer;

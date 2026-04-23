@@ -76,6 +76,12 @@ Current ARM mode instruction emission is verified end-to-end for:
 - Load/store (simple register-base forms): `ldr`, `str`, `ldrb`, `strb`
 - Multiply: `mul`, `mla`
 
+Conditional-suffix variants are byte-verified for representative forms beyond multiply, including:
+
+- Data processing: `moveq`, `addne`, `cmplt`
+- Load/store: `ldreq`, `strne`
+- Control flow and supervisor call: `beq`, `blne`, `bxne`, `swige`
+
 Current operand-shape limits for this slice:
 
 - Load/store accepts both canonical and flattened forms:
