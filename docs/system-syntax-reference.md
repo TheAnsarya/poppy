@@ -78,13 +78,16 @@ Current ARM mode instruction emission is verified end-to-end for:
 
 Current operand-shape limits for this slice:
 
-- Load/store currently accepts `mnemonic rd, rn` and `mnemonic rd, rn, #imm`
-- Register-offset and bracketed ARM memory operands are not emitted yet
+- Load/store accepts both canonical and flattened forms:
+	- `mnemonic rd, rn[, #imm]`
+	- `mnemonic rd, [rn]`
+	- `mnemonic rd, [rn, #imm]`
+	- `mnemonic rd, [rn, rm]`
 - Multiply long-family (`umull`, `smull`, `umlal`, `smlal`) is not emitted yet
 
 Tracked follow-up work:
 
-- Broader ARM7TDMI instruction family coverage (long multiply, richer addressing forms, conditional-suffix edge cases): issues #343 and #344
+- Broader ARM7TDMI instruction family coverage (long multiply and condition-suffix edge cases): issues #344 and #346
 
 For platform-specific headers and extended directives, see:
 

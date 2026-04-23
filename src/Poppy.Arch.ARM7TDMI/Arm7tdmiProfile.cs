@@ -367,27 +367,33 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			}
 
 			var offset = 0;
+			int? registerOffset = null;
 			if (context.AdditionalOperands.Count == 2) {
 				var offsetOperand = context.AdditionalOperands[1];
 				if (offsetOperand.Identifier is not null) {
-					emitter.ReportError($"'{context.Mnemonic}' register-offset operands are not yet supported", context.Location);
-					return true;
-				}
+					if (!TryResolveRegister(offsetOperand.Identifier, out var rm, context, emitter)) {
+						return true;
+					}
 
-				if (!offsetOperand.Value.HasValue) {
-					emitter.ReportError($"'{context.Mnemonic}' offset must resolve to a constant", context.Location);
-					return true;
-				}
+					registerOffset = rm;
+				} else {
+					if (!offsetOperand.Value.HasValue) {
+						emitter.ReportError($"'{context.Mnemonic}' offset must resolve to a constant", context.Location);
+						return true;
+					}
 
-				if (offsetOperand.Value.Value < -4095 || offsetOperand.Value.Value > 4095) {
-					emitter.ReportError($"'{context.Mnemonic}' immediate offset must be in range -4095..4095", context.Location);
-					return true;
-				}
+					if (offsetOperand.Value.Value < -4095 || offsetOperand.Value.Value > 4095) {
+						emitter.ReportError($"'{context.Mnemonic}' immediate offset must be in range -4095..4095", context.Location);
+						return true;
+					}
 
-				offset = (int)offsetOperand.Value.Value;
+					offset = (int)offsetOperand.Value.Value;
+				}
 			}
 
-			var bytes = InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: true, writeBack: false, condition: condition);
+			var bytes = registerOffset.HasValue
+				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition)
+				: InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: true, writeBack: false, condition: condition);
 			EmitLong(emitter, bytes);
 			return true;
 		}
@@ -506,6 +512,35 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			instruction |= (uint)(rn & 0xf) << 12;
 			instruction |= (uint)(rs & 0xf) << 8;
 			instruction |= 0x90;
+			instruction |= (uint)(rm & 0xf);
+
+			return [
+				(byte)(instruction & 0xff),
+				(byte)((instruction >> 8) & 0xff),
+				(byte)((instruction >> 16) & 0xff),
+				(byte)((instruction >> 24) & 0xff)
+			];
+		}
+
+		private static byte[] EncodeLoadStoreRegisterOffset(bool isLoad, int rd, int rn, int rm, bool isByte, byte condition) {
+			uint instruction = 0;
+
+			instruction |= (uint)(condition & 0xf) << 28;
+			instruction |= 1u << 26;
+			instruction |= 1u << 25; // Register offset
+			instruction |= 1u << 24; // Pre-indexed
+			instruction |= 1u << 23; // Add offset
+
+			if (isByte) {
+				instruction |= 1u << 22;
+			}
+
+			if (isLoad) {
+				instruction |= 1u << 20;
+			}
+
+			instruction |= (uint)(rn & 0xf) << 16;
+			instruction |= (uint)(rd & 0xf) << 12;
 			instruction |= (uint)(rm & 0xf);
 
 			return [

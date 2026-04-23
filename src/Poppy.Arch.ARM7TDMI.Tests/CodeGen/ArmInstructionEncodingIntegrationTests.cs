@@ -156,4 +156,25 @@ muls r8, r9, r10
 		Assert.Equal([0x94, 0x65, 0x23, 0xe0], code[4..8]);
 		Assert.Equal([0x99, 0x0a, 0x18, 0xe0], code[8..12]);
 	}
+
+	[Fact]
+	public void BracketedLoadStoreForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+ldr r0, [r1]
+str r2, [r3, #12]
+ldrb r4, [r5, r6]
+strb r7, [r8, r9]
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x00, 0x00, 0x91, 0xe5], code[..4]);
+		Assert.Equal([0x0c, 0x20, 0x83, 0xe5], code[4..8]);
+		Assert.Equal([0x06, 0x40, 0xd5, 0xe7], code[8..12]);
+		Assert.Equal([0x09, 0x70, 0xc8, 0xe7], code[12..16]);
+	}
 }
