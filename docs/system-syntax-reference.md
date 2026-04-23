@@ -75,13 +75,14 @@ Current ARM mode instruction emission is verified end-to-end for:
 - Supervisor call: `swi`
 - Load/store (simple register-base forms): `ldr`, `str`, `ldrb`, `strb`
 - Multiply: `mul`, `mla`
-- Long multiply: `umull`, `smull`, `umlal`, `smlal`
+- Long multiply: `umull`, `smull`, `umlal`, `smlal`, `umulls`, `smulls`, `umlals`, `smlals`
 
 Conditional-suffix variants are byte-verified for representative forms beyond multiply, including:
 
 - Data processing: `moveq`, `addne`, `cmplt`
 - Load/store: `ldreq`, `strne`
 - Control flow and supervisor call: `beq`, `blne`, `bxne`, `swige`
+- Long multiply set-flags forms with and without conditions: `umulls`, `smulls`, `umlals`, `smlals`, `umullseq`, `smlalsne`
 
 Current operand-shape limits for this slice:
 
@@ -94,7 +95,7 @@ Current operand-shape limits for this slice:
 
 Tracked follow-up work:
 
-- Broader ARM7TDMI instruction family coverage (long multiply and condition-suffix edge cases): issues #344 and #346
+- Broader ARM7TDMI instruction family coverage beyond current slices: issues #344 and #346
 
 For platform-specific headers and extended directives, see:
 

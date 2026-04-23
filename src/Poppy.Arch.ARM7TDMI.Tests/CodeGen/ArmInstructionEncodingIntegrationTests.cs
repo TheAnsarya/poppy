@@ -247,4 +247,29 @@ smlal r0, r1, r2, r3
 		Assert.Equal([0x92, 0x03, 0xa1, 0xe0], code[12..16]);
 	}
 
+	[Fact]
+	public void LongMultiplySetFlagsForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+umulls r0, r1, r2, r3
+smulls r0, r1, r2, r3
+umlals r0, r1, r2, r3
+smlals r0, r1, r2, r3
+umullseq r0, r1, r2, r3
+smlalsne r0, r1, r2, r3
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x92, 0x03, 0xd1, 0xe0], code[0..4]);
+		Assert.Equal([0x92, 0x03, 0x91, 0xe0], code[4..8]);
+		Assert.Equal([0x92, 0x03, 0xf1, 0xe0], code[8..12]);
+		Assert.Equal([0x92, 0x03, 0xb1, 0xe0], code[12..16]);
+		Assert.Equal([0x92, 0x03, 0xd1, 0x00], code[16..20]);
+		Assert.Equal([0x92, 0x03, 0xb1, 0x10], code[20..24]);
+	}
+
 }

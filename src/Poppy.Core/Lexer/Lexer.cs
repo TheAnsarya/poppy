@@ -575,7 +575,7 @@ public sealed class Lexer {
 		"ldm", "ldmia", "ldmib", "ldmda", "ldmdb",
 		"stm", "stmia", "stmib", "stmda", "stmdb",
 		"mrs", "msr", "swi", "swp", "swpb",
-		"mla", "smull", "smlal", "umull", "umlal",
+		"mla", "mlas", "smull", "smulls", "smlal", "smlals", "umull", "umulls", "umlal", "umlals",
 		"teq", "lsl", "asr",
 		// ARM7TDMI conditional suffixes handled at parser level
 		"adds", "subs", "ands", "orrs", "eors", "bics", "muls",
