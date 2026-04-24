@@ -1180,8 +1180,17 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 				additionalOperands = new List<ResolvedOperand>(node.Operands.Count - 1);
 				for (int i = 1; i < node.Operands.Count; i++) {
 					var addlOp = node.Operands[i];
-					var addlId = addlOp is IdentifierNode idn2 ? idn2.Name : null;
-					var addlValue = TryGetConstantOperandValue(addlOp);
+					string? addlId;
+					long? addlValue;
+
+					if (TryResolveShiftedRegisterOperand(addlOp, out var shiftedReg, out var shiftAmount)) {
+						addlId = shiftedReg;
+						addlValue = shiftAmount;
+					} else {
+						addlId = addlOp is IdentifierNode idn2 ? idn2.Name : null;
+						addlValue = TryGetConstantOperandValue(addlOp);
+					}
+
 					additionalOperands.Add(new ResolvedOperand(addlId, addlValue));
 				}
 			}
@@ -1229,6 +1238,23 @@ public sealed class SemanticAnalyzer : IAstVisitor<object?> {
 		}
 
 		return null;
+	}
+
+	private static bool TryResolveShiftedRegisterOperand(ExpressionNode operand, out string registerName, out long shiftAmount) {
+		registerName = string.Empty;
+		shiftAmount = 0;
+
+		if (operand is not BinaryExpressionNode {
+			Operator: BinaryOperator.LeftShift,
+			Left: IdentifierNode left,
+			Right: NumberLiteralNode right
+		}) {
+			return false;
+		}
+
+		registerName = left.Name;
+		shiftAmount = right.Value;
+		return true;
 	}
 
 	/// <summary>

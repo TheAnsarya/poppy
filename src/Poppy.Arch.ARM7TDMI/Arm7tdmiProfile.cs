@@ -374,6 +374,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			var offset = 0;
 			int? registerOffset = null;
+			var registerOffsetShift = 0;
 			var preIndexed = context.AddressingMode != AddressingMode.MemoryReferencePostIndexed;
 			var writeBack = context.AddressingMode == AddressingMode.MemoryReferenceWriteBack;
 			if (context.AdditionalOperands.Count == 2) {
@@ -384,6 +385,14 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					}
 
 					registerOffset = rm;
+					if (offsetOperand.Value.HasValue) {
+						if (offsetOperand.Value.Value < 0 || offsetOperand.Value.Value > 31) {
+							emitter.ReportError($"'{context.Mnemonic}' register offset shift amount must be in range 0..31", context.Location);
+							return true;
+						}
+
+						registerOffsetShift = (int)offsetOperand.Value.Value;
+					}
 				} else {
 					if (!offsetOperand.Value.HasValue) {
 						emitter.ReportError($"'{context.Mnemonic}' offset must resolve to a constant", context.Location);
@@ -400,7 +409,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			}
 
 			var bytes = registerOffset.HasValue
-				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition, preIndexed: preIndexed, addOffset: true, writeBack: writeBack)
+				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition,
+					preIndexed: preIndexed, addOffset: true, writeBack: writeBack, shiftAmount: registerOffsetShift)
 				: InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: preIndexed, writeBack: writeBack, condition: condition);
 			EmitLong(emitter, bytes);
 			return true;
@@ -590,7 +600,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 		}
 
 		private static byte[] EncodeLoadStoreRegisterOffset(bool isLoad, int rd, int rn, int rm, bool isByte, byte condition,
-			bool preIndexed, bool addOffset, bool writeBack) {
+			bool preIndexed, bool addOffset, bool writeBack, int shiftAmount) {
 			uint instruction = 0;
 
 			instruction |= (uint)(condition & 0xf) << 28;
@@ -619,6 +629,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			instruction |= (uint)(rn & 0xf) << 16;
 			instruction |= (uint)(rd & 0xf) << 12;
+			instruction |= (uint)(shiftAmount & 0x1f) << 7; // LSL #imm by default (shift type = 0)
 			instruction |= (uint)(rm & 0xf);
 
 			return [

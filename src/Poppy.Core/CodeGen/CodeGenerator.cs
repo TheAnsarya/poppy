@@ -135,6 +135,23 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 		return binary;
 	}
 
+	private static bool TryResolveShiftedRegisterOperand(ExpressionNode operand, out string registerName, out long shiftAmount) {
+		registerName = string.Empty;
+		shiftAmount = 0;
+
+		if (operand is not BinaryExpressionNode {
+			Operator: BinaryOperator.LeftShift,
+			Left: IdentifierNode left,
+			Right: NumberLiteralNode right
+		}) {
+			return false;
+		}
+
+		registerName = left.Name;
+		shiftAmount = right.Value;
+		return true;
+	}
+
 	/// <inheritdoc />
 	public object? VisitProgram(ProgramNode node) {
 		foreach (var statement in node.Statements) {
@@ -146,7 +163,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 
 	/// <inheritdoc />
 	public object? VisitLabel(LabelNode node) {
-		// Labels don't generate code, just update address tracking
+		EnsureSegment(node.Location);
 		return null;
 	}
 
@@ -197,8 +214,17 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 			additionalOperands = new List<ResolvedOperand>(node.Operands.Count - 1);
 			for (int i = 1; i < node.Operands.Count; i++) {
 				var addlOp = node.Operands[i];
-				var addlId = addlOp is IdentifierNode addlIdNode ? addlIdNode.Name : null;
-				var addlValue = _analyzer.EvaluateExpression(addlOp);
+				string? addlId;
+				long? addlValue;
+
+				if (TryResolveShiftedRegisterOperand(addlOp, out var shiftedReg, out var shiftAmount)) {
+					addlId = shiftedReg;
+					addlValue = shiftAmount;
+				} else {
+					addlId = addlOp is IdentifierNode addlIdNode ? addlIdNode.Name : null;
+					addlValue = _analyzer.EvaluateExpression(addlOp);
+				}
+
 				additionalOperands.Add(new ResolvedOperand(addlId, addlValue));
 			}
 		}

@@ -430,6 +430,7 @@ public sealed class Parser {
 				innerOffset = ParseExpression();
 			} else {
 				innerOffset = ParseExpression();
+				innerOffset = TryParseArmShiftedRegisterOffset(innerOffset);
 			}
 		}
 		Expect(TokenType.RightBracket, "Expected ']' after bracket operand");
@@ -460,11 +461,34 @@ public sealed class Parser {
 			}
 
 			var postIndexOffset = ParseExpression();
+			postIndexOffset = TryParseArmShiftedRegisterOffset(postIndexOffset);
 			return (expr, AddressingMode.MemoryReferencePostIndexed, postIndexOffset);
 		}
 
 		// Plain indirect long
 		return (expr, AddressingMode.DirectPageIndirectLong, null);
+	}
+
+	private ExpressionNode TryParseArmShiftedRegisterOffset(ExpressionNode registerOperand) {
+		if (!Check(TokenType.Comma)) {
+			return registerOperand;
+		}
+
+		Advance(); // consume comma before shift specifier
+
+		if (!(Check(TokenType.Identifier) || Check(TokenType.Mnemonic))) {
+			throw new ParseException("Expected ARM shift operator (lsl) after register offset comma", CurrentToken.Location);
+		}
+
+		var shiftToken = Advance();
+		if (!shiftToken.Text.Equals("lsl", StringComparison.OrdinalIgnoreCase)) {
+			throw new ParseException($"Unsupported ARM shift operator '{shiftToken.Text}' (currently only lsl is supported)", shiftToken.Location);
+		}
+
+		Match(TokenType.Hash);
+		var shiftAmount = ParseExpression();
+
+		return new BinaryExpressionNode(shiftToken.Location, registerOperand, BinaryOperator.LeftShift, shiftAmount);
 	}
 
 	private StatementNode ParseAnonymousLabel(bool isForward) {
