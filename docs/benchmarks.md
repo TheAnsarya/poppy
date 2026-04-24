@@ -9,6 +9,7 @@ The benchmark suite covers:
 - Full compile pipeline benchmarks across multiple target systems
 - Architecture comparison benchmarks (including Channel F/F8)
 - Asset/pipeline helper benchmarks
+	- Asset-heavy per-target compile scenarios using a shared JSON+binary asset manifest workload
 - ARM7TDMI special-emission micro-benchmarks for:
 	- Data-processing instruction snippets
 	- Branch/call instruction snippets
@@ -39,6 +40,12 @@ Run quick dry-job validation for architecture comparison benchmarks:
 
 ```powershell
 dotnet run --project src/Poppy.Benchmarks -c Release -- --job dry --filter "*ArchitectureComparison*"
+```
+
+Run quick dry-job validation for asset pipeline benchmarks:
+
+```powershell
+dotnet run --project src/Poppy.Benchmarks -c Release -- --job dry --filter "*AssetPipeline*"
 ```
 
 ## Output

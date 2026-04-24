@@ -34,6 +34,22 @@ nop
 nop
 halt
 ", new byte[] { 0x00, 0x76 }];
+
+		yield return ["snes-bytes", TargetArchitecture.WDC65816, @".target snes
+rep #$30
+sep #$30
+nop
+", new byte[] { 0xc2, 0x30, 0xe2, 0x30, 0xea }];
+
+		yield return ["sms-bytes", TargetArchitecture.Z80, @".target sms
+nop
+halt
+", new byte[] { 0x00, 0x76 }];
+
+		yield return ["tg16-bytes", TargetArchitecture.HuC6280, @".target tg16
+nop
+inx
+", new byte[] { 0xea, 0xe8 }];
 	}
 
 	public static IEnumerable<object[]> SystemVectors() {

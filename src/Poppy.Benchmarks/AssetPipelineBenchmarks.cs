@@ -12,13 +12,22 @@ namespace Poppy.Benchmarks;
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class AssetPipelineBenchmarks {
-	private string _source = null!;
+	private string _sourceNes = null!;
+	private string _sourceSnes = null!;
+	private string _sourceGb = null!;
+	private string _sourceSms = null!;
+	private string _sourceTg16 = null!;
+	private string _sourceChannelF = null!;
 	private string _sourcePath = null!;
 	private string _tempDir = null!;
 
 	[GlobalSetup]
 	public void Setup() {
 		Poppy.Arch.MOS6502.Registration.RegisterAll();
+		Poppy.Arch.WDC65816.Registration.RegisterAll();
+		Poppy.Arch.SM83.Registration.RegisterAll();
+		Poppy.Arch.Z80.Registration.RegisterAll();
+		Poppy.Arch.HuC6280.Registration.RegisterAll();
 
 		_tempDir = Path.Combine(Path.GetTempPath(), "poppy-bench-assets-" + Guid.NewGuid().ToString("N"));
 		Directory.CreateDirectory(_tempDir);
@@ -43,8 +52,13 @@ public class AssetPipelineBenchmarks {
 			"]}";
 		File.WriteAllText(manifestPath, manifest);
 
-		_source = ".target nes\n.org $8000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
-		File.WriteAllText(_sourcePath, _source);
+		_sourceNes = ".target nes\n.org $8000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
+		_sourceSnes = ".target snes\n.org $808000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
+		_sourceGb = ".target gb\n.org $0100\n.asset_manifest \"assets.json\"\n.byte $00\n";
+		_sourceSms = ".target sms\n.org $0000\n.asset_manifest \"assets.json\"\n.byte $00\n";
+		_sourceTg16 = ".target tg16\n.org $8000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
+		_sourceChannelF = ".target channelf\n.org $0800\n.asset_manifest \"assets.json\"\n.byte $00\n";
+		File.WriteAllText(_sourcePath, _sourceNes);
 	}
 
 	[GlobalCleanup]
@@ -54,12 +68,41 @@ public class AssetPipelineBenchmarks {
 		}
 	}
 
-	[Benchmark(Description = "Compile: asset manifest (binary + json-u8)")]
-	public byte[] Compile_AssetManifest() {
-		var tokens = new Lexer(_source, _sourcePath).Tokenize();
+	[Benchmark(Description = "Asset-heavy compile: NES")]
+	public byte[] Compile_AssetManifest_Nes() {
+		return Compile(_sourceNes, TargetArchitecture.MOS6502);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: SNES")]
+	public byte[] Compile_AssetManifest_Snes() {
+		return Compile(_sourceSnes, TargetArchitecture.WDC65816);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: Game Boy")]
+	public byte[] Compile_AssetManifest_Gb() {
+		return Compile(_sourceGb, TargetArchitecture.SM83);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: Master System")]
+	public byte[] Compile_AssetManifest_Sms() {
+		return Compile(_sourceSms, TargetArchitecture.Z80);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: TG16")]
+	public byte[] Compile_AssetManifest_Tg16() {
+		return Compile(_sourceTg16, TargetArchitecture.HuC6280);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: Channel F")]
+	public byte[] Compile_AssetManifest_ChannelF() {
+		return Compile(_sourceChannelF, TargetArchitecture.F8);
+	}
+
+	private byte[] Compile(string source, TargetArchitecture target) {
+		var tokens = new Lexer(source, _sourcePath).Tokenize();
 		var ast = new Parser(tokens).Parse();
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		var analyzer = new SemanticAnalyzer(target);
 		analyzer.Analyze(ast);
-		return new CodeGenerator(analyzer, TargetArchitecture.MOS6502).Generate(ast);
+		return new CodeGenerator(analyzer, target).Generate(ast);
 	}
 }
