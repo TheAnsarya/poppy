@@ -15,6 +15,7 @@ public class AssetFixtureRoundtripTests {
 		yield return [TargetArchitecture.SM83, "gb"];
 		yield return [TargetArchitecture.Z80, "sms"];
 		yield return [TargetArchitecture.HuC6280, "tg16"];
+		yield return [TargetArchitecture.M68000, "genesis"];
 		yield return [TargetArchitecture.F8, "channelf"];
 	}
 

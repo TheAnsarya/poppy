@@ -95,7 +95,24 @@ PASM supports directives for binary inclusion and asset conversion before assemb
 
 These directives are validated in codegen tests, including cross-target `.asset_manifest` byte-consistency checks and PNG conversion coverage.
 
-Roundtrip fixture tests also validate editable JSON + PNG inputs emit deterministic binary blob prefixes across representative platform profiles, including Atari 2600.
+Genesis / Mega Drive asset pipeline examples:
+
+```asm
+.target genesis
+.org $000200
+.asset_manifest "assets/genesis-assets.json"
+
+; Optional direct conversion/inclusion when needed
+.asset "assets/tiles/title.png", "chr", "gba8", 8, 1, 1
+moveq #$2a, d0
+jmp $00000300
+```
+
+```bash
+poppy --platform genesis src/main.pasm -o build/game.bin
+```
+
+Roundtrip fixture tests also validate editable JSON + PNG inputs emit deterministic binary blob prefixes across representative platform profiles, including Atari 2600 and Genesis.
 
 ## ARM7TDMI Coverage Notes
 

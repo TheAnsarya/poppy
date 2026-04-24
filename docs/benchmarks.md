@@ -10,7 +10,7 @@ The benchmark suite covers:
 - Architecture comparison benchmarks (including Channel F/F8)
 	- Includes a focused Genesis instruction-bearing compile scenario (`moveq` + absolute-long `jmp` at `$0200`) for deterministic M68000 operand-family pipeline tracking
 - Asset/pipeline helper benchmarks
-	- Asset-heavy per-target compile scenarios (NES, Atari 2600, SNES, GB, SMS, TG16, Channel F) using a shared JSON+binary asset manifest workload
+	- Asset-heavy per-target compile scenarios (NES, Atari 2600, SNES, GB, SMS, TG16, Genesis, Channel F) using a shared JSON+binary asset manifest workload
 - ARM7TDMI special-emission micro-benchmarks for:
 	- Data-processing instruction snippets
 	- Branch/call instruction snippets

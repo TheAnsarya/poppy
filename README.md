@@ -220,6 +220,9 @@ poppy export game.pasm --to asar    # Export to ASAR format (.asm)
 poppy export game.pasm --to ca65    # Export to CA65 format (.s)
 poppy export game.pasm --to xkas    # Export to XKAS format (.asm)
 poppy export src/ --to asar         # Export entire project directory
+
+# Genesis asset-manifest workflow (conversion + inclusion)
+poppy --platform genesis src/main.pasm -o build/game.bin
 ```
 
 ### Example Assembly (NES/6502)

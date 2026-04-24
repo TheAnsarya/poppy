@@ -12,6 +12,7 @@ public class AssetManifestDirectiveTests {
 		yield return [TargetArchitecture.MOS6502, "nes"];
 		yield return [TargetArchitecture.MOS6507, "atari2600"];
 		yield return [TargetArchitecture.SM83, "gameboy"];
+		yield return [TargetArchitecture.M68000, "genesis"];
 		yield return [TargetArchitecture.F8, "channelf"];
 	}
 

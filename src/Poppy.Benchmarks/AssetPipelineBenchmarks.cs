@@ -18,6 +18,7 @@ public class AssetPipelineBenchmarks {
 	private string _sourceGb = null!;
 	private string _sourceSms = null!;
 	private string _sourceTg16 = null!;
+	private string _sourceGenesis = null!;
 	private string _sourceChannelF = null!;
 	private string _sourcePath = null!;
 	private string _tempDir = null!;
@@ -27,6 +28,7 @@ public class AssetPipelineBenchmarks {
 		Poppy.Arch.MOS6502.Registration.RegisterAll();
 		Poppy.Arch.WDC65816.Registration.RegisterAll();
 		Poppy.Arch.SM83.Registration.RegisterAll();
+		Poppy.Arch.M68000.Registration.RegisterAll();
 		Poppy.Arch.Z80.Registration.RegisterAll();
 		Poppy.Arch.HuC6280.Registration.RegisterAll();
 
@@ -59,6 +61,7 @@ public class AssetPipelineBenchmarks {
 		_sourceGb = ".target gb\n.org $0100\n.asset_manifest \"assets.json\"\n.byte $00\n";
 		_sourceSms = ".target sms\n.org $0000\n.asset_manifest \"assets.json\"\n.byte $00\n";
 		_sourceTg16 = ".target tg16\n.org $8000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
+		_sourceGenesis = ".target genesis\n.org $000200\n.asset_manifest \"assets.json\"\nmoveq #$2a, d0\n";
 		_sourceChannelF = ".target channelf\n.org $0800\n.asset_manifest \"assets.json\"\n.byte $00\n";
 		File.WriteAllText(_sourcePath, _sourceNes);
 	}
@@ -98,6 +101,11 @@ public class AssetPipelineBenchmarks {
 	[Benchmark(Description = "Asset-heavy compile: TG16")]
 	public byte[] Compile_AssetManifest_Tg16() {
 		return Compile(_sourceTg16, TargetArchitecture.HuC6280);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: Genesis")]
+	public byte[] Compile_AssetManifest_Genesis() {
+		return Compile(_sourceGenesis, TargetArchitecture.M68000);
 	}
 
 	[Benchmark(Description = "Asset-heavy compile: Channel F")]
