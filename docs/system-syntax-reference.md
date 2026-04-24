@@ -95,14 +95,20 @@ Current operand-shape limits for this slice:
 	- `mnemonic rd, [rn], #imm`
 	- `mnemonic rd, [rn], rm`
 	- `mnemonic rd, [rn, rm]`
-	- Shifted register-offset load/store form with left shift immediate:
+	- Shifted register-offset load/store forms with immediate shifts:
 		- `mnemonic rd, [rn, rm, lsl #n]`
+		- `mnemonic rd, [rn, rm, lsr #n]`
+		- `mnemonic rd, [rn, rm, asr #n]`
+		- `mnemonic rd, [rn, rm, ror #n]`
+	- Subtract register-offset forms:
+		- `mnemonic rd, [rn, - rm]`
+		- `mnemonic rd, [rn], - rm, <shift> #n`
 - Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 
 Tracked follow-up work:
 
 - Broader ARM7TDMI instruction family coverage beyond current slices: issues #344 and #346
-- Remaining shifted register-offset load/store parity (`lsr`/`asr`/`ror`, subtract register-offset): issue #357
+- Remaining register-offset shifter parity (`rrx`, register-specified shift amounts): issue #358
 
 For platform-specific headers and extended directives, see:
 

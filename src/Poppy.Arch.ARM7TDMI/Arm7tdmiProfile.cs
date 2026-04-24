@@ -375,6 +375,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			var offset = 0;
 			int? registerOffset = null;
 			var registerOffsetShift = 0;
+			var registerOffsetShiftType = InstructionSetARM7TDMI.ShiftTypes.LSL;
+			var registerOffsetAdd = true;
 			var preIndexed = context.AddressingMode != AddressingMode.MemoryReferencePostIndexed;
 			var writeBack = context.AddressingMode == AddressingMode.MemoryReferenceWriteBack;
 			if (context.AdditionalOperands.Count == 2) {
@@ -385,6 +387,15 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					}
 
 					registerOffset = rm;
+					registerOffsetAdd = !offsetOperand.IsNegative;
+
+					if (!string.IsNullOrWhiteSpace(offsetOperand.ShiftOperator)) {
+						if (!InstructionSetARM7TDMI.TryGetShiftType(offsetOperand.ShiftOperator, out registerOffsetShiftType)) {
+							emitter.ReportError($"'{context.Mnemonic}' unsupported register offset shift operator '{offsetOperand.ShiftOperator}'", context.Location);
+							return true;
+						}
+					}
+
 					if (offsetOperand.Value.HasValue) {
 						if (offsetOperand.Value.Value < 0 || offsetOperand.Value.Value > 31) {
 							emitter.ReportError($"'{context.Mnemonic}' register offset shift amount must be in range 0..31", context.Location);
@@ -410,7 +421,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			var bytes = registerOffset.HasValue
 				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition,
-					preIndexed: preIndexed, addOffset: true, writeBack: writeBack, shiftAmount: registerOffsetShift)
+					preIndexed: preIndexed, addOffset: registerOffsetAdd, writeBack: writeBack,
+					shiftAmount: registerOffsetShift, shiftType: registerOffsetShiftType)
 				: InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: preIndexed, writeBack: writeBack, condition: condition);
 			EmitLong(emitter, bytes);
 			return true;
@@ -600,7 +612,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 		}
 
 		private static byte[] EncodeLoadStoreRegisterOffset(bool isLoad, int rd, int rn, int rm, bool isByte, byte condition,
-			bool preIndexed, bool addOffset, bool writeBack, int shiftAmount) {
+			bool preIndexed, bool addOffset, bool writeBack, int shiftAmount, byte shiftType) {
 			uint instruction = 0;
 
 			instruction |= (uint)(condition & 0xf) << 28;
@@ -629,7 +641,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			instruction |= (uint)(rn & 0xf) << 16;
 			instruction |= (uint)(rd & 0xf) << 12;
-			instruction |= (uint)(shiftAmount & 0x1f) << 7; // LSL #imm by default (shift type = 0)
+			instruction |= (uint)(shiftAmount & 0x1f) << 7;
+			instruction |= (uint)(shiftType & 0x3) << 5;
 			instruction |= (uint)(rm & 0xf);
 
 			return [

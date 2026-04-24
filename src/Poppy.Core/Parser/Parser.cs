@@ -477,18 +477,22 @@ public sealed class Parser {
 		Advance(); // consume comma before shift specifier
 
 		if (!(Check(TokenType.Identifier) || Check(TokenType.Mnemonic))) {
-			throw new ParseException("Expected ARM shift operator (lsl) after register offset comma", CurrentToken.Location);
+			throw new ParseException("Expected ARM shift operator (lsl/lsr/asr/ror) after register offset comma", CurrentToken.Location);
 		}
 
 		var shiftToken = Advance();
-		if (!shiftToken.Text.Equals("lsl", StringComparison.OrdinalIgnoreCase)) {
-			throw new ParseException($"Unsupported ARM shift operator '{shiftToken.Text}' (currently only lsl is supported)", shiftToken.Location);
-		}
+		BinaryOperator shiftOperator = shiftToken.Text.ToLowerInvariant() switch {
+			"lsl" => BinaryOperator.LeftShift,
+			"lsr" => BinaryOperator.RightShift,
+			"asr" => BinaryOperator.Divide,
+			"ror" => BinaryOperator.BitwiseOr,
+			_ => throw new ParseException($"Unsupported ARM shift operator '{shiftToken.Text}' (supported: lsl, lsr, asr, ror)", shiftToken.Location)
+		};
 
 		Match(TokenType.Hash);
 		var shiftAmount = ParseExpression();
 
-		return new BinaryExpressionNode(shiftToken.Location, registerOperand, BinaryOperator.LeftShift, shiftAmount);
+		return new BinaryExpressionNode(shiftToken.Location, registerOperand, shiftOperator, shiftAmount);
 	}
 
 	private StatementNode ParseAnonymousLabel(bool isForward) {
