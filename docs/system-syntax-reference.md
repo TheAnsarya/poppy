@@ -21,6 +21,8 @@ Additional byte-verified integration vectors are maintained for core assembler c
 - SNES (WDC65816)
 - Master System (Z80)
 - TurboGrafx-16 / PC Engine (HuC6280)
+- Atari Lynx (MOS65SC02)
+- WonderSwan (V30MZ)
 
 These vectors assert exact emitted bytes for representative canonical instructions so cross-target compile correctness remains deterministic.
 
@@ -92,7 +94,7 @@ PASM supports directives for binary inclusion and asset conversion before assemb
 
 These directives are validated in codegen tests, including cross-target `.asset_manifest` byte-consistency checks and PNG conversion coverage.
 
-Roundtrip fixture tests also validate editable JSON + PNG inputs emit deterministic binary blob prefixes across representative platform profiles.
+Roundtrip fixture tests also validate editable JSON + PNG inputs emit deterministic binary blob prefixes across representative platform profiles, including Atari 2600.
 
 ## ARM7TDMI Coverage Notes
 

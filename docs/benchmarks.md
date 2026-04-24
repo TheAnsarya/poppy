@@ -9,7 +9,7 @@ The benchmark suite covers:
 - Full compile pipeline benchmarks across multiple target systems
 - Architecture comparison benchmarks (including Channel F/F8)
 - Asset/pipeline helper benchmarks
-	- Asset-heavy per-target compile scenarios using a shared JSON+binary asset manifest workload
+	- Asset-heavy per-target compile scenarios (NES, Atari 2600, SNES, GB, SMS, TG16, Channel F) using a shared JSON+binary asset manifest workload
 - ARM7TDMI special-emission micro-benchmarks for:
 	- Data-processing instruction snippets
 	- Branch/call instruction snippets

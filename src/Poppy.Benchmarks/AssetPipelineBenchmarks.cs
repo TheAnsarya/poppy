@@ -13,6 +13,7 @@ namespace Poppy.Benchmarks;
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class AssetPipelineBenchmarks {
 	private string _sourceNes = null!;
+	private string _sourceA26 = null!;
 	private string _sourceSnes = null!;
 	private string _sourceGb = null!;
 	private string _sourceSms = null!;
@@ -53,6 +54,7 @@ public class AssetPipelineBenchmarks {
 		File.WriteAllText(manifestPath, manifest);
 
 		_sourceNes = ".target nes\n.org $8000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
+		_sourceA26 = ".target a26\n.org $f000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
 		_sourceSnes = ".target snes\n.org $808000\n.asset_manifest \"assets.json\"\n.byte $ea\n";
 		_sourceGb = ".target gb\n.org $0100\n.asset_manifest \"assets.json\"\n.byte $00\n";
 		_sourceSms = ".target sms\n.org $0000\n.asset_manifest \"assets.json\"\n.byte $00\n";
@@ -71,6 +73,11 @@ public class AssetPipelineBenchmarks {
 	[Benchmark(Description = "Asset-heavy compile: NES")]
 	public byte[] Compile_AssetManifest_Nes() {
 		return Compile(_sourceNes, TargetArchitecture.MOS6502);
+	}
+
+	[Benchmark(Description = "Asset-heavy compile: Atari 2600")]
+	public byte[] Compile_AssetManifest_A26() {
+		return Compile(_sourceA26, TargetArchitecture.MOS6507);
 	}
 
 	[Benchmark(Description = "Asset-heavy compile: SNES")]

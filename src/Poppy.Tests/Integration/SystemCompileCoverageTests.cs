@@ -50,6 +50,16 @@ halt
 nop
 inx
 ", new byte[] { 0xea, 0xe8 }];
+
+		yield return ["lynx-bytes", TargetArchitecture.MOS65SC02, @".target lynx
+nop
+inx
+", new byte[] { 0x4c, 0x59, 0x4e, 0x58 }];
+
+		yield return ["wonderswan-bytes", TargetArchitecture.V30MZ, @".target ws
+nop
+cli
+", new byte[] { 0x90, 0xfa }];
 	}
 
 	public static IEnumerable<object[]> SystemVectors() {

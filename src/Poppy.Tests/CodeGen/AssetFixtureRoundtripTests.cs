@@ -1,4 +1,4 @@
-using Poppy.Core.Arch;
+﻿using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
 using Poppy.Core.Semantics;
 using SixLabors.ImageSharp;
@@ -10,6 +10,7 @@ namespace Poppy.Tests.CodeGen;
 public class AssetFixtureRoundtripTests {
 	public static IEnumerable<object[]> RoundtripTargets() {
 		yield return [TargetArchitecture.MOS6502, "nes"];
+		yield return [TargetArchitecture.MOS6507, "a26"];
 		yield return [TargetArchitecture.WDC65816, "snes"];
 		yield return [TargetArchitecture.SM83, "gb"];
 		yield return [TargetArchitecture.Z80, "sms"];
