@@ -135,22 +135,24 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 		return binary;
 	}
 
-	private static bool TryResolveShiftedRegisterOperand(ExpressionNode operand, out string registerName, out long shiftAmount, out string? shiftOperator, out bool isNegative) {
+	private static bool TryResolveShiftedRegisterOperand(ExpressionNode operand, out string registerName, out long shiftAmount, out string? shiftOperator, out bool isNegative, out string? shiftRegisterName) {
 		registerName = string.Empty;
 		shiftAmount = 0;
 		shiftOperator = null;
 		isNegative = false;
+		shiftRegisterName = null;
 
 		ExpressionNode registerOperand = operand;
 		if (operand is BinaryExpressionNode {
 			Left: var left,
-			Right: NumberLiteralNode right
+			Right: var rightOperand
 		} shiftExpr) {
 			shiftOperator = shiftExpr.Operator switch {
 				BinaryOperator.LeftShift => "lsl",
 				BinaryOperator.RightShift => "lsr",
 				BinaryOperator.Divide => "asr",
 				BinaryOperator.BitwiseOr => "ror",
+				BinaryOperator.Modulo => "rrx",
 				_ => null
 			};
 
@@ -159,7 +161,13 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 			}
 
 			registerOperand = left;
-			shiftAmount = right.Value;
+			if (rightOperand is NumberLiteralNode rightNumber) {
+				shiftAmount = rightNumber.Value;
+			} else if (rightOperand is IdentifierNode rightIdentifier) {
+				shiftRegisterName = rightIdentifier.Name;
+			} else {
+				return false;
+			}
 		}
 
 		if (registerOperand is UnaryExpressionNode {
@@ -244,10 +252,10 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 				string? addlId;
 				long? addlValue;
 
-				if (TryResolveShiftedRegisterOperand(addlOp, out var shiftedReg, out var shiftAmount, out var shiftOperator, out var isNegative)) {
+				if (TryResolveShiftedRegisterOperand(addlOp, out var shiftedReg, out var shiftAmount, out var shiftOperator, out var isNegative, out var shiftRegisterName)) {
 					addlId = shiftedReg;
-					addlValue = shiftAmount;
-					additionalOperands.Add(new ResolvedOperand(addlId, addlValue, shiftOperator, isNegative));
+					addlValue = shiftRegisterName is null ? shiftAmount : null;
+					additionalOperands.Add(new ResolvedOperand(addlId, addlValue, shiftOperator, isNegative, shiftRegisterName));
 					continue;
 				} else {
 					addlId = addlOp is IdentifierNode addlIdNode ? addlIdNode.Name : null;

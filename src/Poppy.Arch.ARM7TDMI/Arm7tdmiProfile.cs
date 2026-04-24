@@ -375,6 +375,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			var offset = 0;
 			int? registerOffset = null;
 			var registerOffsetShift = 0;
+			int? registerOffsetShiftRegister = null;
 			var registerOffsetShiftType = InstructionSetARM7TDMI.ShiftTypes.LSL;
 			var registerOffsetAdd = true;
 			var preIndexed = context.AddressingMode != AddressingMode.MemoryReferencePostIndexed;
@@ -390,13 +391,36 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 					registerOffsetAdd = !offsetOperand.IsNegative;
 
 					if (!string.IsNullOrWhiteSpace(offsetOperand.ShiftOperator)) {
+						if (offsetOperand.ShiftOperator.Equals("rrx", StringComparison.OrdinalIgnoreCase)) {
+							registerOffsetShiftType = InstructionSetARM7TDMI.ShiftTypes.ROR;
+							registerOffsetShift = 0;
+							registerOffsetShiftRegister = null;
+						} else
 						if (!InstructionSetARM7TDMI.TryGetShiftType(offsetOperand.ShiftOperator, out registerOffsetShiftType)) {
 							emitter.ReportError($"'{context.Mnemonic}' unsupported register offset shift operator '{offsetOperand.ShiftOperator}'", context.Location);
 							return true;
 						}
 					}
 
+					if (!string.IsNullOrWhiteSpace(offsetOperand.ShiftRegisterIdentifier)) {
+						if (offsetOperand.ShiftOperator is not "lsl" and not "lsr" and not "asr" and not "ror") {
+							emitter.ReportError($"'{context.Mnemonic}' register-specified shift is only valid for lsl/lsr/asr/ror", context.Location);
+							return true;
+						}
+
+						if (!TryResolveRegister(offsetOperand.ShiftRegisterIdentifier, out var rs, context, emitter)) {
+							return true;
+						}
+
+						registerOffsetShiftRegister = rs;
+					}
+
 					if (offsetOperand.Value.HasValue) {
+						if (registerOffsetShiftRegister.HasValue) {
+							emitter.ReportError($"'{context.Mnemonic}' cannot specify both immediate and register shift amount", context.Location);
+							return true;
+						}
+
 						if (offsetOperand.Value.Value < 0 || offsetOperand.Value.Value > 31) {
 							emitter.ReportError($"'{context.Mnemonic}' register offset shift amount must be in range 0..31", context.Location);
 							return true;
@@ -422,7 +446,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			var bytes = registerOffset.HasValue
 				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition,
 					preIndexed: preIndexed, addOffset: registerOffsetAdd, writeBack: writeBack,
-					shiftAmount: registerOffsetShift, shiftType: registerOffsetShiftType)
+					shiftAmount: registerOffsetShift, shiftType: registerOffsetShiftType, shiftRegister: registerOffsetShiftRegister)
 				: InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: preIndexed, writeBack: writeBack, condition: condition);
 			EmitLong(emitter, bytes);
 			return true;
@@ -612,7 +636,7 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 		}
 
 		private static byte[] EncodeLoadStoreRegisterOffset(bool isLoad, int rd, int rn, int rm, bool isByte, byte condition,
-			bool preIndexed, bool addOffset, bool writeBack, int shiftAmount, byte shiftType) {
+			bool preIndexed, bool addOffset, bool writeBack, int shiftAmount, byte shiftType, int? shiftRegister) {
 			uint instruction = 0;
 
 			instruction |= (uint)(condition & 0xf) << 28;
@@ -641,8 +665,15 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			instruction |= (uint)(rn & 0xf) << 16;
 			instruction |= (uint)(rd & 0xf) << 12;
-			instruction |= (uint)(shiftAmount & 0x1f) << 7;
-			instruction |= (uint)(shiftType & 0x3) << 5;
+
+			if (shiftRegister.HasValue) {
+				instruction |= (uint)(shiftRegister.Value & 0xf) << 8;
+				instruction |= (uint)(shiftType & 0x3) << 5;
+				instruction |= 1u << 4;
+			} else {
+				instruction |= (uint)(shiftAmount & 0x1f) << 7;
+				instruction |= (uint)(shiftType & 0x3) << 5;
+			}
 			instruction |= (uint)(rm & 0xf);
 
 			return [

@@ -100,15 +100,21 @@ Current operand-shape limits for this slice:
 		- `mnemonic rd, [rn, rm, lsr #n]`
 		- `mnemonic rd, [rn, rm, asr #n]`
 		- `mnemonic rd, [rn, rm, ror #n]`
+		- `mnemonic rd, [rn, rm, rrx]`
+	- Register-specified shift amount forms:
+		- `mnemonic rd, [rn, rm, lsl rs]`
+		- `mnemonic rd, [rn, rm, lsr rs]`
+		- `mnemonic rd, [rn, rm, asr rs]`
+		- `mnemonic rd, [rn, rm, ror rs]`
 	- Subtract register-offset forms:
 		- `mnemonic rd, [rn, - rm]`
 		- `mnemonic rd, [rn], - rm, <shift> #n`
+		- `mnemonic rd, [rn], - rm, <shift> rs`
 - Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 
 Tracked follow-up work:
 
 - Broader ARM7TDMI instruction family coverage beyond current slices: issues #344 and #346
-- Remaining register-offset shifter parity (`rrx`, register-specified shift amounts): issue #358
 
 For platform-specific headers and extended directives, see:
 

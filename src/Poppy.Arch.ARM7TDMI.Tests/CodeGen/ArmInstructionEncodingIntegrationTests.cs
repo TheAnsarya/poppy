@@ -265,6 +265,27 @@ strb r12, [r13], - r14, lsr #2
 	}
 
 	[Fact]
+	public void RrxAndRegisterSpecifiedShiftOffsetForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+ldr r0, [r1, r2, rrx]
+str r3, [r4, r5, lsl r6]
+ldrb r7, [r8], r9, asr r10
+str r11, [r12], - r13, ror r14
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x62, 0x00, 0x91, 0xe7], code[0..4]);
+		Assert.Equal([0x15, 0x36, 0x84, 0xe7], code[4..8]);
+		Assert.Equal([0x59, 0x7a, 0xd8, 0xe6], code[8..12]);
+		Assert.Equal([0x7d, 0xbe, 0x0c, 0xe6], code[12..16]);
+	}
+
+	[Fact]
 	public void ConditionalMultiplyMnemonic_EmitsExpectedWord() {
 		var source = @"
 .target gba

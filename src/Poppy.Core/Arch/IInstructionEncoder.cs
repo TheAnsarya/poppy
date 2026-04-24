@@ -12,7 +12,12 @@ public readonly record struct EncodedInstruction(byte Opcode, int Size);
 /// <summary>
 /// Represents a resolved operand for architecture-specific instruction emission.
 /// </summary>
-public readonly record struct ResolvedOperand(string? Identifier, long? Value, string? ShiftOperator = null, bool IsNegative = false);
+public readonly record struct ResolvedOperand(
+	string? Identifier,
+	long? Value,
+	string? ShiftOperator = null,
+	bool IsNegative = false,
+	string? ShiftRegisterIdentifier = null);
 
 /// <summary>
 /// Context for architecture-specific special instruction emission.

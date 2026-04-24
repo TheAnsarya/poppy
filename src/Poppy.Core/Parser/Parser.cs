@@ -477,7 +477,7 @@ public sealed class Parser {
 		Advance(); // consume comma before shift specifier
 
 		if (!(Check(TokenType.Identifier) || Check(TokenType.Mnemonic))) {
-			throw new ParseException("Expected ARM shift operator (lsl/lsr/asr/ror) after register offset comma", CurrentToken.Location);
+			throw new ParseException("Expected ARM shift operator (lsl/lsr/asr/ror/rrx) after register offset comma", CurrentToken.Location);
 		}
 
 		var shiftToken = Advance();
@@ -486,8 +486,14 @@ public sealed class Parser {
 			"lsr" => BinaryOperator.RightShift,
 			"asr" => BinaryOperator.Divide,
 			"ror" => BinaryOperator.BitwiseOr,
-			_ => throw new ParseException($"Unsupported ARM shift operator '{shiftToken.Text}' (supported: lsl, lsr, asr, ror)", shiftToken.Location)
+			"rrx" => BinaryOperator.Modulo,
+			_ => throw new ParseException($"Unsupported ARM shift operator '{shiftToken.Text}' (supported: lsl, lsr, asr, ror, rrx)", shiftToken.Location)
 		};
+
+		if (shiftToken.Text.Equals("rrx", StringComparison.OrdinalIgnoreCase)) {
+			var zero = new NumberLiteralNode(shiftToken.Location, 0);
+			return new BinaryExpressionNode(shiftToken.Location, registerOperand, shiftOperator, zero);
+		}
 
 		Match(TokenType.Hash);
 		var shiftAmount = ParseExpression();
