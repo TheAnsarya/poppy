@@ -66,6 +66,21 @@ start:
 
 Swap `.target` and address window per platform, then use opcodes that are valid for that profile.
 
+## Asset Inclusion and Conversion Directives
+
+PASM supports directives for binary inclusion and asset conversion before assembly output:
+
+- `.incbin "path"[, offset[, length]]`
+	- Includes raw binary bytes from a file, with optional byte offset/length slicing.
+- `.asset "path", "type"[, option1[, option2[, option3[, option4]]]]`
+	- Converts an asset into emitted bytes using a converter type/options.
+	- Example: `.asset "sprite.png", "chr", "gba8", 8, 1, 1`
+- `.asset_manifest "path/to/assets.json"`
+	- Loads a manifest describing multiple asset inputs and conversion rules.
+	- Supports mixed sources (for example binary slices and JSON byte arrays) in one pre-assembly step.
+
+These directives are validated in codegen tests, including cross-target `.asset_manifest` byte-consistency checks and PNG conversion coverage.
+
 ## ARM7TDMI Coverage Notes
 
 Current ARM mode instruction emission is verified end-to-end for:

@@ -7,7 +7,7 @@ Poppy includes a BenchmarkDotNet benchmark suite in `src/Poppy.Benchmarks/`.
 The benchmark suite covers:
 
 - Full compile pipeline benchmarks across multiple target systems
-- Architecture comparison benchmarks
+- Architecture comparison benchmarks (including Channel F/F8)
 - Asset/pipeline helper benchmarks
 - ARM7TDMI special-emission micro-benchmarks for:
 	- Data-processing instruction snippets
@@ -33,6 +33,12 @@ Run quick dry-job validation for ARM benchmarks:
 
 ```powershell
 dotnet run --project src/Poppy.Benchmarks -c Release -- --job dry --filter "*ArmSpecialEmission*"
+```
+
+Run quick dry-job validation for architecture comparison benchmarks:
+
+```powershell
+dotnet run --project src/Poppy.Benchmarks -c Release -- --job dry --filter "*ArchitectureComparison*"
 ```
 
 ## Output

@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using Poppy.Core.Arch;
 using Poppy.Core.CodeGen;
@@ -29,6 +29,7 @@ public class ArchitectureComparisonBenchmarks {
 	private PlatformSource _masterSystem;
 	private PlatformSource _turbografx;
 	private PlatformSource _wonderswan;
+	private PlatformSource _channelF;
 
 	[GlobalSetup]
 	public void Setup() {
@@ -56,6 +57,7 @@ public class ArchitectureComparisonBenchmarks {
 		_masterSystem = new(File.ReadAllText(Path.Combine(examplesDir, "mastersystem-hello-world", "main.pasm")), TargetArchitecture.Z80);
 		_turbografx = new(File.ReadAllText(Path.Combine(examplesDir, "turbografx-hello-world", "main.pasm")), TargetArchitecture.HuC6280);
 		_wonderswan = new(File.ReadAllText(Path.Combine(examplesDir, "wonderswan-hello-world", "main.pasm")), TargetArchitecture.V30MZ);
+		_channelF = new(File.ReadAllText(Path.Combine(examplesDir, "channelf-hello-world", "main.pasm")), TargetArchitecture.F8);
 	}
 
 	// ========================================================================
@@ -94,6 +96,9 @@ public class ArchitectureComparisonBenchmarks {
 
 	[Benchmark(Description = "WonderSwan (V30MZ)")]
 	public byte[] Compile_WonderSwan() => FullCompile(_wonderswan);
+
+	[Benchmark(Description = "Channel F (F8)")]
+	public byte[] Compile_ChannelF() => FullCompile(_channelF);
 
 	// ========================================================================
 	// Helpers

@@ -8,22 +8,30 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace Poppy.Tests.CodeGen;
 
 public class AssetManifestDirectiveTests {
-	private static (byte[] Code, CodeGenerator Generator) Compile(string source, string filename) {
+	public static IEnumerable<object[]> AssetManifestTargets() {
+		yield return [TargetArchitecture.MOS6502, "nes"];
+		yield return [TargetArchitecture.MOS6507, "atari2600"];
+		yield return [TargetArchitecture.SM83, "gameboy"];
+		yield return [TargetArchitecture.F8, "channelf"];
+	}
+
+	private static (byte[] Code, CodeGenerator Generator) Compile(string source, string filename, TargetArchitecture target) {
 		var lexer = new Core.Lexer.Lexer(source, filename);
 		var tokens = lexer.Tokenize();
 		var parser = new Core.Parser.Parser(tokens);
 		var program = parser.Parse();
 
-		var analyzer = new SemanticAnalyzer(TargetArchitecture.MOS6502);
+		var analyzer = new SemanticAnalyzer(target);
 		analyzer.Analyze(program);
 
-		var generator = new CodeGenerator(analyzer, TargetArchitecture.MOS6502);
+		var generator = new CodeGenerator(analyzer, target);
 		var code = generator.Generate(program);
 		return (code, generator);
 	}
 
-	[Fact]
-	public void AssetManifest_BinaryAndJson_EmitsExpectedBytes() {
+	[Theory]
+	[MemberData(nameof(AssetManifestTargets))]
+	public void AssetManifest_BinaryAndJson_EmitsExpectedBytesAcrossTargets(TargetArchitecture target, string targetName) {
 		using var temp = new TempDirectory();
 		var dataPath = Path.Combine(temp.Path, "data.bin");
 		var jsonPath = Path.Combine(temp.Path, "numbers.json");
@@ -38,11 +46,11 @@ public class AssetManifestDirectiveTests {
 			"{\"type\":\"json-u8\",\"path\":\"numbers.json\",\"jsonPath\":\"bytes\"}" +
 			"]}");
 
-		var source = ".asset_manifest \"assets.json\"";
-		var (code, gen) = Compile(source, sourcePath);
+		var source = $".target {targetName}\n.asset_manifest \"assets.json\"";
+		var (code, gen) = Compile(source, sourcePath, target);
 
 		Assert.False(gen.HasErrors);
-		Assert.Equal(new byte[] { 2, 3, 5, 6, 255 }, code);
+		AssertAssetBytesPresentInOrder(code, [2, 3, 5, 6, 255]);
 	}
 
 	[Fact]
@@ -53,8 +61,8 @@ public class AssetManifestDirectiveTests {
 
 		File.WriteAllBytes(pngPath, CreatePng(1, 1, 200));
 
-		var source = ".asset \"pixel.png\", \"chr\", \"gba8\", 8, 1, 1";
-		var (code, gen) = Compile(source, sourcePath);
+		var source = ".target nes\n.asset \"pixel.png\", \"chr\", \"gba8\", 8, 1, 1";
+		var (code, gen) = Compile(source, sourcePath, TargetArchitecture.MOS6502);
 
 		Assert.False(gen.HasErrors);
 		Assert.Single(code);
@@ -88,5 +96,23 @@ public class AssetManifestDirectiveTests {
 		using var ms = new MemoryStream();
 		image.Save(ms, new PngEncoder());
 		return ms.ToArray();
+	}
+
+	private static void AssertAssetBytesPresentInOrder(byte[] output, byte[] expected) {
+		for (var start = 0; start <= output.Length - expected.Length; start++) {
+			var match = true;
+			for (var i = 0; i < expected.Length; i++) {
+				if (output[start + i] != expected[i]) {
+					match = false;
+					break;
+				}
+			}
+
+			if (match) {
+				return;
+			}
+		}
+
+		Assert.Fail($"Expected asset byte sequence [{string.Join(", ", expected)}] was not found in output of length {output.Length}.");
 	}
 }
