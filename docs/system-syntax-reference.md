@@ -113,6 +113,11 @@ Current operand-shape limits for this slice:
 		- `mnemonic rd, [rn], -rm, <shift> #n`
 		- `mnemonic rd, [rn], - rm, <shift> rs`
 		- `mnemonic rd, [rn], -rm, <shift> rs`
+	- Advanced combinations validated:
+		- writeback + shifted register-offset: `mnemonic rd, [rn, rm, <shift> #n]!`
+		- post-index + register-specified shift: `mnemonic rd, [rn], rm, <shift> rs`
+		- post-index + `rrx`: `mnemonic rd, [rn], rm, rrx`
+		- subtract variants across writeback/post-index combinations
 - Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 
 Tracked follow-up work:
