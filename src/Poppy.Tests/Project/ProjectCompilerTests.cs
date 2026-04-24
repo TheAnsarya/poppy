@@ -404,12 +404,13 @@ nop
 .target genesis
 .include ""genesis.inc""
 .org CODE_START
-nop
-rts
+moveq #$2a, d0
+jmp TARGET_ADDR
 ");
 
 		WriteFile("includes/genesis.inc", @"
 CODE_START = $0200
+TARGET_ADDR = $00000300
 ");
 
 		var project = CreateProject(target: "genesis");
@@ -427,10 +428,14 @@ CODE_START = $0200
 		Assert.Equal((byte)'E', binary[0x101]);
 		Assert.Equal((byte)'G', binary[0x102]);
 		Assert.Equal((byte)'A', binary[0x103]);
-		Assert.Equal(0x4e, binary[0x200]);
-		Assert.Equal(0x71, binary[0x201]);
+		Assert.Equal(0x70, binary[0x200]);
+		Assert.Equal(0x2a, binary[0x201]);
 		Assert.Equal(0x4e, binary[0x202]);
-		Assert.Equal(0x75, binary[0x203]);
+		Assert.Equal(0xf9, binary[0x203]);
+		Assert.Equal(0x00, binary[0x204]);
+		Assert.Equal(0x00, binary[0x205]);
+		Assert.Equal(0x03, binary[0x206]);
+		Assert.Equal(0x00, binary[0x207]);
 	}
 
 	[Fact]

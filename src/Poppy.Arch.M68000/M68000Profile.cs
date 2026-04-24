@@ -43,8 +43,49 @@ internal sealed class M68000Profile : ITargetProfile {
 		private static readonly FrozenSet<string> s_mnemonics = InstructionSetM68000.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
+		private static bool TryGetDataRegister(string name, out int register) {
+			register = -1;
+			if (!InstructionSetM68000.TryGetRegister(name, out var encoding, out var isAddress) || isAddress) {
+				return false;
+			}
+
+			register = encoding;
+			return register >= 0 && register <= 7;
+		}
+
+		private static bool TryGetAddressRegister(string name, out int register) {
+			register = -1;
+			if (!InstructionSetM68000.TryGetRegister(name, out var encoding, out var isAddress) || !isAddress) {
+				return false;
+			}
+
+			register = encoding;
+			return register >= 0 && register <= 7;
+		}
+
 		public int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix,
 			IReadOnlyList<ResolvedOperand>? additionalOperands) {
+			if (mnemonic.Equals("moveq", StringComparison.OrdinalIgnoreCase)) {
+				if (!hasOperand || string.IsNullOrEmpty(operandIdentifier) || additionalOperands is null || additionalOperands.Count != 1) {
+					return 0;
+				}
+
+				var destination = additionalOperands[0].Identifier;
+				return !string.IsNullOrEmpty(destination) && TryGetDataRegister(destination, out _) ? 2 : 0;
+			}
+
+			if (mnemonic.Equals("jmp", StringComparison.OrdinalIgnoreCase) || mnemonic.Equals("jsr", StringComparison.OrdinalIgnoreCase)) {
+				if (!hasOperand || additionalOperands is not null && additionalOperands.Count > 0) {
+					return 0;
+				}
+
+				if (!string.IsNullOrEmpty(operandIdentifier) && TryGetAddressRegister(operandIdentifier, out _)) {
+					return 2;
+				}
+
+				return 6;
+			}
+
 			if (hasOperand || !string.IsNullOrEmpty(operandIdentifier)) {
 				return 0;
 			}
@@ -57,6 +98,62 @@ internal sealed class M68000Profile : ITargetProfile {
 		}
 
 		public bool TryEmitSpecialInstruction(SpecialInstructionContext context, ICodeEmitter emitter) {
+			if (context.Mnemonic.Equals("moveq", StringComparison.OrdinalIgnoreCase)) {
+				if (!context.OperandValue.HasValue || context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
+					return false;
+				}
+
+				var destination = context.AdditionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetDataRegister(destination, out var dataRegister)) {
+					return false;
+				}
+
+				if (context.OperandValue.Value < -128 || context.OperandValue.Value > 255) {
+					return false;
+				}
+
+				var imm8 = (byte)(context.OperandValue.Value & 0xff);
+				var opcode = (ushort)(0x7000 | (dataRegister << 9) | imm8);
+				emitter.EmitByte((byte)((opcode >> 8) & 0xff));
+				emitter.EmitByte((byte)(opcode & 0xff));
+				return true;
+			}
+
+			if (context.Mnemonic.Equals("jmp", StringComparison.OrdinalIgnoreCase) || context.Mnemonic.Equals("jsr", StringComparison.OrdinalIgnoreCase)) {
+				if (context.AdditionalOperands is not null && context.AdditionalOperands.Count > 0) {
+					return false;
+				}
+
+				if (!InstructionSetM68000.TryGetBaseOpcode(context.Mnemonic, out var baseOpcode)) {
+					return false;
+				}
+
+				if (!string.IsNullOrEmpty(context.OperandIdentifier)
+					&& context.AddressingMode == AddressingMode.Indirect
+					&& TryGetAddressRegister(context.OperandIdentifier, out var addressRegister)) {
+					var eaBits = (2 << 3) | addressRegister;
+					var opcode = (ushort)(baseOpcode | eaBits);
+					emitter.EmitByte((byte)((opcode >> 8) & 0xff));
+					emitter.EmitByte((byte)(opcode & 0xff));
+					return true;
+				}
+
+				if (!context.OperandValue.HasValue) {
+					return false;
+				}
+
+				// Encode absolute long effective address (mode=111, reg=001).
+				var absoluteLongOpcode = (ushort)(baseOpcode | 0x0039);
+				emitter.EmitByte((byte)((absoluteLongOpcode >> 8) & 0xff));
+				emitter.EmitByte((byte)(absoluteLongOpcode & 0xff));
+				var value = context.OperandValue.Value;
+				emitter.EmitByte((byte)((value >> 24) & 0xff));
+				emitter.EmitByte((byte)((value >> 16) & 0xff));
+				emitter.EmitByte((byte)((value >> 8) & 0xff));
+				emitter.EmitByte((byte)(value & 0xff));
+				return true;
+			}
+
 			if (!string.IsNullOrEmpty(context.OperandIdentifier) || context.OperandValue.HasValue) {
 				return false;
 			}
@@ -65,13 +162,13 @@ internal sealed class M68000Profile : ITargetProfile {
 				return false;
 			}
 
-			if (!InstructionSetM68000.TryGetBaseOpcode(context.Mnemonic, out var baseOpcode)) {
+			if (!InstructionSetM68000.TryGetBaseOpcode(context.Mnemonic, out var impliedBaseOpcode)) {
 				return false;
 			}
 
 			// M68000 opcodes are 16-bit big-endian words.
-			emitter.EmitByte((byte)((baseOpcode >> 8) & 0xff));
-			emitter.EmitByte((byte)(baseOpcode & 0xff));
+			emitter.EmitByte((byte)((impliedBaseOpcode >> 8) & 0xff));
+			emitter.EmitByte((byte)(impliedBaseOpcode & 0xff));
 			return true;
 		}
 
@@ -86,5 +183,8 @@ internal sealed class M68000Profile : ITargetProfile {
 
 		public bool IsBranchInstruction(string mnemonic) =>
 			InstructionSetM68000.IsBranchInstruction(mnemonic);
+
+		public bool IsRegister(string name) =>
+			InstructionSetM68000.TryGetRegister(name, out _, out _);
 	}
 }

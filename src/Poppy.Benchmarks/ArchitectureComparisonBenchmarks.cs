@@ -61,8 +61,8 @@ public class ArchitectureComparisonBenchmarks {
 		_channelF = new(File.ReadAllText(Path.Combine(examplesDir, "channelf-hello-world", "main.pasm")), TargetArchitecture.F8);
 		_genesisInstructionSnippet = new(@".target genesis
 .org $0200
-nop
-rts
+moveq #$2a, d0
+jmp $00000300
 ", TargetArchitecture.M68000);
 	}
 

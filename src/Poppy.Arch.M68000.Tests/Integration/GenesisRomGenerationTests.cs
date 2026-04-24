@@ -150,7 +150,42 @@ reset:
 .target genesis
 
 .org $0200
-	nop
+	moveq #$2a, d0
+	jmp $00000300
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.M68000);
+		analyzer.Analyze(program);
+
+		// act
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.M68000);
+		var binary = generator.Generate(program);
+
+		// assert
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+		Assert.Equal(0x70, binary[0x200]);
+		Assert.Equal(0x2a, binary[0x201]);
+		Assert.Equal(0x4e, binary[0x202]);
+		Assert.Equal(0xf9, binary[0x203]);
+		Assert.Equal(0x00, binary[0x204]);
+		Assert.Equal(0x00, binary[0x205]);
+		Assert.Equal(0x03, binary[0x206]);
+		Assert.Equal(0x00, binary[0x207]);
+	}
+
+	[Fact]
+	public void Generate_GenesisRom_EncodesJsrAddressRegisterIndirect() {
+		// arrange
+		var source = @"
+.target genesis
+
+.org $0200
+	jsr (a1)
 	rts
 ";
 		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
@@ -169,7 +204,7 @@ reset:
 		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
 		Assert.False(generator.HasErrors, GetErrorsString(generator));
 		Assert.Equal(0x4e, binary[0x200]);
-		Assert.Equal(0x71, binary[0x201]);
+		Assert.Equal(0x91, binary[0x201]);
 		Assert.Equal(0x4e, binary[0x202]);
 		Assert.Equal(0x75, binary[0x203]);
 	}
