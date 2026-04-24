@@ -463,6 +463,75 @@ nop
 			&& e.Message.Contains("not found", StringComparison.OrdinalIgnoreCase));
 	}
 
+	[Fact]
+	public void Compile_GenesisProject_WithAssetManifestAndIncludeEquates_EmitsDeterministicBytes() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.include ""genesis.inc""
+.org CODE_START
+.asset_manifest ""assets.json""
+moveq #VALUE_CONST, d0
+jmp TARGET_ADDR
+");
+
+		WriteFile("includes/genesis.inc", @"
+CODE_START = $0200
+VALUE_CONST = $2a
+TARGET_ADDR = $00000300
+");
+
+		File.WriteAllBytes(Path.Combine(_tempDir, "data.bin"), [1, 2, 3, 4]);
+		WriteFile("numbers.json", "{\"bytes\":[5,6,255]}");
+		WriteFile("assets.json",
+			"{\"assets\":[" +
+			"{\"type\":\"binary\",\"path\":\"data.bin\",\"offset\":1,\"length\":2}," +
+			"{\"type\":\"json-u8\",\"path\":\"numbers.json\",\"jsonPath\":\"bytes\"}" +
+			"]}");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		project.Includes.Add("includes");
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.NotNull(binary);
+		Assert.False(compiler.HasErrors);
+		Assert.Equal((byte)'S', binary[0x100]);
+		Assert.Equal((byte)'E', binary[0x101]);
+		Assert.Equal((byte)'G', binary[0x102]);
+		Assert.Equal((byte)'A', binary[0x103]);
+		AssertAssetBytesPresentInOrder(binary[0x200..], [2, 3, 5, 6, 255, 0x70, 0x2a, 0x4e, 0xf9, 0x00, 0x00, 0x03, 0x00]);
+	}
+
+	[Fact]
+	public void Compile_GenesisProject_MissingAssetManifest_ReportsDeterministicError() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.org $0200
+.asset_manifest ""missing_assets.json""
+moveq #$01, d0
+");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.Null(binary);
+		Assert.True(compiler.HasErrors);
+		Assert.Contains(compiler.Errors, e =>
+			e.Message.Contains("Asset manifest not found", StringComparison.OrdinalIgnoreCase)
+			&& e.Message.Contains("missing_assets.json", StringComparison.OrdinalIgnoreCase));
+	}
+
 	// ========================================================================
 	// FromFile Static Method Tests
 	// ========================================================================
@@ -559,6 +628,24 @@ nop
 		Assert.NotNull(binary);
 		Assert.False(compiler.HasErrors);
 		Assert.Single(compiler.CompiledFiles); // Should only appear once
+	}
+
+	private static void AssertAssetBytesPresentInOrder(byte[] output, byte[] expected) {
+		for (var start = 0; start <= output.Length - expected.Length; start++) {
+			var match = true;
+			for (var i = 0; i < expected.Length; i++) {
+				if (output[start + i] != expected[i]) {
+					match = false;
+					break;
+				}
+			}
+
+			if (match) {
+				return;
+			}
+		}
+
+		Assert.Fail($"Expected asset byte sequence [{string.Join(", ", expected)}] was not found in output of length {output.Length}.");
 	}
 }
 
