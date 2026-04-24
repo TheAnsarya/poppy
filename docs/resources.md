@@ -1,4 +1,4 @@
-# 📚 Resources - Poppy Compiler
+﻿# 📚 Resources - Poppy Compiler
 
 > Collection of URLs, documentation, and reference materials for development
 

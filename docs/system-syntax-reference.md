@@ -152,6 +152,19 @@ Representative snippet:
 
 Use this as a hardware map reference; final initialization ordering and wait-state behavior should follow platform docs linked in `docs/resources.md`.
 
+Current deterministic MMIO operand status in Genesis M68000 special emission:
+
+- Supported deterministic core forms:
+	- `movea.l <absolute>, an`
+	- `jsr (an)`
+	- `jmp <absolute>`
+- Deterministic diagnostics (currently rejected):
+	- `move.<size> dn, <absolute>` memory-mapped write shapes
+
+Tracked follow-up:
+
+- Issue #375 expands deterministic MMIO write/read operand coverage for VDP/YM2612/PSG/Z80 register access patterns.
+
 ## ARM7TDMI Coverage Notes
 
 Current ARM mode instruction emission is verified end-to-end for:

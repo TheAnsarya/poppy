@@ -1,4 +1,4 @@
-# 📚 Poppy Compiler User Manual
+﻿# 📚 Poppy Compiler User Manual
 
 > Complete guide to using the Poppy multi-system assembly compiler
 

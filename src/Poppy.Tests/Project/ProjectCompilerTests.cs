@@ -651,6 +651,83 @@ movea.l d1, d2
 			e.Message.Contains("destination must be address register direct", StringComparison.OrdinalIgnoreCase));
 	}
 
+	[Fact]
+	public void Compile_GenesisProject_WithMmioRegisterEquates_UsesDeterministicCoreForms() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.include ""genesis_hw.inc""
+.org CODE_START
+moveq #$22, d0
+movea.l YM2612_A0, a0
+jsr (a0)
+jmp VDP_CTRL
+");
+
+		WriteFile("includes/genesis_hw.inc", @"
+CODE_START = $0200
+YM2612_A0 = $00a04000
+VDP_CTRL = $00c00004
+");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		project.Includes.Add("includes");
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.NotNull(binary);
+		Assert.False(compiler.HasErrors);
+		Assert.Equal(0x70, binary[0x200]);
+		Assert.Equal(0x22, binary[0x201]);
+		Assert.Equal(0x20, binary[0x202]);
+		Assert.Equal(0x79, binary[0x203]);
+		Assert.Equal(0x00, binary[0x204]);
+		Assert.Equal(0xa0, binary[0x205]);
+		Assert.Equal(0x40, binary[0x206]);
+		Assert.Equal(0x00, binary[0x207]);
+		Assert.Equal(0x4e, binary[0x208]);
+		Assert.Equal(0x90, binary[0x209]);
+		Assert.Equal(0x4e, binary[0x20a]);
+		Assert.Equal(0xf9, binary[0x20b]);
+		Assert.Equal(0x00, binary[0x20c]);
+		Assert.Equal(0xc0, binary[0x20d]);
+		Assert.Equal(0x00, binary[0x20e]);
+		Assert.Equal(0x04, binary[0x20f]);
+	}
+
+	[Fact]
+	public void Compile_GenesisProject_WithMmioWriteShape_ReportsDeterministicDiagnostics() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.include ""genesis_hw.inc""
+.org $0200
+move.l d0, YM2612_A0
+");
+
+		WriteFile("includes/genesis_hw.inc", @"
+YM2612_A0 = $00a04000
+");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		project.Includes.Add("includes");
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.Null(binary);
+		Assert.True(compiler.HasErrors);
+		Assert.Contains(compiler.Errors, e =>
+			e.Message.Contains("destination must be data register direct", StringComparison.OrdinalIgnoreCase));
+	}
+
 	// ========================================================================
 	// FromFile Static Method Tests
 	// ========================================================================
