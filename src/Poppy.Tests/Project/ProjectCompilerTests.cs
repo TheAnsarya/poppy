@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // ProjectCompilerTests.cs - Unit Tests for Multi-File Project Compilation
 // Poppy Compiler - Multi-system Assembly Compiler
 // ============================================================================
@@ -337,6 +337,64 @@ end:
 		// Assert
 		Assert.True(success);
 		Assert.True(File.Exists(Path.Combine(_tempDir, "output.sym")));
+	}
+
+	// ========================================================================
+	// Channel F / F8 Compile Pipeline Tests
+	// ========================================================================
+
+	[Fact]
+	public void Compile_ChannelFProject_WithIncludeEquates_GeneratesOutput() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target channelf
+.include ""channelf.inc""
+.org CART_ROM_START
+ldi #$01
+nop
+");
+
+		WriteFile("includes/channelf.inc", @"
+CART_ROM_START = $0800
+");
+
+		var project = CreateProject(target: "channelf");
+		project.Main = "main.pasm";
+		project.Includes.Add("includes");
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.NotNull(binary);
+		Assert.False(compiler.HasErrors);
+		Assert.Equal([0x20, 0x01], binary[..2]);
+	}
+
+	[Fact]
+	public void Compile_ChannelFProject_MissingInclude_ReportsDeterministicError() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target channelf
+.include ""missing_channelf.inc""
+.org $0800
+nop
+");
+
+		var project = CreateProject(target: "channelf");
+		project.Main = "main.pasm";
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.Null(binary);
+		Assert.True(compiler.HasErrors);
+		Assert.Contains(compiler.Errors, e =>
+			e.Message.Contains("missing_channelf.inc", StringComparison.OrdinalIgnoreCase)
+			&& e.Message.Contains("not found", StringComparison.OrdinalIgnoreCase));
 	}
 
 	// ========================================================================
