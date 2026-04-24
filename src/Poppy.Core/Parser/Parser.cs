@@ -264,6 +264,7 @@ public sealed class Parser {
 
 		// Parse operand and determine addressing mode
 		var (operand, addressingMode, extraOperand) = ParseOperand();
+		var effectiveAddressingMode = addressingMode;
 		if (extraOperand is not null) {
 			var initialOperands = new List<ExpressionNode>();
 			if (operand is not null) {
@@ -273,7 +274,10 @@ public sealed class Parser {
 
 			while (!IsAtEndOfStatement() && Check(TokenType.Comma)) {
 				Advance(); // consume comma
-				var (nextOp, _, nextExtraOp) = ParseOperand();
+				var (nextOp, nextMode, nextExtraOp) = ParseOperand();
+				if (IsBracketMemoryAddressingMode(nextMode)) {
+					effectiveAddressingMode = nextMode;
+				}
 				if (nextOp is not null) {
 					initialOperands.Add(nextOp);
 				}
@@ -283,7 +287,7 @@ public sealed class Parser {
 			}
 
 			ExpectEndOfStatement();
-			return new InstructionNode(token.Location, mnemonic, sizeSuffix, initialOperands, addressingMode);
+			return new InstructionNode(token.Location, mnemonic, sizeSuffix, initialOperands, effectiveAddressingMode);
 		}
 
 		// Check for additional comma-separated operands (multi-operand instructions:
@@ -299,7 +303,10 @@ public sealed class Parser {
 
 			while (Check(TokenType.Comma)) {
 				Advance(); // consume comma
-				var (nextOp, _, nextExtraOp) = ParseOperand();
+				var (nextOp, nextMode, nextExtraOp) = ParseOperand();
+				if (IsBracketMemoryAddressingMode(nextMode)) {
+					effectiveAddressingMode = nextMode;
+				}
 				if (nextOp is not null) {
 					operands.Add(nextOp);
 				}
@@ -309,11 +316,17 @@ public sealed class Parser {
 			}
 
 			ExpectEndOfStatement();
-			return new InstructionNode(token.Location, mnemonic, sizeSuffix, operands, addressingMode);
+			return new InstructionNode(token.Location, mnemonic, sizeSuffix, operands, effectiveAddressingMode);
 		}
 
 		ExpectEndOfStatement();
-		return new InstructionNode(token.Location, mnemonic, sizeSuffix, operand, addressingMode);
+		return new InstructionNode(token.Location, mnemonic, sizeSuffix, operand, effectiveAddressingMode);
+	}
+
+	private static bool IsBracketMemoryAddressingMode(AddressingMode mode) {
+		return mode == AddressingMode.MemoryReference
+			|| mode == AddressingMode.MemoryReferenceWriteBack
+			|| mode == AddressingMode.MemoryReferencePostIndexed;
 	}
 
 	private (ExpressionNode? Operand, AddressingMode Mode, ExpressionNode? ExtraOperand) ParseOperand() {
@@ -421,18 +434,33 @@ public sealed class Parser {
 		}
 		Expect(TokenType.RightBracket, "Expected ']' after bracket operand");
 
+		// ARM writeback form: [rn, #imm]!
+		if (Match(TokenType.Bang)) {
+			return (expr, AddressingMode.MemoryReferenceWriteBack, innerOffset);
+		}
+
 		if (innerOffset is not null) {
 			return (expr, AddressingMode.MemoryReference, innerOffset);
 		}
 
-		// [$00],y - Indirect Long Indexed
+		// ARM post-index form: [rn], #imm / [rn], rm
 		if (Match(TokenType.Comma)) {
-			var indexToken = Advance();
-			if (!indexToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase)) {
-				throw new ParseException($"Expected 'Y' for indirect long indexed, got: {indexToken.Text}", indexToken.Location);
+			if (Check(TokenType.Identifier) && CurrentToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase)) {
+				var indexToken = Advance();
+				if (!indexToken.Text.Equals("y", StringComparison.OrdinalIgnoreCase)) {
+					throw new ParseException($"Expected 'Y' for indirect long indexed, got: {indexToken.Text}", indexToken.Location);
+				}
+
+				return (expr, AddressingMode.DirectPageIndirectLongY, null);
 			}
 
-			return (expr, AddressingMode.DirectPageIndirectLongY, null);
+			if (Match(TokenType.Hash)) {
+				var postIndexImmediate = ParseExpression();
+				return (expr, AddressingMode.MemoryReferencePostIndexed, postIndexImmediate);
+			}
+
+			var postIndexOffset = ParseExpression();
+			return (expr, AddressingMode.MemoryReferencePostIndexed, postIndexOffset);
 		}
 
 		// Plain indirect long

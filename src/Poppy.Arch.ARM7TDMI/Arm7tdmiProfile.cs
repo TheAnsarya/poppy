@@ -374,6 +374,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 
 			var offset = 0;
 			int? registerOffset = null;
+			var preIndexed = context.AddressingMode != AddressingMode.MemoryReferencePostIndexed;
+			var writeBack = context.AddressingMode == AddressingMode.MemoryReferenceWriteBack;
 			if (context.AdditionalOperands.Count == 2) {
 				var offsetOperand = context.AdditionalOperands[1];
 				if (offsetOperand.Identifier is not null) {
@@ -398,8 +400,8 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			}
 
 			var bytes = registerOffset.HasValue
-				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition)
-				: InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: true, writeBack: false, condition: condition);
+				? EncodeLoadStoreRegisterOffset(isLoad, rd, rn, registerOffset.Value, isByte, condition, preIndexed: preIndexed, addOffset: true, writeBack: writeBack)
+				: InstructionSetARM7TDMI.EncodeLoadStoreImmediate(isLoad, rd, rn, offset, isByte, preIndexed: preIndexed, writeBack: writeBack, condition: condition);
 			EmitLong(emitter, bytes);
 			return true;
 		}
@@ -587,14 +589,25 @@ internal sealed class Arm7tdmiProfile : ITargetProfile {
 			];
 		}
 
-		private static byte[] EncodeLoadStoreRegisterOffset(bool isLoad, int rd, int rn, int rm, bool isByte, byte condition) {
+		private static byte[] EncodeLoadStoreRegisterOffset(bool isLoad, int rd, int rn, int rm, bool isByte, byte condition,
+			bool preIndexed, bool addOffset, bool writeBack) {
 			uint instruction = 0;
 
 			instruction |= (uint)(condition & 0xf) << 28;
 			instruction |= 1u << 26;
 			instruction |= 1u << 25; // Register offset
-			instruction |= 1u << 24; // Pre-indexed
-			instruction |= 1u << 23; // Add offset
+
+			if (preIndexed) {
+				instruction |= 1u << 24;
+			}
+
+			if (addOffset) {
+				instruction |= 1u << 23;
+			}
+
+			if (writeBack) {
+				instruction |= 1u << 21;
+			}
 
 			if (isByte) {
 				instruction |= 1u << 22;

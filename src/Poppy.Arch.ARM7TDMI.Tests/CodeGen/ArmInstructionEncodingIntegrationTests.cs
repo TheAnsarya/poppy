@@ -200,6 +200,31 @@ strb r6, [r7, #-2]
 	}
 
 	[Fact]
+	public void WriteBackAndPostIndexLoadStoreForms_EmitExpectedWords() {
+		var source = @"
+.target gba
+.org $08000000
+ldr r0, [r1, #4]!
+str r2, [r3, #12]!
+ldrb r4, [r5], #1
+strb r6, [r7], #2
+ldr r8, [r9], r10
+str r11, [r12], r13
+";
+
+		var (code, gen, analyzer) = Compile(source);
+
+		Assert.False(analyzer.HasErrors, string.Join("; ", analyzer.Errors.Select(e => e.Message)));
+		Assert.False(gen.HasErrors, string.Join("; ", gen.Errors.Select(e => e.Message)));
+		Assert.Equal([0x04, 0x00, 0xb1, 0xe5], code[0..4]);
+		Assert.Equal([0x0c, 0x20, 0xa3, 0xe5], code[4..8]);
+		Assert.Equal([0x01, 0x40, 0xd5, 0xe4], code[8..12]);
+		Assert.Equal([0x02, 0x60, 0xc7, 0xe4], code[12..16]);
+		Assert.Equal([0x0a, 0x80, 0x99, 0xe6], code[16..20]);
+		Assert.Equal([0x0d, 0xb0, 0x8c, 0xe6], code[20..24]);
+	}
+
+	[Fact]
 	public void ConditionalMultiplyMnemonic_EmitsExpectedWord() {
 		var source = @"
 .target gba

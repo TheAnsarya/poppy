@@ -91,12 +91,17 @@ Current operand-shape limits for this slice:
 	- `mnemonic rd, [rn]`
 	- `mnemonic rd, [rn, #imm]`
 	- `mnemonic rd, [rn, #-imm]`
+	- `mnemonic rd, [rn, #imm]!`
+	- `mnemonic rd, [rn], #imm`
+	- `mnemonic rd, [rn], rm`
 	- `mnemonic rd, [rn, rm]`
+	- Shifted register-offset forms (for example `mnemonic rd, [rn, rm, lsl #n]`) are tracked as follow-up work in issue #356.
 - Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 
 Tracked follow-up work:
 
 - Broader ARM7TDMI instruction family coverage beyond current slices: issues #344 and #346
+- Shifted register-offset load/store support: issue #356
 
 For platform-specific headers and extended directives, see:
 

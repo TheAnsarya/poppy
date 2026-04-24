@@ -336,6 +336,12 @@ public enum AddressingMode {
 
 	/// <summary>Memory reference with brackets (e.g., ld [hl],a)</summary>
 	MemoryReference,
+
+	/// <summary>Memory reference with writeback (e.g., ldr r0, [r1, #4]!)</summary>
+	MemoryReferenceWriteBack,
+
+	/// <summary>Memory reference with post-index offset (e.g., ldr r0, [r1], #4)</summary>
+	MemoryReferencePostIndexed,
 }
 
 /// <summary>
