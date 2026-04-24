@@ -13,6 +13,14 @@ Poppy validates target-system wiring through integration smoke compilation for e
 
 These smoke checks are designed to catch target-registry breakage quickly and are complementary to architecture-specific unit tests.
 
+Additional byte-verified integration vectors are maintained for core assembler completeness on:
+
+- NES (MOS6502)
+- Atari 2600 (MOS6507)
+- Game Boy (SM83)
+
+These vectors assert exact emitted bytes for representative canonical instructions so cross-target compile correctness remains deterministic.
+
 ## Per-System PASM Reference
 
 | System | CPU Model | PASM `.target` | CLI `--platform` | Baseline Syntax Notes |
