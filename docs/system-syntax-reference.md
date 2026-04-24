@@ -108,8 +108,11 @@ Current operand-shape limits for this slice:
 		- `mnemonic rd, [rn, rm, ror rs]`
 	- Subtract register-offset forms:
 		- `mnemonic rd, [rn, - rm]`
+		- `mnemonic rd, [rn, -rm]`
 		- `mnemonic rd, [rn], - rm, <shift> #n`
+		- `mnemonic rd, [rn], -rm, <shift> #n`
 		- `mnemonic rd, [rn], - rm, <shift> rs`
+		- `mnemonic rd, [rn], -rm, <shift> rs`
 - Multiply-long expects register form: `mnemonic rdlo, rdhi, rm, rs`
 
 Tracked follow-up work:

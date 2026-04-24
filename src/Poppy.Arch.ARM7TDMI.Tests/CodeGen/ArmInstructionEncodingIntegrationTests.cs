@@ -249,8 +249,8 @@ strb r3, [r4], r5, lsl #1
 ldr r0, [r1, r2, lsr #3]
 str r3, [r4, r5, asr #4]
 ldrb r6, [r7], r8, ror #1
-ldr r9, [r10, - r11]
-strb r12, [r13], - r14, lsr #2
+ldr r9, [r10, -r11]
+strb r12, [r13], -r14, lsr #2
 ";
 
 		var (code, gen, analyzer) = Compile(source);

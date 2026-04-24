@@ -794,6 +794,38 @@ public class ParserTests {
 	}
 
 	[Fact]
+	public void Parse_ArmBracketCompactNegativeRegisterOffset_ParsesAsUnaryNegate() {
+		var program = Parse("ldr r0, [r1, -r2]");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+
+		Assert.Equal(AddressingMode.MemoryReference, instr.AddressingMode);
+		Assert.Equal(3, instr.Operands.Count);
+
+		var baseRegister = Assert.IsType<IdentifierNode>(instr.Operands[1]);
+		Assert.Equal("r1", baseRegister.Name);
+
+		var offset = Assert.IsType<UnaryExpressionNode>(instr.Operands[2]);
+		Assert.Equal(UnaryOperator.Negate, offset.Operator);
+		Assert.Equal("r2", Assert.IsType<IdentifierNode>(offset.Operand).Name);
+	}
+
+	[Fact]
+	public void Parse_ArmBracketSpacedNegativeRegisterOffset_ParsesAsUnaryNegate() {
+		var program = Parse("ldr r0, [r1, - r2]");
+		var instr = Assert.IsType<InstructionNode>(program.Statements.Single());
+
+		Assert.Equal(AddressingMode.MemoryReference, instr.AddressingMode);
+		Assert.Equal(3, instr.Operands.Count);
+
+		var baseRegister = Assert.IsType<IdentifierNode>(instr.Operands[1]);
+		Assert.Equal("r1", baseRegister.Name);
+
+		var offset = Assert.IsType<UnaryExpressionNode>(instr.Operands[2]);
+		Assert.Equal(UnaryOperator.Negate, offset.Operator);
+		Assert.Equal("r2", Assert.IsType<IdentifierNode>(offset.Operand).Name);
+	}
+
+	[Fact]
 	public void Parse_6502IndexedMode_StillWorks() {
 		// Ensure 6502 ,x / ,y / ,s indexing is unaffected
 		var program = Parse("lda $2000,x");

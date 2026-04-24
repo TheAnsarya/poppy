@@ -429,7 +429,7 @@ public sealed class Parser {
 			if (Match(TokenType.Hash)) {
 				innerOffset = ParseExpression();
 			} else {
-				innerOffset = ParseExpression();
+				innerOffset = ParseBracketOffsetExpression();
 				innerOffset = TryParseArmShiftedRegisterOffset(innerOffset);
 			}
 		}
@@ -460,13 +460,25 @@ public sealed class Parser {
 				return (expr, AddressingMode.MemoryReferencePostIndexed, postIndexImmediate);
 			}
 
-			var postIndexOffset = ParseExpression();
+			var postIndexOffset = ParseBracketOffsetExpression();
 			postIndexOffset = TryParseArmShiftedRegisterOffset(postIndexOffset);
 			return (expr, AddressingMode.MemoryReferencePostIndexed, postIndexOffset);
 		}
 
 		// Plain indirect long
 		return (expr, AddressingMode.DirectPageIndirectLong, null);
+	}
+
+	private ExpressionNode ParseBracketOffsetExpression() {
+		if (Check(TokenType.NamedAnonymousBackward)) {
+			var token = Advance();
+			if (token.Text.Length > 1) {
+				var identifier = new IdentifierNode(token.Location, token.Text[1..]);
+				return new UnaryExpressionNode(token.Location, UnaryOperator.Negate, identifier);
+			}
+		}
+
+		return ParseExpression();
 	}
 
 	private ExpressionNode TryParseArmShiftedRegisterOffset(ExpressionNode registerOperand) {
