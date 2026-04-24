@@ -532,6 +532,47 @@ moveq #$01, d0
 			&& e.Message.Contains("missing_assets.json", StringComparison.OrdinalIgnoreCase));
 	}
 
+	[Fact]
+	public void Compile_GenesisProject_WithLeaAndPea_EmitsDeterministicOpcodes() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.include ""genesis.inc""
+.org CODE_START
+lea TARGET_ADDR, a2
+pea (a1)
+");
+
+		WriteFile("includes/genesis.inc", @"
+CODE_START = $0200
+TARGET_ADDR = $00000300
+");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		project.Includes.Add("includes");
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.NotNull(binary);
+		Assert.False(compiler.HasErrors);
+		Assert.Equal((byte)'S', binary[0x100]);
+		Assert.Equal((byte)'E', binary[0x101]);
+		Assert.Equal((byte)'G', binary[0x102]);
+		Assert.Equal((byte)'A', binary[0x103]);
+		Assert.Equal(0x45, binary[0x200]);
+		Assert.Equal(0xf9, binary[0x201]);
+		Assert.Equal(0x00, binary[0x202]);
+		Assert.Equal(0x00, binary[0x203]);
+		Assert.Equal(0x03, binary[0x204]);
+		Assert.Equal(0x00, binary[0x205]);
+		Assert.Equal(0x48, binary[0x206]);
+		Assert.Equal(0x51, binary[0x207]);
+	}
+
 	// ========================================================================
 	// FromFile Static Method Tests
 	// ========================================================================

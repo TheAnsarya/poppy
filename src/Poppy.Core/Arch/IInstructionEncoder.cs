@@ -28,6 +28,7 @@ public readonly record struct SpecialInstructionContext(
 	string? OperandIdentifier,
 	AddressingMode AddressingMode,
 	long? OperandValue,
+	char? SizeSuffix,
 	SourceLocation Location,
 	IReadOnlyList<ResolvedOperand>? AdditionalOperands = null);
 

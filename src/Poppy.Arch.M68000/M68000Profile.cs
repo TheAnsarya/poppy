@@ -43,6 +43,11 @@ internal sealed class M68000Profile : ITargetProfile {
 		private static readonly FrozenSet<string> s_mnemonics = InstructionSetM68000.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
+		private enum SourceExtensionKind {
+			None,
+			Long,
+		}
+
 		private static bool TryGetDataRegister(string name, out int register) {
 			register = -1;
 			if (!InstructionSetM68000.TryGetRegister(name, out var encoding, out var isAddress) || isAddress) {
@@ -65,6 +70,53 @@ internal sealed class M68000Profile : ITargetProfile {
 
 		public int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix,
 			IReadOnlyList<ResolvedOperand>? additionalOperands) {
+			if (mnemonic.Equals("lea", StringComparison.OrdinalIgnoreCase)) {
+				if (!hasOperand || additionalOperands is null || additionalOperands.Count != 1) {
+					return 0;
+				}
+
+				var destination = additionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetAddressRegister(destination, out _)) {
+					return 0;
+				}
+
+				return 2 + GetSourceExtensionSize(operandIdentifier, hasOperand);
+			}
+
+			if (mnemonic.Equals("pea", StringComparison.OrdinalIgnoreCase)) {
+				if (!hasOperand || additionalOperands is not null && additionalOperands.Count > 0) {
+					return 0;
+				}
+
+				return 2 + GetSourceExtensionSize(operandIdentifier, hasOperand);
+			}
+
+			if (mnemonic.Equals("move", StringComparison.OrdinalIgnoreCase)) {
+				if ((sizeSuffix.HasValue && sizeSuffix.Value != 'l') || !hasOperand || additionalOperands is null || additionalOperands.Count != 1) {
+					return 0;
+				}
+
+				var destination = additionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetDataRegister(destination, out _)) {
+					return 0;
+				}
+
+				return 2 + GetSourceExtensionSize(operandIdentifier, hasOperand);
+			}
+
+			if (mnemonic.Equals("movea", StringComparison.OrdinalIgnoreCase)) {
+				if ((sizeSuffix.HasValue && sizeSuffix.Value != 'l') || !hasOperand || additionalOperands is null || additionalOperands.Count != 1) {
+					return 0;
+				}
+
+				var destination = additionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetAddressRegister(destination, out _)) {
+					return 0;
+				}
+
+				return 2 + GetSourceExtensionSize(operandIdentifier, hasOperand);
+			}
+
 			if (mnemonic.Equals("moveq", StringComparison.OrdinalIgnoreCase)) {
 				if (!hasOperand || string.IsNullOrEmpty(operandIdentifier) || additionalOperands is null || additionalOperands.Count != 1) {
 					return 0;
@@ -98,6 +150,81 @@ internal sealed class M68000Profile : ITargetProfile {
 		}
 
 		public bool TryEmitSpecialInstruction(SpecialInstructionContext context, ICodeEmitter emitter) {
+			if (context.Mnemonic.Equals("lea", StringComparison.OrdinalIgnoreCase)) {
+				if (context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
+					return false;
+				}
+
+				var destination = context.AdditionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetAddressRegister(destination, out var destinationRegister)) {
+					return false;
+				}
+
+				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: false, out var sourceEa, out var extensionKind)) {
+					return false;
+				}
+
+				var opcode = (ushort)(0x41c0 | (destinationRegister << 9) | sourceEa);
+				EmitWord(emitter, opcode);
+				EmitSourceExtension(emitter, context.OperandValue, extensionKind);
+				return true;
+			}
+
+			if (context.Mnemonic.Equals("pea", StringComparison.OrdinalIgnoreCase)) {
+				if (context.AdditionalOperands is not null && context.AdditionalOperands.Count > 0) {
+					return false;
+				}
+
+				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: false, out var sourceEa, out var extensionKind)) {
+					return false;
+				}
+
+				var opcode = (ushort)(0x4840 | sourceEa);
+				EmitWord(emitter, opcode);
+				EmitSourceExtension(emitter, context.OperandValue, extensionKind);
+				return true;
+			}
+
+			if (context.Mnemonic.Equals("move", StringComparison.OrdinalIgnoreCase)) {
+				if ((context.SizeSuffix.HasValue && context.SizeSuffix.Value != 'l') || context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
+					return false;
+				}
+
+				var destination = context.AdditionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetDataRegister(destination, out var destinationRegister)) {
+					return false;
+				}
+
+				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: true, out var sourceEa, out var extensionKind)) {
+					return false;
+				}
+
+				var opcode = (ushort)(0x2000 | (destinationRegister << 9) | sourceEa);
+				EmitWord(emitter, opcode);
+				EmitSourceExtension(emitter, context.OperandValue, extensionKind);
+				return true;
+			}
+
+			if (context.Mnemonic.Equals("movea", StringComparison.OrdinalIgnoreCase)) {
+				if ((context.SizeSuffix.HasValue && context.SizeSuffix.Value != 'l') || context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
+					return false;
+				}
+
+				var destination = context.AdditionalOperands[0].Identifier;
+				if (string.IsNullOrEmpty(destination) || !TryGetAddressRegister(destination, out var destinationRegister)) {
+					return false;
+				}
+
+				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: false, out var sourceEa, out var extensionKind)) {
+					return false;
+				}
+
+				var opcode = (ushort)(0x2040 | (destinationRegister << 9) | sourceEa);
+				EmitWord(emitter, opcode);
+				EmitSourceExtension(emitter, context.OperandValue, extensionKind);
+				return true;
+			}
+
 			if (context.Mnemonic.Equals("moveq", StringComparison.OrdinalIgnoreCase)) {
 				if (!context.OperandValue.HasValue || context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
 					return false;
@@ -186,5 +313,72 @@ internal sealed class M68000Profile : ITargetProfile {
 
 		public bool IsRegister(string name) =>
 			InstructionSetM68000.TryGetRegister(name, out _, out _);
+
+		private static int GetSourceExtensionSize(string? operandIdentifier, bool hasOperand) {
+			if (!hasOperand) {
+				return 0;
+			}
+
+			if (!string.IsNullOrEmpty(operandIdentifier)
+				&& (TryGetDataRegister(operandIdentifier, out _) || TryGetAddressRegister(operandIdentifier, out _))) {
+				return 0;
+			}
+
+			return 4;
+		}
+
+		private static bool TryEncodeSourceEffectiveAddress(SpecialInstructionContext context, bool allowImmediate,
+			out ushort sourceEaBits, out SourceExtensionKind extensionKind) {
+			sourceEaBits = 0;
+			extensionKind = SourceExtensionKind.None;
+
+			if (!string.IsNullOrEmpty(context.OperandIdentifier)) {
+				if (context.AddressingMode == AddressingMode.Indirect && TryGetAddressRegister(context.OperandIdentifier, out var indirectAddressRegister)) {
+					sourceEaBits = (ushort)((2 << 3) | indirectAddressRegister);
+					return true;
+				}
+
+				if (TryGetDataRegister(context.OperandIdentifier, out var dataRegister)) {
+					sourceEaBits = (ushort)dataRegister;
+					return true;
+				}
+
+				if (TryGetAddressRegister(context.OperandIdentifier, out var addressRegister)) {
+					sourceEaBits = (ushort)((1 << 3) | addressRegister);
+					return true;
+				}
+			}
+
+			if (allowImmediate && context.AddressingMode == AddressingMode.Immediate && context.OperandValue.HasValue) {
+				sourceEaBits = 0x003c;
+				extensionKind = SourceExtensionKind.Long;
+				return true;
+			}
+
+			if (context.OperandValue.HasValue) {
+				sourceEaBits = 0x0039;
+				extensionKind = SourceExtensionKind.Long;
+				return true;
+			}
+
+			return false;
+		}
+
+		private static void EmitSourceExtension(ICodeEmitter emitter, long? operandValue, SourceExtensionKind extensionKind) {
+			if (extensionKind == SourceExtensionKind.None || !operandValue.HasValue) {
+				return;
+			}
+
+			var value = operandValue.Value;
+			emitter.EmitByte((byte)((value >> 24) & 0xff));
+			emitter.EmitByte((byte)((value >> 16) & 0xff));
+			emitter.EmitByte((byte)((value >> 8) & 0xff));
+			emitter.EmitByte((byte)(value & 0xff));
+		}
+
+		private static void EmitWord(ICodeEmitter emitter, ushort value) {
+			emitter.EmitByte((byte)((value >> 8) & 0xff));
+			emitter.EmitByte((byte)(value & 0xff));
+		}
 	}
 }

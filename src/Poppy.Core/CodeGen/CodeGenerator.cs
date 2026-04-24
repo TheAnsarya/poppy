@@ -268,7 +268,7 @@ public sealed class CodeGenerator : IAstVisitor<object?>, ICodeEmitter {
 
 		var specialContext = new SpecialInstructionContext(mnemonic,
 			node.Operand is IdentifierNode idNode ? idNode.Name : null,
-			addressingMode, operandValue, node.Location, additionalOperands);
+			addressingMode, operandValue, node.SizeSuffix, node.Location, additionalOperands);
 		if (_profile.Encoder.TryEmitSpecialInstruction(specialContext, this)) {
 			RecordListingEntry(instructionStartAddress, node.Location);
 			return null;

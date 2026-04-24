@@ -209,6 +209,41 @@ reset:
 		Assert.Equal(0x75, binary[0x203]);
 	}
 
+	[Fact]
+	public void Generate_GenesisRom_EncodesLeaAndPeaCoreForms() {
+		// arrange
+		var source = @"
+.target genesis
+
+.org $0200
+	lea $00000300, a2
+	pea (a1)
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.M68000);
+		analyzer.Analyze(program);
+
+		// act
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.M68000);
+		var binary = generator.Generate(program);
+
+		// assert
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+		Assert.Equal(0x45, binary[0x200]);
+		Assert.Equal(0xf9, binary[0x201]);
+		Assert.Equal(0x00, binary[0x202]);
+		Assert.Equal(0x00, binary[0x203]);
+		Assert.Equal(0x03, binary[0x204]);
+		Assert.Equal(0x00, binary[0x205]);
+		Assert.Equal(0x48, binary[0x206]);
+		Assert.Equal(0x51, binary[0x207]);
+	}
+
 	/// <summary>
 	/// Helper to format error messages for assertion output.
 	/// </summary>
@@ -224,4 +259,5 @@ reset:
 		if (!generator.HasErrors) return string.Empty;
 		return string.Join("\n", generator.Errors.Select(e => e.Message));
 	}
+
 }
