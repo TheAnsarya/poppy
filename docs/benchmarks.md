@@ -8,6 +8,7 @@ The benchmark suite covers:
 
 - Full compile pipeline benchmarks across multiple target systems
 - Architecture comparison benchmarks (including Channel F/F8)
+	- Includes a focused Genesis instruction-bearing compile scenario (`nop`/`rts` at `$0200`) for deterministic M68000 pipeline tracking
 - Asset/pipeline helper benchmarks
 	- Asset-heavy per-target compile scenarios (NES, Atari 2600, SNES, GB, SMS, TG16, Channel F) using a shared JSON+binary asset manifest workload
 - ARM7TDMI special-emission micro-benchmarks for:
@@ -40,6 +41,12 @@ Run quick dry-job validation for architecture comparison benchmarks:
 
 ```powershell
 dotnet run --project src/Poppy.Benchmarks -c Release -- --job dry --filter "*ArchitectureComparison*"
+```
+
+Run a focused dry-job validation for Genesis instruction-bearing benchmark coverage:
+
+```powershell
+dotnet run --project src/Poppy.Benchmarks -c Release -- --job dry --filter "*GenesisInstructionSnippet*"
 ```
 
 Run quick dry-job validation for asset pipeline benchmarks:

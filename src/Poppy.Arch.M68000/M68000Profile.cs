@@ -43,6 +43,38 @@ internal sealed class M68000Profile : ITargetProfile {
 		private static readonly FrozenSet<string> s_mnemonics = InstructionSetM68000.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
+		public int GetSpecialInstructionSize(string mnemonic, string? operandIdentifier, bool hasOperand, char? sizeSuffix,
+			IReadOnlyList<ResolvedOperand>? additionalOperands) {
+			if (hasOperand || !string.IsNullOrEmpty(operandIdentifier)) {
+				return 0;
+			}
+
+			if (additionalOperands is not null && additionalOperands.Count > 0) {
+				return 0;
+			}
+
+			return InstructionSetM68000.TryGetBaseOpcode(mnemonic, out _) ? 2 : 0;
+		}
+
+		public bool TryEmitSpecialInstruction(SpecialInstructionContext context, ICodeEmitter emitter) {
+			if (!string.IsNullOrEmpty(context.OperandIdentifier) || context.OperandValue.HasValue) {
+				return false;
+			}
+
+			if (context.AdditionalOperands is not null && context.AdditionalOperands.Count > 0) {
+				return false;
+			}
+
+			if (!InstructionSetM68000.TryGetBaseOpcode(context.Mnemonic, out var baseOpcode)) {
+				return false;
+			}
+
+			// M68000 opcodes are 16-bit big-endian words.
+			emitter.EmitByte((byte)((baseOpcode >> 8) & 0xff));
+			emitter.EmitByte((byte)(baseOpcode & 0xff));
+			return true;
+		}
+
 		public bool TryEncode(string mnemonic, AddressingMode mode, out EncodedInstruction encoding) {
 			if (InstructionSetM68000.TryGetEncodingFromShared(mnemonic, mode, out var opcode, out var size)) {
 				encoding = new EncodedInstruction(opcode, size);

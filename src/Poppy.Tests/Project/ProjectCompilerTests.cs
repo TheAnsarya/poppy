@@ -397,6 +397,67 @@ nop
 			&& e.Message.Contains("not found", StringComparison.OrdinalIgnoreCase));
 	}
 
+	[Fact]
+	public void Compile_GenesisProject_WithIncludeEquates_EmitsDeterministicOpcodes() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.include ""genesis.inc""
+.org CODE_START
+nop
+rts
+");
+
+		WriteFile("includes/genesis.inc", @"
+CODE_START = $0200
+");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		project.Includes.Add("includes");
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.NotNull(binary);
+		Assert.False(compiler.HasErrors);
+		Assert.Equal((byte)'S', binary[0x100]);
+		Assert.Equal((byte)'E', binary[0x101]);
+		Assert.Equal((byte)'G', binary[0x102]);
+		Assert.Equal((byte)'A', binary[0x103]);
+		Assert.Equal(0x4e, binary[0x200]);
+		Assert.Equal(0x71, binary[0x201]);
+		Assert.Equal(0x4e, binary[0x202]);
+		Assert.Equal(0x75, binary[0x203]);
+	}
+
+	[Fact]
+	public void Compile_GenesisProject_MissingInclude_ReportsDeterministicError() {
+		// Arrange
+		WriteFile("main.pasm", @"
+.target genesis
+.include ""missing_genesis.inc""
+.org $0200
+nop
+");
+
+		var project = CreateProject(target: "genesis");
+		project.Main = "main.pasm";
+		var compiler = new ProjectCompiler(project, _tempDir);
+
+		// Act
+		var binary = compiler.Compile();
+
+		// Assert
+		Assert.Null(binary);
+		Assert.True(compiler.HasErrors);
+		Assert.Contains(compiler.Errors, e =>
+			e.Message.Contains("missing_genesis.inc", StringComparison.OrdinalIgnoreCase)
+			&& e.Message.Contains("not found", StringComparison.OrdinalIgnoreCase));
+	}
+
 	// ========================================================================
 	// FromFile Static Method Tests
 	// ========================================================================

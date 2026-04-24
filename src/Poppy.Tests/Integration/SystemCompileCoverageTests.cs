@@ -60,6 +60,12 @@ inx
 nop
 cli
 ", new byte[] { 0x90, 0xfa }];
+
+		yield return ["genesis-bytes", TargetArchitecture.M68000, @".target genesis
+.org $0000
+nop
+rts
+", new byte[] { 0x4e, 0x71, 0x4e, 0x75 }];
 	}
 
 	public static IEnumerable<object[]> SystemVectors() {

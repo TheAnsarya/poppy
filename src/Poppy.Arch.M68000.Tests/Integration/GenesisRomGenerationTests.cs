@@ -15,8 +15,6 @@ namespace Poppy.Arch.M68000.Tests.Integration;
 /// Integration tests for Sega Genesis / Mega Drive ROM generation.
 /// Verifies the full pipeline: lexer → parser → semantic analyzer → code generator
 /// produces correct M68000 binary output with proper header and ROM layout.
-/// Note: M68000 uses 16-bit opcodes; full byte-level verification is blocked until
-/// the CodeGenerator supports multi-byte opcode emission.
 /// </summary>
 public sealed class GenesisRomGenerationTests {
 	[Fact]
@@ -143,6 +141,37 @@ reset:
 			// All should produce auto-sized Genesis ROM (32KB for minimal content)
 			Assert.Equal(32768, binary.Length);
 		}
+	}
+
+	[Fact]
+	public void Generate_GenesisRom_EmitsDeterministicOpcodesAtCodeOrigin() {
+		// arrange
+		var source = @"
+.target genesis
+
+.org $0200
+	nop
+	rts
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.M68000);
+		analyzer.Analyze(program);
+
+		// act
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.M68000);
+		var binary = generator.Generate(program);
+
+		// assert
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+		Assert.Equal(0x4e, binary[0x200]);
+		Assert.Equal(0x71, binary[0x201]);
+		Assert.Equal(0x4e, binary[0x202]);
+		Assert.Equal(0x75, binary[0x203]);
 	}
 
 	/// <summary>

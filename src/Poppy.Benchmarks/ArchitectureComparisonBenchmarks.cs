@@ -30,6 +30,7 @@ public class ArchitectureComparisonBenchmarks {
 	private PlatformSource _turbografx;
 	private PlatformSource _wonderswan;
 	private PlatformSource _channelF;
+	private PlatformSource _genesisInstructionSnippet;
 
 	[GlobalSetup]
 	public void Setup() {
@@ -58,6 +59,11 @@ public class ArchitectureComparisonBenchmarks {
 		_turbografx = new(File.ReadAllText(Path.Combine(examplesDir, "turbografx-hello-world", "main.pasm")), TargetArchitecture.HuC6280);
 		_wonderswan = new(File.ReadAllText(Path.Combine(examplesDir, "wonderswan-hello-world", "main.pasm")), TargetArchitecture.V30MZ);
 		_channelF = new(File.ReadAllText(Path.Combine(examplesDir, "channelf-hello-world", "main.pasm")), TargetArchitecture.F8);
+		_genesisInstructionSnippet = new(@".target genesis
+.org $0200
+nop
+rts
+", TargetArchitecture.M68000);
 	}
 
 	// ========================================================================
@@ -99,6 +105,9 @@ public class ArchitectureComparisonBenchmarks {
 
 	[Benchmark(Description = "Channel F (F8)")]
 	public byte[] Compile_ChannelF() => FullCompile(_channelF);
+
+	[Benchmark(Description = "Genesis (M68000 instruction snippet)")]
+	public byte[] Compile_GenesisInstructionSnippet() => FullCompile(_genesisInstructionSnippet);
 
 	// ========================================================================
 	// Helpers

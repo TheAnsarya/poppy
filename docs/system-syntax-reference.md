@@ -23,6 +23,7 @@ Additional byte-verified integration vectors are maintained for core assembler c
 - TurboGrafx-16 / PC Engine (HuC6280)
 - Atari Lynx (MOS65SC02)
 - WonderSwan (V30MZ)
+- Genesis / Mega Drive (M68000)
 
 These vectors assert exact emitted bytes for representative canonical instructions so cross-target compile correctness remains deterministic.
 
@@ -35,7 +36,7 @@ These vectors assert exact emitted bytes for representative canonical instructio
 | Atari Lynx | MOS 65SC02 | `lynx` | `lynx` | 65SC02 model with PASM 65xx directives and standard label flow |
 | SNES | WDC 65816 | `snes` | `snes` | 65816 mnemonics/directives (`rep`, `sep`, banked addressing) with SNES header directives |
 | Game Boy | SM83 | `gb` | `gb` / `gbc` | SM83 opcodes like `nop`, `halt`; Game Boy header directives available |
-| Genesis | Motorola 68000 | `genesis` | `genesis` | M68000 profile supports core opcodes (`nop`) and system-specific evolution is ongoing |
+| Genesis | Motorola 68000 | `genesis` | `genesis` | M68000 profile supports deterministic integration-verified control opcodes (`nop`, `rts`) at ROM code origin |
 | Master System | Z80 | `sms` | `sms` | Z80 profile supports baseline instructions like `nop`, `halt` |
 | WonderSwan | NEC V30MZ | `ws` | `ws` / `wonderswan` | V30MZ profile supports baseline control ops like `nop`, `cli` |
 | GBA | ARM7TDMI | `gba` | `gba` | ARM mode supports byte-verified core mnemonics: `mov`, `add`, `sub`, `cmp`, `b`, `bl`, `bx`, `swi`, `ldr`/`str`/`ldrb`/`strb`, `mul`/`mla` |
