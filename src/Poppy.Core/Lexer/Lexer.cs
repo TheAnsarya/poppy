@@ -557,7 +557,7 @@ public sealed class Lexer {
 		"abcd", "adda", "addi", "addq", "addx", "andi",
 		"bchg", "bclr", "bset", "bsr", "btst", "chk", "clr",
 		"cmpa", "cmpi", "cmpm", "divs", "divu", "exg", "ext",
-		"illegal", "link", "movea", "movem", "muls", "mulu",
+		"illegal", "link", "move", "movea", "moveq", "movem", "muls", "mulu", "pea",
 		"nbcd", "negx", "ori", "reset", "roxl", "roxr",
 		"sbcd", "suba", "subi", "subq", "subx", "tas",
 		"trap", "trapv", "unlk",

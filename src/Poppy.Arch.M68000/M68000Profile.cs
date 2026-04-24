@@ -43,6 +43,11 @@ internal sealed class M68000Profile : ITargetProfile {
 		private static readonly FrozenSet<string> s_mnemonics = InstructionSetM68000.GetAllMnemonics().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 		public IReadOnlySet<string> Mnemonics => s_mnemonics;
 
+		private const string MoveUnsupportedSourceMessage = "'move' source operand shape is not supported by deterministic Genesis M68000 special emission";
+		private const string MoveUnsupportedDestinationMessage = "'move' destination must be data register direct (dn) for deterministic Genesis M68000 special emission";
+		private const string MoveaUnsupportedSourceMessage = "'movea' source operand shape is not supported by deterministic Genesis M68000 special emission";
+		private const string MoveaUnsupportedDestinationMessage = "'movea' destination must be address register direct (an) for deterministic Genesis M68000 special emission";
+
 		private enum SourceExtensionKind {
 			None,
 			Long,
@@ -186,17 +191,25 @@ internal sealed class M68000Profile : ITargetProfile {
 			}
 
 			if (context.Mnemonic.Equals("move", StringComparison.OrdinalIgnoreCase)) {
-				if ((context.SizeSuffix.HasValue && context.SizeSuffix.Value != 'l') || context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
-					return false;
+				if (context.SizeSuffix.HasValue && char.ToLowerInvariant(context.SizeSuffix.Value) != 'l') {
+					emitter.ReportError("'move' deterministic Genesis special emission currently supports only '.l' size", context.Location);
+					return true;
+				}
+
+				if (context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
+					emitter.ReportError("'move' requires two operands", context.Location);
+					return true;
 				}
 
 				var destination = context.AdditionalOperands[0].Identifier;
 				if (string.IsNullOrEmpty(destination) || !TryGetDataRegister(destination, out var destinationRegister)) {
-					return false;
+					emitter.ReportError(MoveUnsupportedDestinationMessage, context.Location);
+					return true;
 				}
 
 				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: true, out var sourceEa, out var extensionKind)) {
-					return false;
+					emitter.ReportError(MoveUnsupportedSourceMessage, context.Location);
+					return true;
 				}
 
 				var opcode = (ushort)(0x2000 | (destinationRegister << 9) | sourceEa);
@@ -206,17 +219,25 @@ internal sealed class M68000Profile : ITargetProfile {
 			}
 
 			if (context.Mnemonic.Equals("movea", StringComparison.OrdinalIgnoreCase)) {
-				if ((context.SizeSuffix.HasValue && context.SizeSuffix.Value != 'l') || context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
-					return false;
+				if (context.SizeSuffix.HasValue && char.ToLowerInvariant(context.SizeSuffix.Value) != 'l') {
+					emitter.ReportError("'movea' deterministic Genesis special emission currently supports only '.l' size", context.Location);
+					return true;
+				}
+
+				if (context.AdditionalOperands is null || context.AdditionalOperands.Count != 1) {
+					emitter.ReportError("'movea' requires two operands", context.Location);
+					return true;
 				}
 
 				var destination = context.AdditionalOperands[0].Identifier;
 				if (string.IsNullOrEmpty(destination) || !TryGetAddressRegister(destination, out var destinationRegister)) {
-					return false;
+					emitter.ReportError(MoveaUnsupportedDestinationMessage, context.Location);
+					return true;
 				}
 
-				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: false, out var sourceEa, out var extensionKind)) {
-					return false;
+				if (!TryEncodeSourceEffectiveAddress(context, allowImmediate: true, out var sourceEa, out var extensionKind)) {
+					emitter.ReportError(MoveaUnsupportedSourceMessage, context.Location);
+					return true;
 				}
 
 				var opcode = (ushort)(0x2040 | (destinationRegister << 9) | sourceEa);

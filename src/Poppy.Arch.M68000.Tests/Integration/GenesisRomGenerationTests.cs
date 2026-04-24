@@ -244,6 +244,51 @@ reset:
 		Assert.Equal(0x51, binary[0x207]);
 	}
 
+	[Fact]
+	public void Generate_GenesisRom_EncodesMoveAndMoveaCoreForms() {
+		// arrange
+		var source = @"
+.target genesis
+
+.org $0200
+	move.l #$12345678, d1
+	move.l d1, d2
+	movea.l d2, a3
+	movea.l $00000400, a4
+";
+		var lexer = new Core.Lexer.Lexer(source, "test.pasm");
+		var tokens = lexer.Tokenize();
+		var parser = new Core.Parser.Parser(tokens);
+		var program = parser.Parse();
+
+		var analyzer = new SemanticAnalyzer(TargetArchitecture.M68000);
+		analyzer.Analyze(program);
+
+		// act
+		var generator = new CodeGenerator(analyzer, TargetArchitecture.M68000);
+		var binary = generator.Generate(program);
+
+		// assert
+		Assert.False(analyzer.HasErrors, GetErrorsString(analyzer));
+		Assert.False(generator.HasErrors, GetErrorsString(generator));
+		Assert.Equal(0x22, binary[0x200]);
+		Assert.Equal(0x3c, binary[0x201]);
+		Assert.Equal(0x12, binary[0x202]);
+		Assert.Equal(0x34, binary[0x203]);
+		Assert.Equal(0x56, binary[0x204]);
+		Assert.Equal(0x78, binary[0x205]);
+		Assert.Equal(0x24, binary[0x206]);
+		Assert.Equal(0x01, binary[0x207]);
+		Assert.Equal(0x26, binary[0x208]);
+		Assert.Equal(0x42, binary[0x209]);
+		Assert.Equal(0x28, binary[0x20a]);
+		Assert.Equal(0x79, binary[0x20b]);
+		Assert.Equal(0x00, binary[0x20c]);
+		Assert.Equal(0x00, binary[0x20d]);
+		Assert.Equal(0x04, binary[0x20e]);
+		Assert.Equal(0x00, binary[0x20f]);
+	}
+
 	/// <summary>
 	/// Helper to format error messages for assertion output.
 	/// </summary>

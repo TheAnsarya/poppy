@@ -1204,6 +1204,59 @@ main_loop:
     bra.s   main_loop
 ```
 
+#### Genesis Subsystem Quick Reference
+
+The Genesis execution model usually combines 68000-side game logic with Z80-driven audio playback and shared hardware blocks.
+
+Core subsystem map:
+
+- 68000 main CPU: cartridge/gameplay logic and hardware setup
+- Z80 coprocessor: sound driver/runtime sequencing
+- VDP: tile/sprite/scroll display interface
+- YM2612: 6-channel FM synthesis
+- PSG: square/noise channels (SN76489-compatible)
+
+Common 68000-visible addresses:
+
+```asm
+Z80_BUS_REQ  equ $a11100
+Z80_RESET    equ $a11200
+Z80_RAM      equ $a00000
+
+VDP_DATA     equ $c00000
+VDP_CTRL     equ $c00004
+PSG_PORT     equ $c00011
+
+YM2612_A0    equ $a04000
+YM2612_D0    equ $a04001
+YM2612_A1    equ $a04002
+YM2612_D1    equ $a04003
+```
+
+Minimal 68000-side setup example:
+
+```asm
+    ; Request Z80 bus and release reset before writing sound-side state.
+    move.w  #$0100, Z80_BUS_REQ
+    move.w  #$0000, Z80_RESET
+
+    ; VDP control write example.
+    move.l  #$40000003, VDP_CTRL
+
+    ; YM2612 register write (port 0, reg $22 = LFO control).
+    move.b  #$22, YM2612_A0
+    move.b  #$00, YM2612_D0
+
+    ; PSG latch/data write example.
+    move.b  #$90, PSG_PORT
+```
+
+Notes:
+
+- Real projects usually upload a Z80 sound driver blob into `Z80_RAM` and then hand off YM2612/PSG sequencing to that driver.
+- Bus arbitration and timing requirements vary by sequence; keep hardware waits explicit in production code.
+- Keep the 68000 and Z80 build artifacts separated and include/embed Z80 blobs through asset/include directives.
+
 ### Z80 (Sega Master System)
 
 ```bash

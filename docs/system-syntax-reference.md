@@ -36,7 +36,7 @@ These vectors assert exact emitted bytes for representative canonical instructio
 | Atari Lynx | MOS 65SC02 | `lynx` | `lynx` | 65SC02 model with PASM 65xx directives and standard label flow |
 | SNES | WDC 65816 | `snes` | `snes` | 65816 mnemonics/directives (`rep`, `sep`, banked addressing) with SNES header directives |
 | Game Boy | SM83 | `gb` | `gb` / `gbc` | SM83 opcodes like `nop`, `halt`; Game Boy header directives available |
-| Genesis | Motorola 68000 | `genesis` | `genesis` | M68000 profile supports deterministic integration-verified operand-bearing forms including `moveq #imm,dn`, `jmp $address`, `jsr (an)`, `lea <ea>,an`, and `pea <ea>` |
+| Genesis | Motorola 68000 | `genesis` | `genesis` | M68000 profile supports deterministic integration-verified operand-bearing forms including `moveq #imm,dn`, `move.l <src>,dn`, `movea.l <src>,an`, `jmp $address`, `jsr (an)`, `lea <ea>,an`, and `pea <ea>` |
 | Master System | Z80 | `sms` | `sms` | Z80 profile supports baseline instructions like `nop`, `halt` |
 | WonderSwan | NEC V30MZ | `ws` | `ws` / `wonderswan` | V30MZ profile supports baseline control ops like `nop`, `cli` |
 | GBA | ARM7TDMI | `gba` | `gba` | ARM mode supports byte-verified core mnemonics: `mov`, `add`, `sub`, `cmp`, `b`, `bl`, `bx`, `swi`, `ldr`/`str`/`ldrb`/`strb`, `mul`/`mla` |
@@ -113,6 +113,44 @@ poppy --platform genesis src/main.pasm -o build/game.bin
 ```
 
 Roundtrip fixture tests also validate editable JSON + PNG inputs emit deterministic binary blob prefixes across representative platform profiles, including Atari 2600 and Genesis.
+
+## Genesis Hardware Programming Notes
+
+For Sega Genesis projects, the 68000-target assembler flow is verified together with hardware-facing register programming patterns for these core subsystems:
+
+- Main CPU: Motorola 68000
+- Sound coprocessor: Z80 (typically uploaded/controlled by 68000-side startup code)
+- Video: VDP
+- FM audio: YM2612
+- PSG audio: SN76489-compatible PSG
+
+Common 68000-side register anchors used in startup/runtime code:
+
+- `Z80_BUS_REQ = $a11100`
+- `Z80_RESET = $a11200`
+- `Z80_RAM = $a00000`
+- `VDP_DATA = $c00000`
+- `VDP_CTRL = $c00004`
+- `PSG_PORT = $c00011`
+- `YM2612_A0 = $a04000`
+- `YM2612_D0 = $a04001`
+- `YM2612_A1 = $a04002`
+- `YM2612_D1 = $a04003`
+
+Representative snippet:
+
+```asm
+.target genesis
+.org $000200
+
+	move.w  #$0100, $a11100   ; request Z80 bus
+	move.b  #$80, $c00011     ; PSG write
+	move.b  #$22, $a04000     ; YM2612 register (port 0)
+	move.b  #$00, $a04001     ; YM2612 value
+	move.l  #$40000003, $c00004 ; VDP control long write
+```
+
+Use this as a hardware map reference; final initialization ordering and wait-state behavior should follow platform docs linked in `docs/resources.md`.
 
 ## ARM7TDMI Coverage Notes
 

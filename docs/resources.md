@@ -45,6 +45,10 @@
 | Plutiedev | <https://plutiedev.com/> | Genesis programming tutorials |
 | 68k.hax.com | <https://68k.hax.com/> | 68000 instruction reference |
 | SGDK | <https://github.com/Stephane-D/SGDK> | Genesis development kit |
+| Genesis VDP Notes | <https://md.railgun.works/index.php?title=VDP> | VDP register and command details |
+| YM2612 Reference (Genesis) | <https://plutiedev.com/ym2612-registers> | YM2612 register map and usage |
+| SN76489 / PSG Reference | <https://www.smspower.org/Development/SN76489> | PSG latch/data protocol |
+| Genesis Z80 Sound Notes | <https://plutiedev.com/z80-assembly> | Z80-side sound-driver guidance |
 
 ### Z80 (Sega Master System / Game Gear)
 
