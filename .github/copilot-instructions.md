@@ -247,6 +247,14 @@ Always include unexpected/stray/untracked modified files in commits by default. 
 - Commit and push without additional confirmation prompts
 - Continue implementation work without stopping on dirty-tree surprises
 
+### ⚠️ MANDATORY: Terminal and Process Cleanup
+
+To reduce VS Code memory usage, always close terminals and extra background programs immediately after their related work is complete.
+
+- After each build/test/script step, stop the related process if it is still running
+- Close any no-longer-needed terminal sessions instead of leaving them open
+- Keep only the minimum terminals required for active work
+
 - Create feature branches: `feature/description`, `fix/description`
 - Logical, atomic commits — one concern per commit
 - **Always reference issue numbers**: `Brief description - #<issue-number>`
