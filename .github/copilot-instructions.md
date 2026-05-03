@@ -313,6 +313,10 @@ See `src/Poppy.Core/CodeGen/PansyGenerator.cs`.
 10. **Always** format code before committing (tabs, K&R, lowercase hex)
 11. **Always** tie commits to issues with `#<number>` references
 
+## Session Wrap-Up Directive
+
+- Always end every Copilot session response with concise, actionable suggestions for what to work on next.
+
 ## Markdown Formatting
 
 ### ⚠️ MANDATORY: Fix Markdownlint Warnings
